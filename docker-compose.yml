@@ -1,0 +1,67 @@
+services:
+  # API server (Bun + Hono)
+  resortpass-api:
+    build: .
+    container_name: resortpass-api
+    restart: unless-stopped
+    environment:
+      - DB_PATH=/app/data/resortpass.db
+      - API_PORT=3000
+      - SITE_URL=https://www.resortpass-europapark.ch
+      - SMTP_HOST=resortpass-postfix
+      - SMTP_PORT=25
+      - FROM_EMAIL=noreply@resortpass-europapark.ch
+      - FROM_NAME=ResortPass Tracker
+      - STATUS_JSON_PATH=/app/dist/api/status.json
+    volumes:
+      - ./data:/app/data
+      - ./dist:/app/dist
+    networks:
+      - caddy-net
+
+  # Checker cron job (runs every hour)
+  resortpass-checker:
+    build: .
+    container_name: resortpass-checker
+    restart: unless-stopped
+    entrypoint: /bin/sh
+    command: >
+      -c "while true; do
+        echo \"[$$(date -Iseconds)] Running checker...\";
+        bun run server/checker.ts;
+        echo \"[$$(date -Iseconds)] Sleeping 3600s...\";
+        sleep 3600;
+      done"
+    environment:
+      - DB_PATH=/app/data/resortpass.db
+      - SITE_URL=https://www.resortpass-europapark.ch
+      - SMTP_HOST=resortpass-postfix
+      - SMTP_PORT=25
+      - FROM_EMAIL=noreply@resortpass-europapark.ch
+      - FROM_NAME=ResortPass Tracker
+      - STATUS_JSON_PATH=/app/dist/api/status.json
+    volumes:
+      - ./data:/app/data
+      - ./dist:/app/dist
+    networks:
+      - caddy-net
+    depends_on:
+      - resortpass-postfix
+
+  # Postfix send-only SMTP
+  resortpass-postfix:
+    image: boky/postfix
+    container_name: resortpass-postfix
+    restart: unless-stopped
+    environment:
+      - ALLOWED_SENDER_DOMAINS=resortpass-europapark.ch
+      - HOSTNAME=mail.resortpass-europapark.ch
+      - RELAYHOST=
+      - POSTFIX_myhostname=mail.resortpass-europapark.ch
+      - POSTFIX_mydestination=localhost
+    networks:
+      - caddy-net
+
+networks:
+  caddy-net:
+    external: true

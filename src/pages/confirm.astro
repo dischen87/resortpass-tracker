@@ -1,0 +1,43 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout
+  title="E-Mail bestätigt — ResortPass Tracker"
+  description="Deine E-Mail-Adresse wurde erfolgreich bestätigt."
+>
+  <main class="max-w-2xl mx-auto px-4 py-20 text-center">
+    <div class="rounded-2xl border border-green-500/20 bg-green-500/5 p-8 max-w-md mx-auto">
+      <div class="text-4xl mb-4">&#10003;</div>
+      <h1 class="text-2xl font-bold mb-3">E-Mail bestätigt!</h1>
+      <p class="text-muted text-sm mb-6" id="confirm-message">
+        Bestätigung wird verarbeitet...
+      </p>
+      <a href="/" class="text-sm text-accent hover:underline">
+        &larr; Zurück zur Startseite
+      </a>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const msgEl = document.getElementById('confirm-message');
+
+    if (token && msgEl) {
+      fetch(`/api/confirm?token=${encodeURIComponent(token)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            msgEl.textContent = 'Du wirst ab sofort benachrichtigt, sobald der ResortPass verfügbar ist.';
+          } else {
+            msgEl.textContent = data.error || 'Der Bestätigungslink ist ungültig oder abgelaufen.';
+          }
+        })
+        .catch(() => {
+          msgEl.textContent = 'Ein Fehler ist aufgetreten. Bitte versuche es später erneut.';
+        });
+    }
+  </script>
+</Layout>

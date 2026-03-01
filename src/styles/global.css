@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0F1117;
+  --color-surface: #1A1D27;
+  --color-available: #22C55E;
+  --color-unavailable: #EF4444;
+  --color-accent: #3B82F6;
+  --color-text-primary: #E2E8F0;
+  --color-muted: #64748B;
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/DMSans-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/DMSans-Bold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/JetBrainsMono-Regular.woff2') format('woff2'),
+       url('/fonts/JetBrainsMono-Regular.woff') format('woff');
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+@keyframes pulse-glow-red {
+  0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.08); }
+  50% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.15); }
+}
+
+@keyframes pulse-glow-green {
+  0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.1); }
+  50% { box-shadow: 0 0 40px rgba(34, 197, 94, 0.2); }
+}
+
+.card-unavailable {
+  animation: pulse-glow-red 3s ease-in-out infinite;
+}
+
+.card-available {
+  animation: pulse-glow-green 2s ease-in-out infinite;
+}

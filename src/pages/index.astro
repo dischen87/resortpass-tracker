@@ -1,0 +1,117 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Hero from '../components/Hero.astro';
+import StatusCard from '../components/StatusCard.astro';
+import SubscribeForm from '../components/SubscribeForm.astro';
+import InfoSection from '../components/InfoSection.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+---
+
+<Layout
+  title="ResortPass Tracker — Europa-Park Jahreskarte Verfügbarkeit"
+  description="Erfahre sofort, wenn der Europa-Park ResortPass (Gold oder Silver) wieder verfügbar ist. Kostenlose E-Mail-Benachrichtigung — kein Spam, kein Tracking."
+>
+  <main class="max-w-2xl mx-auto">
+    <Hero />
+
+    <!-- Status Cards -->
+    <section class="px-4 pb-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <StatusCard
+          type="silver"
+          label="ResortPass Silver"
+          priceAdult="325 €"
+          priceReduced="275 €"
+          shopUrl="https://tickets.mackinternational.de/de/ticket/resortpass-silver"
+        />
+        <StatusCard
+          type="gold"
+          label="ResortPass Gold"
+          priceAdult="495 €"
+          priceReduced="430 €"
+          shopUrl="https://tickets.mackinternational.de/de/ticket/resortpass-gold"
+        />
+      </div>
+
+      <!-- Last check timestamp -->
+      <p id="last-check" class="mt-4 text-center text-xs text-muted font-mono">
+        Lade Status...
+      </p>
+    </section>
+
+    <SubscribeForm />
+    <InfoSection />
+    <Footer />
+  </main>
+
+  <!-- Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "ResortPass Tracker",
+    "url": "https://www.resortpass-europapark.ch",
+    "description": "Erfahre sofort, wenn der Europa-Park ResortPass (Gold oder Silver) wieder verfügbar ist.",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "CHF"
+    }
+  })} />
+
+  <!-- Status loader -->
+  <script>
+    async function loadStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+
+        updateCard('silver', data.silver);
+        updateCard('gold', data.gold);
+
+        const lastCheck = data.silver?.lastCheck || data.gold?.lastCheck;
+        if (lastCheck) {
+          const date = new Date(lastCheck);
+          const formatted = date.toLocaleDateString('de-CH', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+          const el = document.getElementById('last-check');
+          if (el) el.textContent = `Zuletzt geprüft: ${formatted} Uhr (wird stündlich aktualisiert)`;
+        }
+      } catch {
+        const el = document.getElementById('last-check');
+        if (el) el.textContent = 'Status konnte nicht geladen werden.';
+      }
+    }
+
+    function updateCard(type: string, status: { available: boolean; lastCheck: string } | undefined) {
+      const card = document.getElementById(`card-${type}`);
+      if (!card || !status) return;
+
+      const unavailableEl = card.querySelector('.status-unavailable');
+      const availableEl = card.querySelector('.status-available');
+
+      if (status.available) {
+        card.classList.remove('border-red-500/20', 'bg-red-500/5', 'card-unavailable');
+        card.classList.add('border-green-500/20', 'bg-green-500/5', 'card-available');
+        unavailableEl?.classList.add('hidden');
+        availableEl?.classList.remove('hidden');
+      } else {
+        card.classList.remove('border-green-500/20', 'bg-green-500/5', 'card-available');
+        card.classList.add('border-red-500/20', 'bg-red-500/5', 'card-unavailable');
+        unavailableEl?.classList.remove('hidden');
+        availableEl?.classList.add('hidden');
+      }
+    }
+
+    loadStatus();
+    // Refresh every 5 minutes
+    setInterval(loadStatus, 5 * 60 * 1000);
+  </script>
+</Layout>

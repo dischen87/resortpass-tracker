@@ -1,0 +1,119 @@
+---
+---
+
+<section class="px-4 py-10" id="benachrichtigung">
+  <div class="max-w-md mx-auto rounded-2xl border border-slate-700/50 bg-surface p-6">
+    <h2 class="text-lg font-bold mb-2">E-Mail Benachrichtigung</h2>
+    <p class="text-sm text-muted mb-6">
+      Erhalte eine E-Mail, sobald der ResortPass wieder verfügbar ist.
+    </p>
+
+    <form id="subscribe-form" class="space-y-4">
+      <div>
+        <label for="email" class="sr-only">E-Mail-Adresse</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          placeholder="deine@email.de"
+          autocomplete="email"
+          class="w-full rounded-xl border border-slate-700 bg-bg px-4 py-3 text-text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        />
+      </div>
+
+      <fieldset class="space-y-2">
+        <legend class="text-sm text-muted mb-1">Benachrichtige mich für:</legend>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            name="silver"
+            value="1"
+            checked
+            class="h-4 w-4 rounded border-slate-600 bg-bg text-accent focus:ring-accent"
+          />
+          <span class="text-sm">ResortPass Silver</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            name="gold"
+            value="1"
+            checked
+            class="h-4 w-4 rounded border-slate-600 bg-bg text-accent focus:ring-accent"
+          />
+          <span class="text-sm">ResortPass Gold</span>
+        </label>
+      </fieldset>
+
+      <button
+        type="submit"
+        class="w-full rounded-xl bg-accent py-3 font-bold text-white transition hover:bg-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Benachrichtigen
+      </button>
+
+      <div id="form-message" class="hidden text-sm text-center py-2 rounded-lg"></div>
+    </form>
+
+    <p class="mt-4 text-xs text-muted text-center">
+      Kein Spam. Nur bei Verfügbarkeit. Jederzeit abmeldbar.
+    </p>
+  </div>
+</section>
+
+<script>
+  const form = document.getElementById('subscribe-form') as HTMLFormElement;
+  const msgEl = document.getElementById('form-message') as HTMLDivElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'Wird gesendet...';
+    msgEl.classList.add('hidden');
+
+    const formData = new FormData(form);
+    const email = formData.get('email') as string;
+    const silver = formData.get('silver') === '1';
+    const gold = formData.get('gold') === '1';
+
+    if (!silver && !gold) {
+      showMessage('Bitte wähle mindestens einen Pass-Typ aus.', true);
+      btn.disabled = false;
+      btn.textContent = 'Benachrichtigen';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, notify_silver: silver, notify_gold: gold }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showMessage('Bitte prüfe deine E-Mails und bestätige dein Abo.', false);
+        form.reset();
+      } else {
+        showMessage(data.error || 'Ein Fehler ist aufgetreten.', true);
+      }
+    } catch {
+      showMessage('Verbindungsfehler. Bitte versuche es später erneut.', true);
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Benachrichtigen';
+  });
+
+  function showMessage(text: string, isError: boolean) {
+    msgEl.textContent = text;
+    msgEl.classList.remove('hidden', 'text-green-400', 'text-red-400', 'bg-green-500/10', 'bg-red-500/10');
+    msgEl.classList.add(
+      isError ? 'text-red-400' : 'text-green-400',
+      isError ? 'bg-red-500/10' : 'bg-green-500/10'
+    );
+  }
+</script>

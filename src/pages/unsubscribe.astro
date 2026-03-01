@@ -1,0 +1,42 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout
+  title="Abgemeldet — ResortPass Tracker"
+  description="Du wurdest erfolgreich abgemeldet."
+>
+  <main class="max-w-2xl mx-auto px-4 py-20 text-center">
+    <div class="rounded-2xl border border-slate-700/50 bg-surface p-8 max-w-md mx-auto">
+      <h1 class="text-2xl font-bold mb-3">Abgemeldet</h1>
+      <p class="text-muted text-sm mb-6" id="unsub-message">
+        Abmeldung wird verarbeitet...
+      </p>
+      <a href="/" class="text-sm text-accent hover:underline">
+        &larr; Zurück zur Startseite
+      </a>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const msgEl = document.getElementById('unsub-message');
+
+    if (token && msgEl) {
+      fetch(`/api/unsubscribe?token=${encodeURIComponent(token)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            msgEl.textContent = 'Du wurdest erfolgreich abgemeldet und deine Daten wurden gelöscht.';
+          } else {
+            msgEl.textContent = data.error || 'Der Abmelde-Link ist ungültig.';
+          }
+        })
+        .catch(() => {
+          msgEl.textContent = 'Ein Fehler ist aufgetreten. Bitte versuche es später erneut.';
+        });
+    }
+  </script>
+</Layout>

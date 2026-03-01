@@ -1,0 +1,88 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+---
+
+<Layout
+  title="Impressum — ResortPass Tracker"
+  description="Impressum und Datenschutzerklärung für ResortPass Tracker."
+>
+  <main class="max-w-2xl mx-auto px-4 py-12">
+    <a href="/" class="text-sm text-accent hover:underline mb-8 inline-block">&larr; Zurück zur Startseite</a>
+
+    <h1 class="text-2xl font-bold mb-8">Impressum</h1>
+
+    <section class="space-y-6 text-sm text-muted leading-relaxed">
+      <div>
+        <h2 class="text-base font-bold text-text-primary mb-2">Angaben gemäss § 5 TMG / Art. 3 UWG</h2>
+        <p>
+          Mathias [Nachname]<br />
+          [Strasse und Hausnummer]<br />
+          [PLZ und Ort]<br />
+          Schweiz
+        </p>
+        <p class="mt-2">
+          E-Mail: kontakt@resortpass-europapark.ch
+        </p>
+      </div>
+
+      <div>
+        <h2 class="text-base font-bold text-text-primary mb-2">Haftungsausschluss</h2>
+        <p>
+          Dies ist ein inoffizielles Community-Projekt und steht in keiner Verbindung
+          zum Europa-Park, zur Mack Rides GmbH oder zu MackInternational.
+        </p>
+        <p class="mt-2">
+          Die Verfügbarkeitsinformationen werden automatisch aus dem öffentlichen Ticketshop
+          abgerufen. Für die Richtigkeit, Vollständigkeit und Aktualität der Informationen
+          wird keine Gewähr übernommen.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="text-base font-bold text-text-primary mb-2">Datenschutzerklärung</h2>
+
+        <h3 class="font-semibold text-text-primary mt-4 mb-1">Erhobene Daten</h3>
+        <p>
+          Wenn du dich für E-Mail-Benachrichtigungen anmeldest, speichern wir ausschliesslich:
+        </p>
+        <ul class="list-disc list-inside mt-1 space-y-1">
+          <li>Deine E-Mail-Adresse</li>
+          <li>Deine Pass-Typ-Auswahl (Silver und/oder Gold)</li>
+          <li>Zeitpunkt der Anmeldung</li>
+        </ul>
+
+        <h3 class="font-semibold text-text-primary mt-4 mb-1">Verwendung</h3>
+        <p>
+          Deine E-Mail-Adresse wird ausschliesslich dazu verwendet, dich über die
+          Verfügbarkeit des Europa-Park ResortPass zu informieren. Wir versenden
+          keinen Newsletter, keine Werbung und geben deine Daten nicht an Dritte weiter.
+        </p>
+
+        <h3 class="font-semibold text-text-primary mt-4 mb-1">Tracking & Cookies</h3>
+        <p>
+          Diese Website verwendet kein Tracking, keine Cookies und keine Analytics.
+          Es werden keine Daten an Dritte übermittelt.
+        </p>
+
+        <h3 class="font-semibold text-text-primary mt-4 mb-1">Löschung</h3>
+        <p>
+          Du kannst dich jederzeit über den Abmelde-Link in jeder E-Mail abmelden.
+          Deine Daten werden daraufhin vollständig gelöscht.
+        </p>
+
+        <h3 class="font-semibold text-text-primary mt-4 mb-1">Hosting</h3>
+        <p>
+          Diese Website wird auf einem Hetzner Cloud Server in Deutschland gehostet.
+          Es gelten die
+          <a href="https://www.hetzner.com/de/legal/privacy-policy" target="_blank" rel="noopener noreferrer" class="text-accent hover:underline">
+            Datenschutzbestimmungen der Hetzner Online GmbH
+          </a>.
+        </p>
+      </div>
+    </section>
+
+    <Footer />
+  </main>
+</Layout>
