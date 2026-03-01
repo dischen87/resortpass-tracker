@@ -94,10 +94,10 @@ const c = config[type];
   <div class="status-unavailable hidden">
     <div class="flex items-center gap-3">
       <span class="relative flex h-3 w-3">
-        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75"></span>
         <span class="relative inline-flex h-3 w-3 rounded-full bg-unavailable"></span>
       </span>
-      <span class="text-lg font-bold text-red-400">{tr('status.sold_out')}</span>
+      <span class="text-lg font-bold text-red-600">{tr('status.sold_out')}</span>
     </div>
   </div>
 
@@ -105,10 +105,10 @@ const c = config[type];
   <div class="status-available hidden">
     <div class="flex items-center gap-3">
       <span class="relative flex h-3 w-3">
-        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75"></span>
         <span class="relative inline-flex h-3 w-3 rounded-full bg-available"></span>
       </span>
-      <span class="text-lg font-bold text-green-400">{tr('status.available')}</span>
+      <span class="text-lg font-bold text-green-600">{tr('status.available')}</span>
     </div>
     <a
       href={c.shopUrl}
@@ -126,14 +126,14 @@ const c = config[type];
   </div>
 
   <!-- Price Table -->
-  <div class="mt-5 rounded-xl bg-bg/40 border border-border/50 overflow-hidden">
+  <div class="mt-5 rounded-xl bg-bg-light border border-border overflow-hidden">
     <table class="w-full text-sm">
       <tbody>
-        <tr class="border-b border-border/30">
+        <tr class="border-b border-border">
           <td class="px-3 py-2 text-text-secondary">{tr('status.adults')}</td>
           <td class="px-3 py-2 text-right font-bold tabular-nums">{c.priceAdult}&thinsp;&euro;</td>
         </tr>
-        <tr class="border-b border-border/30">
+        <tr class="border-b border-border">
           <td class="px-3 py-2 text-text-secondary">{tr('status.children')}</td>
           <td class="px-3 py-2 text-right font-bold tabular-nums">{c.priceChild}&thinsp;&euro;</td>
         </tr>

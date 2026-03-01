@@ -33,7 +33,7 @@ const tr = (key: string) => getTranslation(lang, key);
             required
             placeholder={tr('subscribe.email_placeholder')}
             autocomplete="email"
-            class="w-full rounded-xl border border-border bg-bg/60 px-4 py-3.5 text-text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition"
+            class="w-full rounded-xl border border-border bg-white px-4 py-3.5 text-text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition"
           />
         </div>
 
@@ -46,7 +46,7 @@ const tr = (key: string) => getTranslation(lang, key);
               name="silver"
               value="1"
               checked
-              class="h-5 w-5 rounded border-border bg-bg/60 text-accent focus:ring-accent/30 cursor-pointer"
+              class="h-5 w-5 rounded border-border bg-white text-accent focus:ring-accent/20 cursor-pointer"
             />
             <span class="flex items-center gap-2 text-sm group-hover:text-text-primary transition">
               <span>&#9898;</span>
@@ -59,7 +59,7 @@ const tr = (key: string) => getTranslation(lang, key);
               name="gold"
               value="1"
               checked
-              class="h-5 w-5 rounded border-border bg-bg/60 text-accent focus:ring-accent/30 cursor-pointer"
+              class="h-5 w-5 rounded border-border bg-white text-accent focus:ring-accent/20 cursor-pointer"
             />
             <span class="flex items-center gap-2 text-sm group-hover:text-text-primary transition">
               <span>&#11088;</span>
@@ -146,9 +146,9 @@ const tr = (key: string) => getTranslation(lang, key);
 
   function showMessage(text: string, isError: boolean) {
     msgEl.textContent = text;
-    msgEl.classList.remove('hidden', 'text-green-400', 'text-red-400', 'bg-green-500/10', 'bg-red-500/10', 'border-green-500/20', 'border-red-500/20');
+    msgEl.classList.remove('hidden', 'text-green-600', 'text-red-600', 'bg-green-500/10', 'bg-red-500/10', 'border-green-500/20', 'border-red-500/20');
     msgEl.classList.add(
-      isError ? 'text-red-400' : 'text-green-400',
+      isError ? 'text-red-600' : 'text-green-600',
       isError ? 'bg-red-500/10' : 'bg-green-500/10',
       isError ? 'border-red-500/20' : 'border-green-500/20',
       'border'

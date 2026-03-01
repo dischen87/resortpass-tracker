@@ -40,7 +40,7 @@ const tr = (key: string) => getTranslation(lang, key);
     <Footer lang={lang} />
   </main>
 
-  <!-- Structured Data -->
+  <!-- Structured Data: WebApplication -->
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "WebApplication",
@@ -50,11 +50,21 @@ const tr = (key: string) => getTranslation(lang, key);
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Web",
     "inLanguage": "it",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "CHF"
-    }
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CHF" },
+    "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".text-text-secondary", "#benachrichtigung h2"] }
+  })} />
+
+  <!-- Structured Data: FAQPage -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": tr('info.what_title'), "acceptedAnswer": { "@type": "Answer", "text": tr('info.what_text') } },
+      { "@type": "Question", "name": tr('info.why_title'), "acceptedAnswer": { "@type": "Answer", "text": tr('info.why_text') } },
+      { "@type": "Question", "name": tr('info.how_title'), "acceptedAnswer": { "@type": "Answer", "text": tr('info.how_text') } },
+      { "@type": "Question", "name": "Quanto costa il ResortPass Silver?", "acceptedAnswer": { "@type": "Answer", "text": "Il ResortPass Silver costa 325 € per adulti (dai 12 anni) e 275 € per bambini (4–11 anni) e anziani (60+). Include l'accesso illimitato all'Europa-Park per un'intera stagione, senza accesso a Rulantica." } },
+      { "@type": "Question", "name": "Quanto costa il ResortPass Gold?", "acceptedAnswer": { "@type": "Answer", "text": "Il ResortPass Gold costa 495 € per adulti (dai 12 anni) e 430 € per bambini (4–11 anni) e anziani (60+). Include l'accesso illimitato all'Europa-Park e al parco acquatico Rulantica." } }
+    ]
   })} />
 
   <!-- Status loader -->

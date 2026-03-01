@@ -40,7 +40,7 @@ const tr = (key: string) => getTranslation(lang, key);
     <Footer lang={lang} />
   </main>
 
-  <!-- Structured Data -->
+  <!-- Structured Data: WebApplication -->
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "WebApplication",
@@ -50,11 +50,21 @@ const tr = (key: string) => getTranslation(lang, key);
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Web",
     "inLanguage": "en",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "CHF"
-    }
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CHF" },
+    "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".text-text-secondary", "#benachrichtigung h2"] }
+  })} />
+
+  <!-- Structured Data: FAQPage -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": tr('info.what_title'), "acceptedAnswer": { "@type": "Answer", "text": tr('info.what_text') } },
+      { "@type": "Question", "name": tr('info.why_title'), "acceptedAnswer": { "@type": "Answer", "text": tr('info.why_text') } },
+      { "@type": "Question", "name": tr('info.how_title'), "acceptedAnswer": { "@type": "Answer", "text": tr('info.how_text') } },
+      { "@type": "Question", "name": "How much does the ResortPass Silver cost?", "acceptedAnswer": { "@type": "Answer", "text": "The ResortPass Silver costs €325 for adults (12+) and €275 for children (4–11) and seniors (60+). It includes unlimited entry to Europa-Park for an entire season, without access to the Rulantica water park." } },
+      { "@type": "Question", "name": "How much does the ResortPass Gold cost?", "acceptedAnswer": { "@type": "Answer", "text": "The ResortPass Gold costs €495 for adults (12+) and €430 for children (4–11) and seniors (60+). It includes unlimited entry to Europa-Park and the Rulantica water park." } }
+    ]
   })} />
 
   <!-- Status loader -->

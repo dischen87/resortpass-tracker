@@ -66,16 +66,16 @@ const tr = (key: string) => getTranslation(lang, key);
             detailsEl?.classList.remove('hidden');
           } else {
             msgEl.textContent = data.error || tr('confirm.error');
-            msgEl.classList.add('text-red-400');
+            msgEl.classList.add('text-red-600');
           }
         })
         .catch(() => {
           msgEl.textContent = tr('confirm.error');
-          msgEl.classList.add('text-red-400');
+          msgEl.classList.add('text-red-600');
         });
     } else if (msgEl) {
       msgEl.textContent = tr('confirm.error');
-      msgEl.classList.add('text-red-400');
+      msgEl.classList.add('text-red-600');
     }
   </script>
 </Layout>

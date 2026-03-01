@@ -40,7 +40,7 @@ const tr = (key: string) => getTranslation(lang, key);
     <Footer lang={lang} />
   </main>
 
-  <!-- Structured Data -->
+  <!-- Structured Data: WebApplication -->
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "WebApplication",
@@ -50,11 +50,21 @@ const tr = (key: string) => getTranslation(lang, key);
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Web",
     "inLanguage": "fr",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "CHF"
-    }
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CHF" },
+    "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".text-text-secondary", "#benachrichtigung h2"] }
+  })} />
+
+  <!-- Structured Data: FAQPage -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": tr('info.what_title'), "acceptedAnswer": { "@type": "Answer", "text": tr('info.what_text') } },
+      { "@type": "Question", "name": tr('info.why_title'), "acceptedAnswer": { "@type": "Answer", "text": tr('info.why_text') } },
+      { "@type": "Question", "name": tr('info.how_title'), "acceptedAnswer": { "@type": "Answer", "text": tr('info.how_text') } },
+      { "@type": "Question", "name": "Combien coûte le ResortPass Silver?", "acceptedAnswer": { "@type": "Answer", "text": "Le ResortPass Silver coûte 325 € pour les adultes (dès 12 ans) et 275 € pour les enfants (4–11 ans) et seniors (60+). Il comprend un accès illimité à l'Europa-Park pour toute une saison, sans accès à Rulantica." } },
+      { "@type": "Question", "name": "Combien coûte le ResortPass Gold?", "acceptedAnswer": { "@type": "Answer", "text": "Le ResortPass Gold coûte 495 € pour les adultes (dès 12 ans) et 430 € pour les enfants (4–11 ans) et seniors (60+). Il comprend un accès illimité à l'Europa-Park et au parc aquatique Rulantica." } }
+    ]
   })} />
 
   <!-- Status loader -->

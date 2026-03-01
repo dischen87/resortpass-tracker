@@ -40,7 +40,7 @@ const tr = (key: string) => getTranslation(lang, key);
     <Footer lang={lang} />
   </main>
 
-  <!-- Structured Data -->
+  <!-- Structured Data: WebApplication -->
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "WebApplication",
@@ -54,7 +54,70 @@ const tr = (key: string) => getTranslation(lang, key);
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "CHF"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Mathias Graf",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Seestrasse 21",
+        "postalCode": "8703",
+        "addressLocality": "Erlenbach",
+        "addressCountry": "CH"
+      }
+    },
+    "speakable": {
+      "@type": "SpeakableSpecification",
+      "cssSelector": ["h1", ".text-text-secondary", "#benachrichtigung h2"]
     }
+  })} />
+
+  <!-- Structured Data: FAQPage for GEO / AI search engines -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": tr('info.what_title'),
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": tr('info.what_text')
+        }
+      },
+      {
+        "@type": "Question",
+        "name": tr('info.why_title'),
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": tr('info.why_text')
+        }
+      },
+      {
+        "@type": "Question",
+        "name": tr('info.how_title'),
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": tr('info.how_text')
+        }
+      },
+      {
+        "@type": "Question",
+        "name": lang === 'de' ? 'Was kostet der ResortPass Silver?' : lang === 'fr' ? 'Combien coûte le ResortPass Silver?' : lang === 'it' ? 'Quanto costa il ResortPass Silver?' : 'How much does the ResortPass Silver cost?',
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": lang === 'de' ? 'Der ResortPass Silver kostet 325 € für Erwachsene (ab 12 Jahre) und 275 € für Kinder (4–11 Jahre) sowie Senioren (60+). Er beinhaltet unbegrenzten Eintritt in den Europa-Park für eine volle Saison, ohne Zugang zum Wasserpark Rulantica.' : lang === 'fr' ? 'Le ResortPass Silver coûte 325 € pour les adultes (dès 12 ans) et 275 € pour les enfants (4–11 ans) et seniors (60+). Il comprend un accès illimité à l\'Europa-Park pour toute une saison, sans accès à Rulantica.' : lang === 'it' ? 'Il ResortPass Silver costa 325 € per adulti (dai 12 anni) e 275 € per bambini (4–11 anni) e anziani (60+). Include l\'accesso illimitato all\'Europa-Park per un\'intera stagione, senza accesso a Rulantica.' : 'The ResortPass Silver costs €325 for adults (12+) and €275 for children (4–11) and seniors (60+). It includes unlimited entry to Europa-Park for an entire season, without access to the Rulantica water park.'
+        }
+      },
+      {
+        "@type": "Question",
+        "name": lang === 'de' ? 'Was kostet der ResortPass Gold?' : lang === 'fr' ? 'Combien coûte le ResortPass Gold?' : lang === 'it' ? 'Quanto costa il ResortPass Gold?' : 'How much does the ResortPass Gold cost?',
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": lang === 'de' ? 'Der ResortPass Gold kostet 495 € für Erwachsene (ab 12 Jahre) und 430 € für Kinder (4–11 Jahre) sowie Senioren (60+). Er beinhaltet unbegrenzten Eintritt in den Europa-Park sowie den Wasserpark Rulantica.' : lang === 'fr' ? 'Le ResortPass Gold coûte 495 € pour les adultes (dès 12 ans) et 430 € pour les enfants (4–11 ans) et seniors (60+). Il comprend un accès illimité à l\'Europa-Park et au parc aquatique Rulantica.' : lang === 'it' ? 'Il ResortPass Gold costa 495 € per adulti (dai 12 anni) e 430 € per bambini (4–11 anni) e anziani (60+). Include l\'accesso illimitato all\'Europa-Park e al parco acquatico Rulantica.' : 'The ResortPass Gold costs €495 for adults (12+) and €430 for children (4–11) and seniors (60+). It includes unlimited entry to Europa-Park and the Rulantica water park.'
+        }
+      }
+    ]
   })} />
 
   <!-- Status loader -->
