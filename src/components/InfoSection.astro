@@ -1,48 +1,99 @@
 ---
+import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+
+interface Props {
+  lang?: Lang;
+}
+
+const lang = Astro.props.lang || defaultLang;
+const tr = (key: string) => getTranslation(lang, key);
 ---
 
 <section class="px-4 py-10">
-  <div class="max-w-md mx-auto">
-    <h2 class="text-lg font-bold mb-3">Was ist der ResortPass?</h2>
-    <p class="text-sm text-muted leading-relaxed mb-4">
-      Der ResortPass ist die Jahreskarte für den Europa-Park in Rust, Deutschland.
-      Er ermöglicht unbegrenzten Eintritt in den Freizeitpark und (beim Gold-Pass)
-      zusätzlich Zugang zum Wasserpark Rulantica.
-    </p>
-    <p class="text-sm text-muted leading-relaxed mb-4">
-      Leider ist der ResortPass fast immer ausverkauft und es gibt keine offizielle
-      Warteliste. Dieses Tool prüft stündlich den Ticketshop und benachrichtigt
-      dich per E-Mail, sobald neue Kontingente verfügbar sind.
-    </p>
+  <div class="max-w-2xl mx-auto space-y-6">
 
-    <div class="rounded-xl border border-slate-700/50 bg-surface p-4 space-y-3">
-      <div class="flex items-start gap-3">
-        <div class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-slate-600/50 flex items-center justify-center">
-          <span class="text-xs text-slate-400">S</span>
-        </div>
+    <!-- What is the ResortPass? -->
+    <div class="glass-card rounded-2xl p-6 animate-fade-in-up">
+      <div class="flex items-start gap-4">
+        <span class="text-2xl shrink-0 mt-0.5">&#127903;</span>
         <div>
-          <p class="text-sm font-semibold">ResortPass Silver</p>
-          <p class="text-xs text-muted">Eintritt in den Europa-Park (ohne Rulantica)</p>
-        </div>
-      </div>
-      <div class="flex items-start gap-3">
-        <div class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-amber-600/50 flex items-center justify-center">
-          <span class="text-xs text-amber-400">G</span>
-        </div>
-        <div>
-          <p class="text-sm font-semibold">ResortPass Gold</p>
-          <p class="text-xs text-muted">Eintritt in Europa-Park + Rulantica Wasserpark</p>
+          <h2 class="text-lg font-bold mb-2">{tr('info.what_title')}</h2>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            {tr('info.what_text')}
+          </p>
         </div>
       </div>
     </div>
 
-    <a
-      href="https://www.europapark.de/de/resort/resortpass"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="mt-4 inline-flex items-center gap-1 text-sm text-accent hover:underline"
-    >
-      Offizielle ResortPass-Seite &rarr;
-    </a>
+    <!-- Why always sold out? -->
+    <div class="glass-card rounded-2xl p-6 animate-fade-in-up-delay-1">
+      <div class="flex items-start gap-4">
+        <span class="text-2xl shrink-0 mt-0.5">&#128293;</span>
+        <div>
+          <h2 class="text-lg font-bold mb-2">{tr('info.why_title')}</h2>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            {tr('info.why_text')}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- How does the tracker work? -->
+    <div class="glass-card rounded-2xl p-6 animate-fade-in-up-delay-2">
+      <div class="flex items-start gap-4">
+        <span class="text-2xl shrink-0 mt-0.5">&#9881;&#65039;</span>
+        <div>
+          <h2 class="text-lg font-bold mb-2">{tr('info.how_title')}</h2>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            {tr('info.how_text')}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Silver vs Gold comparison -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Silver -->
+      <div class="glass-card-silver rounded-2xl p-6 animate-fade-in-up-delay-3">
+        <div class="flex items-center gap-2 mb-3">
+          <span>&#9898;</span>
+          <h3 class="font-bold text-silver-light">{tr('info.silver_title')}</h3>
+        </div>
+        <p class="text-sm text-text-secondary leading-relaxed">
+          {tr('info.silver_desc')}
+        </p>
+        <div class="mt-3 text-xs text-muted">
+          <span class="font-mono">325&thinsp;&euro;</span> / <span class="font-mono">275&thinsp;&euro;</span>
+        </div>
+      </div>
+
+      <!-- Gold -->
+      <div class="glass-card-gold rounded-2xl p-6 animate-fade-in-up-delay-3">
+        <div class="flex items-center gap-2 mb-3">
+          <span>&#11088;</span>
+          <h3 class="font-bold text-gold-light">{tr('info.gold_title')}</h3>
+        </div>
+        <p class="text-sm text-text-secondary leading-relaxed">
+          {tr('info.gold_desc')}
+        </p>
+        <div class="mt-3 text-xs text-muted">
+          <span class="font-mono">495&thinsp;&euro;</span> / <span class="font-mono">430&thinsp;&euro;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tip for families -->
+    <div class="rounded-2xl p-6 bg-accent/5 border border-accent/15 animate-fade-in-up">
+      <div class="flex items-start gap-4">
+        <span class="text-2xl shrink-0 mt-0.5">&#128161;</span>
+        <div>
+          <h2 class="text-lg font-bold mb-2 text-accent">{tr('info.tip_title')}</h2>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            {tr('info.tip_text')}
+          </p>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>

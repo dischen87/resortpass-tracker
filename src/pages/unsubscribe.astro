@@ -1,42 +1,81 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Footer from '../components/Footer.astro';
 import '../styles/global.css';
+import { getTranslation } from '../i18n/translations';
+
+const lang = 'de' as const;
+const tr = (key: string) => getTranslation(lang, key);
 ---
 
-<Layout
-  title="Abgemeldet — ResortPass Tracker"
-  description="Du wurdest erfolgreich abgemeldet."
->
+<Layout lang={lang} title={`${tr('unsub.title')} — ResortPass Tracker`} description={tr('unsub.success')}>
   <main class="max-w-2xl mx-auto px-4 py-20 text-center">
-    <div class="rounded-2xl border border-slate-700/50 bg-surface p-8 max-w-md mx-auto">
-      <h1 class="text-2xl font-bold mb-3">Abgemeldet</h1>
-      <p class="text-muted text-sm mb-6" id="unsub-message">
-        Abmeldung wird verarbeitet...
+    <div class="glass-card rounded-2xl p-8 md:p-10 max-w-md mx-auto animate-fade-in-up">
+
+      <!-- Icon -->
+      <div class="w-16 h-16 mx-auto mb-5 rounded-full bg-surface-light flex items-center justify-center">
+        <span class="text-3xl">&#128075;</span>
+      </div>
+
+      <h1 class="text-2xl font-bold mb-3">{tr('unsub.title')}</h1>
+
+      <p class="text-text-secondary text-sm mb-6 leading-relaxed" id="unsub-message">
+        {tr('unsub.processing')}
       </p>
-      <a href="/" class="text-sm text-accent hover:underline">
-        &larr; Zurück zur Startseite
+
+      <!-- Success details (hidden initially) -->
+      <div id="unsub-details" class="hidden mb-6">
+        <div class="rounded-xl bg-surface-light border border-border p-4">
+          <p class="text-sm text-text-secondary flex items-center justify-center gap-2">
+            <span>&#10003;</span>
+            <span>{tr('unsub.success')}</span>
+          </p>
+        </div>
+      </div>
+
+      <a href="/" class="inline-flex items-center gap-1.5 text-sm text-accent hover:underline group">
+        <span class="transition group-hover:-translate-x-0.5">&larr;</span>
+        <span>{tr('unsub.back')}</span>
       </a>
     </div>
   </main>
 
+  <Footer lang={lang} />
+
+  <script define:vars={{ lang }}>
+    window.__unsubLang = lang;
+  </script>
+
   <script>
+    import { getTranslation, type Lang } from '../i18n/translations';
+
+    const unsubLang = (window as any).__unsubLang as Lang || 'de';
+    const tr = (key: string) => getTranslation(unsubLang, key);
+
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     const msgEl = document.getElementById('unsub-message');
+    const detailsEl = document.getElementById('unsub-details');
 
     if (token && msgEl) {
       fetch(`/api/unsubscribe?token=${encodeURIComponent(token)}`)
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-            msgEl.textContent = 'Du wurdest erfolgreich abgemeldet und deine Daten wurden gelöscht.';
+            msgEl.textContent = '';
+            detailsEl?.classList.remove('hidden');
           } else {
-            msgEl.textContent = data.error || 'Der Abmelde-Link ist ungültig.';
+            msgEl.textContent = data.error || tr('unsub.error');
+            msgEl.classList.add('text-red-400');
           }
         })
         .catch(() => {
-          msgEl.textContent = 'Ein Fehler ist aufgetreten. Bitte versuche es später erneut.';
+          msgEl.textContent = tr('unsub.error');
+          msgEl.classList.add('text-red-400');
         });
+    } else if (msgEl) {
+      msgEl.textContent = tr('unsub.error');
+      msgEl.classList.add('text-red-400');
     }
   </script>
 </Layout>

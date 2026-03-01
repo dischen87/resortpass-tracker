@@ -1,68 +1,104 @@
 ---
+import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+
+interface Props {
+  lang?: Lang;
+}
+
+const lang = Astro.props.lang || defaultLang;
+const tr = (key: string) => getTranslation(lang, key);
 ---
 
 <section class="px-4 py-10" id="benachrichtigung">
-  <div class="max-w-md mx-auto rounded-2xl border border-slate-700/50 bg-surface p-6">
-    <h2 class="text-lg font-bold mb-2">E-Mail Benachrichtigung</h2>
-    <p class="text-sm text-muted mb-6">
-      Erhalte eine E-Mail, sobald der ResortPass wieder verfügbar ist.
-    </p>
+  <div class="max-w-lg mx-auto">
+    <!-- Section header -->
+    <div class="text-center mb-6">
+      <span class="text-3xl mb-3 block">&#128140;</span>
+      <h2 class="text-xl md:text-2xl font-bold mb-2">{tr('subscribe.title')}</h2>
+      <p class="text-sm text-text-secondary leading-relaxed max-w-md mx-auto">
+        {tr('subscribe.desc')}
+      </p>
+    </div>
 
-    <form id="subscribe-form" class="space-y-4">
-      <div>
-        <label for="email" class="sr-only">E-Mail-Adresse</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          required
-          placeholder="deine@email.de"
-          autocomplete="email"
-          class="w-full rounded-xl border border-slate-700 bg-bg px-4 py-3 text-text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        />
-      </div>
-
-      <fieldset class="space-y-2">
-        <legend class="text-sm text-muted mb-1">Benachrichtige mich für:</legend>
-        <label class="flex items-center gap-3 cursor-pointer">
+    <!-- Form card -->
+    <div class="glass-card rounded-2xl p-6 md:p-8">
+      <form id="subscribe-form" class="space-y-5">
+        <!-- Email -->
+        <div>
+          <label for="email" class="sr-only">E-Mail</label>
           <input
-            type="checkbox"
-            name="silver"
-            value="1"
-            checked
-            class="h-4 w-4 rounded border-slate-600 bg-bg text-accent focus:ring-accent"
+            type="email"
+            id="email"
+            name="email"
+            required
+            placeholder={tr('subscribe.email_placeholder')}
+            autocomplete="email"
+            class="w-full rounded-xl border border-border bg-bg/60 px-4 py-3.5 text-text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition"
           />
-          <span class="text-sm">ResortPass Silver</span>
-        </label>
-        <label class="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            name="gold"
-            value="1"
-            checked
-            class="h-4 w-4 rounded border-slate-600 bg-bg text-accent focus:ring-accent"
-          />
-          <span class="text-sm">ResortPass Gold</span>
-        </label>
-      </fieldset>
+        </div>
 
-      <button
-        type="submit"
-        class="w-full rounded-xl bg-accent py-3 font-bold text-white transition hover:bg-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        Benachrichtigen
-      </button>
+        <!-- Checkboxes -->
+        <fieldset class="space-y-3">
+          <legend class="text-sm text-text-secondary mb-2 font-medium">{tr('subscribe.notify_for')}</legend>
+          <label class="flex items-center gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              name="silver"
+              value="1"
+              checked
+              class="h-5 w-5 rounded border-border bg-bg/60 text-accent focus:ring-accent/30 cursor-pointer"
+            />
+            <span class="flex items-center gap-2 text-sm group-hover:text-text-primary transition">
+              <span>&#9898;</span>
+              <span>ResortPass Silver</span>
+            </span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              name="gold"
+              value="1"
+              checked
+              class="h-5 w-5 rounded border-border bg-bg/60 text-accent focus:ring-accent/30 cursor-pointer"
+            />
+            <span class="flex items-center gap-2 text-sm group-hover:text-text-primary transition">
+              <span>&#11088;</span>
+              <span>ResortPass Gold</span>
+            </span>
+          </label>
+        </fieldset>
 
-      <div id="form-message" class="hidden text-sm text-center py-2 rounded-lg"></div>
-    </form>
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="w-full rounded-xl bg-accent py-3.5 font-bold text-white transition hover:bg-blue-400 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+        >
+          {tr('subscribe.submit')}
+        </button>
 
-    <p class="mt-4 text-xs text-muted text-center">
-      Kein Spam. Nur bei Verfügbarkeit. Jederzeit abmeldbar.
-    </p>
+        <!-- Messages -->
+        <div id="form-message" class="hidden text-sm text-center py-3 px-4 rounded-xl"></div>
+      </form>
+
+      <!-- Privacy note -->
+      <p class="mt-5 text-xs text-muted text-center flex items-center justify-center gap-1.5">
+        <span>&#128274;</span>
+        <span>{tr('subscribe.privacy')}</span>
+      </p>
+    </div>
   </div>
 </section>
 
+<script define:vars={{ lang }}>
+  window.__subscribeFormLang = lang;
+</script>
+
 <script>
+  import { getTranslation, type Lang } from '../i18n/translations';
+
+  const formLang = (window as any).__subscribeFormLang as Lang || 'de';
+  const tr = (key: string) => getTranslation(formLang, key);
+
   const form = document.getElementById('subscribe-form') as HTMLFormElement;
   const msgEl = document.getElementById('form-message') as HTMLDivElement;
 
@@ -70,7 +106,7 @@
     e.preventDefault();
     const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
     btn.disabled = true;
-    btn.textContent = 'Wird gesendet...';
+    btn.textContent = tr('subscribe.sending');
     msgEl.classList.add('hidden');
 
     const formData = new FormData(form);
@@ -79,9 +115,9 @@
     const gold = formData.get('gold') === '1';
 
     if (!silver && !gold) {
-      showMessage('Bitte wähle mindestens einen Pass-Typ aus.', true);
+      showMessage(tr('subscribe.select_one'), true);
       btn.disabled = false;
-      btn.textContent = 'Benachrichtigen';
+      btn.textContent = tr('subscribe.submit');
       return;
     }
 
@@ -95,25 +131,27 @@
       const data = await res.json();
 
       if (res.ok) {
-        showMessage('Bitte prüfe deine E-Mails und bestätige dein Abo.', false);
+        showMessage(tr('subscribe.success'), false);
         form.reset();
       } else {
-        showMessage(data.error || 'Ein Fehler ist aufgetreten.', true);
+        showMessage(data.error || tr('subscribe.error'), true);
       }
     } catch {
-      showMessage('Verbindungsfehler. Bitte versuche es später erneut.', true);
+      showMessage(tr('subscribe.error'), true);
     }
 
     btn.disabled = false;
-    btn.textContent = 'Benachrichtigen';
+    btn.textContent = tr('subscribe.submit');
   });
 
   function showMessage(text: string, isError: boolean) {
     msgEl.textContent = text;
-    msgEl.classList.remove('hidden', 'text-green-400', 'text-red-400', 'bg-green-500/10', 'bg-red-500/10');
+    msgEl.classList.remove('hidden', 'text-green-400', 'text-red-400', 'bg-green-500/10', 'bg-red-500/10', 'border-green-500/20', 'border-red-500/20');
     msgEl.classList.add(
       isError ? 'text-red-400' : 'text-green-400',
-      isError ? 'bg-red-500/10' : 'bg-green-500/10'
+      isError ? 'bg-red-500/10' : 'bg-green-500/10',
+      isError ? 'border-red-500/20' : 'border-green-500/20',
+      'border'
     );
   }
 </script>

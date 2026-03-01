@@ -1,10 +1,10 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Footer from '../components/Footer.astro';
-import '../styles/global.css';
-import { getTranslation } from '../i18n/translations';
+import Layout from '../../layouts/Layout.astro';
+import Footer from '../../components/Footer.astro';
+import '../../styles/global.css';
+import { getTranslation } from '../../i18n/translations';
 
-const lang = 'de' as const;
+const lang = 'fr' as const;
 const tr = (key: string) => getTranslation(lang, key);
 ---
 
@@ -12,7 +12,7 @@ const tr = (key: string) => getTranslation(lang, key);
   <main class="max-w-2xl mx-auto px-4 py-12">
 
     <!-- Back link -->
-    <a href="/" class="inline-flex items-center gap-1.5 text-sm text-accent hover:underline mb-8 group">
+    <a href="/fr/" class="inline-flex items-center gap-1.5 text-sm text-accent hover:underline mb-8 group">
       <span class="transition group-hover:-translate-x-0.5">&larr;</span>
       <span>{tr('imprint.back')}</span>
     </a>
@@ -32,7 +32,7 @@ const tr = (key: string) => getTranslation(lang, key);
             Mathias Graf<br />
             Seestrasse 21<br />
             8703 Erlenbach<br />
-            Schweiz
+            Schweiz / Suisse
           </p>
           <p>
             <span class="text-muted">{tr('imprint.contact')}:</span><br />
@@ -63,7 +63,6 @@ const tr = (key: string) => getTranslation(lang, key);
         </h2>
 
         <div class="space-y-6">
-          <!-- Data collected -->
           <div>
             <h3 class="font-semibold text-text-primary mb-2">{tr('imprint.data_collected_title')}</h3>
             <p class="text-sm text-text-secondary mb-2">{tr('imprint.data_collected_text')}</p>
@@ -74,31 +73,26 @@ const tr = (key: string) => getTranslation(lang, key);
             </ul>
           </div>
 
-          <!-- Purpose -->
           <div>
             <h3 class="font-semibold text-text-primary mb-2">{tr('imprint.data_purpose_title')}</h3>
             <p class="text-sm text-text-secondary leading-relaxed">{tr('imprint.data_purpose_text')}</p>
           </div>
 
-          <!-- Tracking -->
           <div>
             <h3 class="font-semibold text-text-primary mb-2">{tr('imprint.tracking_title')}</h3>
             <p class="text-sm text-text-secondary leading-relaxed">{tr('imprint.tracking_text')}</p>
           </div>
 
-          <!-- History data -->
           <div>
             <h3 class="font-semibold text-text-primary mb-2">{tr('imprint.history_title')}</h3>
             <p class="text-sm text-text-secondary leading-relaxed">{tr('imprint.history_text')}</p>
           </div>
 
-          <!-- Deletion -->
           <div>
             <h3 class="font-semibold text-text-primary mb-2">{tr('imprint.deletion_title')}</h3>
             <p class="text-sm text-text-secondary leading-relaxed">{tr('imprint.deletion_text')}</p>
           </div>
 
-          <!-- Hosting -->
           <div>
             <h3 class="font-semibold text-text-primary mb-2">{tr('imprint.hosting_title')}</h3>
             <p class="text-sm text-text-secondary leading-relaxed">{tr('imprint.hosting_text')}</p>

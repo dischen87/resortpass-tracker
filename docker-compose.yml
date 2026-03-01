@@ -1,5 +1,4 @@
 services:
-  # API server (Bun + Hono)
   resortpass-api:
     build: .
     container_name: resortpass-api
@@ -19,7 +18,6 @@ services:
     networks:
       - caddy-net
 
-  # Checker cron job (runs every hour)
   resortpass-checker:
     build: .
     container_name: resortpass-checker
@@ -28,8 +26,8 @@ services:
       /bin/sh -c "while true; do
         echo \"[$$(date -Iseconds)] Running checker...\";
         bun run server/checker.ts;
-        echo \"[$$(date -Iseconds)] Sleeping 3600s...\";
-        sleep 3600;
+        echo \"[$$(date -Iseconds)] Sleeping 28800s (8h)...\";
+        sleep 28800;
       done"
     environment:
       - DB_PATH=/app/data/resortpass.db
@@ -47,7 +45,6 @@ services:
     depends_on:
       - resortpass-postfix
 
-  # Postfix send-only SMTP
   resortpass-postfix:
     image: boky/postfix
     container_name: resortpass-postfix

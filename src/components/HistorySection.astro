@@ -1,0 +1,126 @@
+---
+import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+
+interface Props {
+  lang?: Lang;
+}
+
+const lang = Astro.props.lang || defaultLang;
+const tr = (key: string) => getTranslation(lang, key);
+---
+
+<section class="px-4 py-10" id="history">
+  <div class="max-w-2xl mx-auto">
+    <div class="text-center mb-6">
+      <span class="text-3xl mb-3 block">&#128202;</span>
+      <h2 class="text-xl md:text-2xl font-bold mb-2">{tr('history.title')}</h2>
+      <p class="text-sm text-text-secondary max-w-md mx-auto">
+        {tr('history.desc')}
+      </p>
+    </div>
+
+    <div class="glass-card rounded-2xl p-6" id="history-container">
+      <!-- Loading state -->
+      <div id="history-loading" class="text-center py-4">
+        <div class="inline-flex items-center gap-2 text-sm text-muted">
+          <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span>{tr('status.loading')}</span>
+        </div>
+      </div>
+
+      <!-- No data state -->
+      <div id="history-empty" class="hidden text-center py-6">
+        <span class="text-3xl block mb-3">&#128203;</span>
+        <p class="text-sm text-muted">{tr('history.no_data')}</p>
+      </div>
+
+      <!-- Stats display -->
+      <div id="history-stats" class="hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Silver stats -->
+          <div class="rounded-xl bg-bg/40 border border-border/50 p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <span>&#9898;</span>
+              <span class="text-sm font-bold text-silver-light">Silver</span>
+            </div>
+            <div class="text-2xl font-bold font-mono" id="silver-pct">--</div>
+            <p class="text-xs text-muted mt-1">{tr('history.available_pct')}</p>
+          </div>
+
+          <!-- Gold stats -->
+          <div class="rounded-xl bg-bg/40 border border-border/50 p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <span>&#11088;</span>
+              <span class="text-sm font-bold text-gold-light">Gold</span>
+            </div>
+            <div class="text-2xl font-bold font-mono" id="gold-pct">--</div>
+            <p class="text-xs text-muted mt-1">{tr('history.available_pct')}</p>
+          </div>
+        </div>
+
+        <!-- Tracking since -->
+        <div class="mt-4 text-center text-xs text-muted font-mono" id="tracking-since"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ lang }}>
+  window.__historyLang = lang;
+</script>
+
+<script>
+  import { getTranslation, type Lang } from '../i18n/translations';
+
+  const histLang = (window as any).__historyLang as Lang || 'de';
+  const tr = (key: string) => getTranslation(histLang, key);
+
+  async function loadHistory() {
+    const loadingEl = document.getElementById('history-loading');
+    const emptyEl = document.getElementById('history-empty');
+    const statsEl = document.getElementById('history-stats');
+
+    try {
+      const res = await fetch('/api/history-stats');
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+
+      loadingEl?.classList.add('hidden');
+
+      if (!data || (!data.silver && !data.gold)) {
+        emptyEl?.classList.remove('hidden');
+        return;
+      }
+
+      statsEl?.classList.remove('hidden');
+
+      const silverPct = document.getElementById('silver-pct');
+      const goldPct = document.getElementById('gold-pct');
+      const sincEl = document.getElementById('tracking-since');
+
+      if (silverPct && data.silver) {
+        silverPct.textContent = `${data.silver.availablePercent.toFixed(1)}%`;
+      }
+      if (goldPct && data.gold) {
+        goldPct.textContent = `${data.gold.availablePercent.toFixed(1)}%`;
+      }
+      if (sincEl && data.trackingSince) {
+        const date = new Date(data.trackingSince);
+        const formatted = date.toLocaleDateString(histLang === 'de' ? 'de-CH' : histLang, {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        });
+        sincEl.textContent = `${tr('history.tracking_since')} ${formatted}`;
+      }
+    } catch {
+      loadingEl?.classList.add('hidden');
+      emptyEl?.classList.remove('hidden');
+    }
+  }
+
+  loadHistory();
+</script>

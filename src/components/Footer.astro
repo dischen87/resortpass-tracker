@@ -1,29 +1,47 @@
 ---
+import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+
+interface Props {
+  lang?: Lang;
+}
+
+const lang = Astro.props.lang || defaultLang;
+const tr = (key: string) => getTranslation(lang, key);
+
+const imprintPath = lang === defaultLang ? '/impressum' : `/${lang}/impressum`;
 ---
 
-<footer class="border-t border-slate-800 mt-10 py-8 px-4">
-  <div class="max-w-md mx-auto text-center space-y-3">
-    <p class="text-xs text-muted">
-      Dies ist ein inoffizielles Community-Projekt und steht in keiner Verbindung
-      zum Europa-Park oder der Mack Rides GmbH.
+<footer class="border-t border-border mt-10 py-10 px-4">
+  <div class="max-w-2xl mx-auto text-center space-y-5">
+
+    <!-- Disclaimer -->
+    <p class="text-xs text-muted leading-relaxed max-w-lg mx-auto">
+      {tr('footer.disclaimer')}
     </p>
+
     <p class="text-xs text-muted">
-      Du kannst dich jederzeit per Link in der E-Mail abmelden.
+      {tr('footer.unsubscribe_hint')}
     </p>
+
+    <!-- No-tracking badge -->
+    <div class="flex items-center justify-center">
+      <span class="inline-flex items-center gap-1.5 text-xs text-muted bg-surface/50 px-3 py-1.5 rounded-full border border-border/50">
+        <span>&#128737;&#65039;</span>
+        {tr('footer.no_tracking')}
+      </span>
+    </div>
+
+    <!-- Links -->
     <div class="flex items-center justify-center gap-4 text-xs text-muted">
-      <a href="/impressum" class="hover:text-text-primary transition">Impressum</a>
-      <span>&middot;</span>
-      <a
-        href="https://github.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="hover:text-text-primary transition"
-      >
-        GitHub
+      <a href={imprintPath} class="hover:text-text-primary transition">
+        {tr('footer.imprint')}
       </a>
     </div>
-    <p class="text-xs text-muted">
-      Kein Tracking. Keine Werbung. Open Source.
-    </p>
+
+    <!-- Language switcher -->
+    <div class="flex justify-center pt-2">
+      <LanguageSwitcher lang={lang} />
+    </div>
   </div>
 </footer>

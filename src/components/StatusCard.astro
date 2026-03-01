@@ -1,65 +1,162 @@
 ---
+import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+
 interface Props {
   type: 'silver' | 'gold';
-  label: string;
-  priceAdult: string;
-  priceReduced: string;
-  shopUrl: string;
+  lang?: Lang;
 }
 
-const { type, label, priceAdult, priceReduced, shopUrl } = Astro.props;
+const { type } = Astro.props;
+const lang = Astro.props.lang || defaultLang;
+const tr = (key: string) => getTranslation(lang, key);
+
+const isGold = type === 'gold';
+
+const config = {
+  gold: {
+    label: 'ResortPass Gold',
+    icon: '&#11088;',
+    priceAdult: '495',
+    priceChild: '430',
+    priceSpecial: '430',
+    includes: tr('status.gold_includes'),
+    shopUrl: 'https://tickets.mackinternational.de/de/ticket/resortpass-gold',
+    cardClass: 'glass-card-gold card-gold-glow',
+    accentColor: 'gold',
+    badgeBg: 'bg-gold/15',
+    badgeText: 'text-gold-light',
+    badgeBorder: 'border-gold/30',
+  },
+  silver: {
+    label: 'ResortPass Silver',
+    icon: '&#9898;',
+    priceAdult: '325',
+    priceChild: '275',
+    priceSpecial: '275',
+    includes: tr('status.silver_includes'),
+    shopUrl: 'https://tickets.mackinternational.de/de/ticket/resortpass-silver',
+    cardClass: 'glass-card-silver card-silver-glow',
+    accentColor: 'silver',
+    badgeBg: 'bg-silver/15',
+    badgeText: 'text-silver-light',
+    badgeBorder: 'border-silver/30',
+  },
+};
+
+const c = config[type];
 ---
 
 <div
   id={`card-${type}`}
-  class="rounded-2xl border border-red-500/20 bg-red-500/5 p-6 card-unavailable transition-all duration-500"
+  class:list={[
+    'rounded-2xl p-6 transition-all duration-500',
+    c.cardClass,
+  ]}
   data-pass-type={type}
 >
-  <h2 class="text-sm font-bold uppercase tracking-widest text-muted">
-    {label}
-  </h2>
+  <!-- Card Header -->
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-2.5">
+      <span class="text-xl" set:html={c.icon} />
+      <h2 class:list={[
+        'text-sm font-bold uppercase tracking-widest',
+        isGold ? 'text-gold-light' : 'text-silver-light',
+      ]}>
+        {c.label}
+      </h2>
+    </div>
+    <span class:list={[
+      'text-[10px] font-bold px-2 py-0.5 rounded-full border',
+      c.badgeBg, c.badgeText, c.badgeBorder,
+    ]}>
+      {isGold ? 'PREMIUM' : 'CLASSIC'}
+    </span>
+  </div>
 
-  <!-- Unavailable state (default) -->
-  <div class="status-unavailable mt-4">
+  <!-- Includes line -->
+  <p class="text-xs text-muted mb-4 flex items-center gap-1.5">
+    <span>{isGold ? '&#127965;&#65039;' : '&#127906;'}</span>
+    {c.includes}
+  </p>
+
+  <!-- Status: Loading (shown initially) -->
+  <div class="status-loading">
+    <div class="flex items-center gap-3 mb-1">
+      <span class="relative flex h-3 w-3">
+        <span class="absolute inline-flex h-full w-full rounded-full bg-muted/50 animate-pulse"></span>
+        <span class="relative inline-flex h-3 w-3 rounded-full bg-muted"></span>
+      </span>
+      <span class="text-sm text-muted">{tr('status.loading')}</span>
+    </div>
+  </div>
+
+  <!-- Status: Unavailable (hidden by default) -->
+  <div class="status-unavailable hidden">
     <div class="flex items-center gap-3">
       <span class="relative flex h-3 w-3">
         <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-        <span class="relative inline-flex h-3 w-3 rounded-full bg-red-500"></span>
+        <span class="relative inline-flex h-3 w-3 rounded-full bg-unavailable"></span>
       </span>
-      <span class="text-xl font-bold text-red-400">Ausverkauft</span>
+      <span class="text-lg font-bold text-red-400">{tr('status.sold_out')}</span>
     </div>
   </div>
 
-  <!-- Available state (hidden by default) -->
-  <div class="status-available mt-4 hidden">
+  <!-- Status: Available (hidden by default) -->
+  <div class="status-available hidden">
     <div class="flex items-center gap-3">
       <span class="relative flex h-3 w-3">
         <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-        <span class="relative inline-flex h-3 w-3 rounded-full bg-green-500"></span>
+        <span class="relative inline-flex h-3 w-3 rounded-full bg-available"></span>
       </span>
-      <span class="text-xl font-bold text-green-400">Jetzt verfügbar!</span>
+      <span class="text-lg font-bold text-green-400">{tr('status.available')}</span>
     </div>
     <a
-      href={shopUrl}
+      href={c.shopUrl}
       target="_blank"
       rel="noopener noreferrer"
-      class="mt-4 block rounded-xl bg-green-500 py-3 text-center font-bold text-white transition hover:bg-green-400"
+      class="mt-3 block rounded-xl bg-available py-3 text-center font-bold text-white transition hover:brightness-110 hover:scale-[1.01] active:scale-[0.99]"
     >
-      Jetzt kaufen &rarr;
+      {tr('status.buy_now')} &rarr;
     </a>
   </div>
 
-  <div class="mt-4 space-y-1 text-sm text-muted">
-    <p>Erwachsene: {priceAdult}</p>
-    <p>Kinder / Senioren: {priceReduced}</p>
+  <!-- Status: Error (hidden by default) -->
+  <div class="status-error hidden">
+    <p class="text-sm text-muted">{tr('status.error')}</p>
   </div>
 
-  <a
-    href={shopUrl}
-    target="_blank"
-    rel="noopener noreferrer"
-    class="mt-3 inline-flex items-center gap-1 text-sm text-accent hover:underline"
-  >
-    Zum Ticketshop &rarr;
-  </a>
+  <!-- Price Table -->
+  <div class="mt-5 rounded-xl bg-bg/40 border border-border/50 overflow-hidden">
+    <table class="w-full text-sm">
+      <tbody>
+        <tr class="border-b border-border/30">
+          <td class="px-3 py-2 text-text-secondary">{tr('status.adults')}</td>
+          <td class="px-3 py-2 text-right font-bold tabular-nums">{c.priceAdult}&thinsp;&euro;</td>
+        </tr>
+        <tr class="border-b border-border/30">
+          <td class="px-3 py-2 text-text-secondary">{tr('status.children')}</td>
+          <td class="px-3 py-2 text-right font-bold tabular-nums">{c.priceChild}&thinsp;&euro;</td>
+        </tr>
+        <tr>
+          <td class="px-3 py-2 text-text-secondary">{tr('status.special')}</td>
+          <td class="px-3 py-2 text-right font-bold tabular-nums">{c.priceSpecial}&thinsp;&euro;</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Shop Link -->
+  <div class="mt-4 flex items-center justify-between">
+    <a
+      href={c.shopUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class:list={[
+        'inline-flex items-center gap-1.5 text-sm font-medium transition hover:underline',
+        isGold ? 'text-gold-light hover:text-gold' : 'text-silver-light hover:text-silver',
+      ]}
+    >
+      {tr('status.to_shop')} &rarr;
+    </a>
+  </div>
 </div>

@@ -1,19 +1,49 @@
 ---
+import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+
+interface Props {
+  lang?: Lang;
+}
+
+const lang = Astro.props.lang || defaultLang;
+const tr = (key: string) => getTranslation(lang, key);
 ---
 
-<header class="text-center pt-12 pb-8 px-4">
-  <div class="flex items-center justify-center gap-3 mb-4">
-    <svg class="w-10 h-10 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
-      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-      <circle cx="9" cy="9" r="1" fill="currentColor" />
-      <circle cx="15" cy="9" r="1" fill="currentColor" />
-    </svg>
-    <h1 class="text-3xl md:text-4xl font-bold tracking-tight">
-      ResortPass Tracker
-    </h1>
+<header class="relative text-center pt-10 pb-8 px-4 overflow-hidden">
+  <!-- Decorative background elements -->
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+    <div class="absolute top-6 left-[10%] text-4xl opacity-[0.06] select-none">&#127906;</div>
+    <div class="absolute top-16 right-[12%] text-3xl opacity-[0.05] select-none">&#127903;</div>
+    <div class="absolute bottom-4 left-[20%] text-2xl opacity-[0.04] select-none">&#127905;</div>
+    <div class="absolute top-10 right-[30%] text-2xl opacity-[0.04] select-none">&#9733;</div>
   </div>
-  <p class="text-muted text-lg max-w-md mx-auto">
-    Nie wieder den Verkaufsstart verpassen.
+
+  <!-- Language Switcher -->
+  <div class="flex justify-center mb-6 animate-fade-in-up">
+    <LanguageSwitcher lang={lang} />
+  </div>
+
+  <!-- Community badge -->
+  <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold tracking-wide mb-5 animate-fade-in-up">
+    <span>&#127919;</span>
+    <span>{tr('hero.badge')}</span>
+  </div>
+
+  <!-- Main heading -->
+  <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight max-w-2xl mx-auto mb-4 animate-fade-in-up-delay-1">
+    {tr('hero.title')}
+  </h1>
+
+  <!-- Subtitle -->
+  <p class="text-text-secondary text-base md:text-lg max-w-xl mx-auto leading-relaxed animate-fade-in-up-delay-2">
+    {tr('hero.subtitle')}
   </p>
+
+  <!-- Decorative line -->
+  <div class="mt-8 flex items-center justify-center gap-3 animate-fade-in-up-delay-3" aria-hidden="true">
+    <div class="h-px w-12 bg-gradient-to-r from-transparent to-border"></div>
+    <span class="text-lg">&#127906;</span>
+    <div class="h-px w-12 bg-gradient-to-l from-transparent to-border"></div>
+  </div>
 </header>

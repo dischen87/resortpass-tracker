@@ -1,15 +1,15 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Hero from '../components/Hero.astro';
-import StatusCard from '../components/StatusCard.astro';
-import SubscribeForm from '../components/SubscribeForm.astro';
-import InfoSection from '../components/InfoSection.astro';
-import HistorySection from '../components/HistorySection.astro';
-import Footer from '../components/Footer.astro';
-import '../styles/global.css';
-import { getTranslation } from '../i18n/translations';
+import Layout from '../../layouts/Layout.astro';
+import Hero from '../../components/Hero.astro';
+import StatusCard from '../../components/StatusCard.astro';
+import SubscribeForm from '../../components/SubscribeForm.astro';
+import InfoSection from '../../components/InfoSection.astro';
+import HistorySection from '../../components/HistorySection.astro';
+import Footer from '../../components/Footer.astro';
+import '../../styles/global.css';
+import { getTranslation } from '../../i18n/translations';
 
-const lang = 'de' as const;
+const lang = 'it' as const;
 const tr = (key: string) => getTranslation(lang, key);
 ---
 
@@ -45,11 +45,11 @@ const tr = (key: string) => getTranslation(lang, key);
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "name": "ResortPass Tracker",
-    "url": "https://www.resortpass-europapark.ch",
+    "url": "https://www.resortpass-europapark.ch/it/",
     "description": tr('meta.description'),
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Web",
-    "inLanguage": ["de", "fr", "it", "en"],
+    "inLanguage": "it",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -63,7 +63,7 @@ const tr = (key: string) => getTranslation(lang, key);
   </script>
 
   <script>
-    import { getTranslation, type Lang } from '../i18n/translations';
+    import { getTranslation, type Lang } from '../../i18n/translations';
 
     const statusLang = (window as any).__statusLang as Lang || 'de';
     const tr = (key: string) => getTranslation(statusLang, key);
@@ -79,8 +79,7 @@ const tr = (key: string) => getTranslation(lang, key);
         const lastCheck = data.silver?.lastCheck || data.gold?.lastCheck;
         if (lastCheck) {
           const date = new Date(lastCheck);
-          const locale = statusLang === 'de' ? 'de-CH' : statusLang;
-          const formatted = date.toLocaleDateString(locale, {
+          const formatted = date.toLocaleDateString(statusLang, {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -90,7 +89,6 @@ const tr = (key: string) => getTranslation(lang, key);
           const textEl = document.getElementById('last-check-text');
           const containerEl = document.getElementById('last-check');
           if (textEl) textEl.textContent = `${tr('status.last_check')}: ${formatted} — ${tr('status.updated_3x')}`;
-          // Remove spinner
           const spinner = containerEl?.querySelector('svg');
           if (spinner) spinner.remove();
         }
@@ -112,7 +110,6 @@ const tr = (key: string) => getTranslation(lang, key);
       const availableEl = card.querySelector('.status-available');
       const errorEl = card.querySelector('.status-error');
 
-      // Hide loading
       loadingEl?.classList.add('hidden');
 
       if (status.available) {

@@ -1,11 +1,12 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { serve } from 'bun';
 import {
   addSubscriber,
   confirmSubscriber,
   unsubscribe,
   getLatestStatus,
+  getHistoryStats,
+  getMonthlyHeatmap,
   getDb,
 } from './db';
 import { sendConfirmationEmail, sendUnsubscribeConfirmation } from './email';
@@ -50,11 +51,26 @@ app.get('/api/health', (c) => c.json({ ok: true }));
 // Get current status
 app.get('/api/status', (c) => {
   const status = getLatestStatus();
-  // If no status yet, return defaults
   return c.json({
     silver: status.silver || { available: false, lastCheck: new Date().toISOString() },
     gold: status.gold || { available: false, lastCheck: new Date().toISOString() },
   });
+});
+
+// Get history stats (aggregate statistics)
+app.get('/api/history-stats', (c) => {
+  const stats = getHistoryStats();
+  return c.json(stats);
+});
+
+// Get monthly heatmap for a specific pass type
+app.get('/api/history/:type', (c) => {
+  const type = c.req.param('type');
+  if (type !== 'silver' && type !== 'gold') {
+    return c.json({ error: 'Ungültiger Pass-Typ. Erlaubt: silver, gold.' }, 400);
+  }
+  const heatmap = getMonthlyHeatmap(type);
+  return c.json(heatmap);
 });
 
 // Subscribe
@@ -135,7 +151,7 @@ app.get('/api/unsubscribe', async (c) => {
     try {
       await sendUnsubscribeConfirmation(sub.email);
     } catch {
-      // Non-critical — subscriber is already removed
+      // Non-critical -- subscriber is already removed
     }
     return c.json({ success: true, message: 'Erfolgreich abgemeldet.' });
   }

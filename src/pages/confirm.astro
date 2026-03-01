@@ -1,43 +1,81 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Footer from '../components/Footer.astro';
 import '../styles/global.css';
+import { getTranslation } from '../i18n/translations';
+
+const lang = 'de' as const;
+const tr = (key: string) => getTranslation(lang, key);
 ---
 
-<Layout
-  title="E-Mail bestätigt — ResortPass Tracker"
-  description="Deine E-Mail-Adresse wurde erfolgreich bestätigt."
->
+<Layout lang={lang} title={`${tr('confirm.title')} — ResortPass Tracker`} description={tr('confirm.success')}>
   <main class="max-w-2xl mx-auto px-4 py-20 text-center">
-    <div class="rounded-2xl border border-green-500/20 bg-green-500/5 p-8 max-w-md mx-auto">
-      <div class="text-4xl mb-4">&#10003;</div>
-      <h1 class="text-2xl font-bold mb-3">E-Mail bestätigt!</h1>
-      <p class="text-muted text-sm mb-6" id="confirm-message">
-        Bestätigung wird verarbeitet...
+    <div class="glass-card rounded-2xl p-8 md:p-10 max-w-md mx-auto animate-fade-in-up">
+
+      <!-- Icon -->
+      <div class="w-16 h-16 mx-auto mb-5 rounded-full bg-available/10 flex items-center justify-center">
+        <span class="text-3xl">&#9989;</span>
+      </div>
+
+      <h1 class="text-2xl font-bold mb-3">{tr('confirm.title')}</h1>
+
+      <p class="text-text-secondary text-sm mb-6 leading-relaxed" id="confirm-message">
+        {tr('confirm.processing')}
       </p>
-      <a href="/" class="text-sm text-accent hover:underline">
-        &larr; Zurück zur Startseite
+
+      <!-- Success details (hidden initially) -->
+      <div id="confirm-details" class="hidden mb-6">
+        <div class="rounded-xl bg-available/5 border border-available/20 p-4">
+          <p class="text-sm text-available flex items-center justify-center gap-2">
+            <span>&#128276;</span>
+            <span>{tr('confirm.success')}</span>
+          </p>
+        </div>
+      </div>
+
+      <a href="/" class="inline-flex items-center gap-1.5 text-sm text-accent hover:underline group">
+        <span class="transition group-hover:-translate-x-0.5">&larr;</span>
+        <span>{tr('confirm.back')}</span>
       </a>
     </div>
   </main>
 
+  <Footer lang={lang} />
+
+  <script define:vars={{ lang }}>
+    window.__confirmLang = lang;
+  </script>
+
   <script>
+    import { getTranslation, type Lang } from '../i18n/translations';
+
+    const confirmLang = (window as any).__confirmLang as Lang || 'de';
+    const tr = (key: string) => getTranslation(confirmLang, key);
+
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     const msgEl = document.getElementById('confirm-message');
+    const detailsEl = document.getElementById('confirm-details');
 
     if (token && msgEl) {
       fetch(`/api/confirm?token=${encodeURIComponent(token)}`)
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-            msgEl.textContent = 'Du wirst ab sofort benachrichtigt, sobald der ResortPass verfügbar ist.';
+            msgEl.textContent = '';
+            detailsEl?.classList.remove('hidden');
           } else {
-            msgEl.textContent = data.error || 'Der Bestätigungslink ist ungültig oder abgelaufen.';
+            msgEl.textContent = data.error || tr('confirm.error');
+            msgEl.classList.add('text-red-400');
           }
         })
         .catch(() => {
-          msgEl.textContent = 'Ein Fehler ist aufgetreten. Bitte versuche es später erneut.';
+          msgEl.textContent = tr('confirm.error');
+          msgEl.classList.add('text-red-400');
         });
+    } else if (msgEl) {
+      msgEl.textContent = tr('confirm.error');
+      msgEl.classList.add('text-red-400');
     }
   </script>
 </Layout>

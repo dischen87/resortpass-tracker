@@ -1,0 +1,45 @@
+---
+import { type Lang, defaultLang, languages, langNames } from '../i18n/translations';
+
+interface Props {
+  lang?: Lang;
+}
+
+const lang = Astro.props.lang || defaultLang;
+
+function getPathForLang(targetLang: Lang): string {
+  const path = Astro.url.pathname;
+  // Remove existing lang prefix
+  let cleanPath = path;
+  for (const l of languages) {
+    if (l !== defaultLang && path.startsWith(`/${l}/`)) {
+      cleanPath = path.slice(l.length + 1);
+      break;
+    }
+    if (l !== defaultLang && path === `/${l}`) {
+      cleanPath = '/';
+      break;
+    }
+  }
+  if (targetLang === defaultLang) return cleanPath;
+  return `/${targetLang}${cleanPath === '/' ? '/' : cleanPath}`;
+}
+---
+
+<nav aria-label="Language" class="flex items-center gap-1">
+  {languages.map((l) => (
+    <a
+      href={getPathForLang(l)}
+      class:list={[
+        'px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide transition-all',
+        l === lang
+          ? 'bg-accent/15 text-accent border border-accent/30'
+          : 'text-muted hover:text-text-secondary hover:bg-surface-light/50 border border-transparent',
+      ]}
+      aria-current={l === lang ? 'page' : undefined}
+      aria-label={langNames[l]}
+    >
+      {l.toUpperCase()}
+    </a>
+  ))}
+</nav>

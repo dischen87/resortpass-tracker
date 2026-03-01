@@ -1,17 +1,49 @@
 ---
+import { type Lang, defaultLang, languages, getTranslation } from '../i18n/translations';
+
 interface Props {
-  title: string;
+  title?: string;
   description?: string;
   canonical?: string;
+  lang?: Lang;
 }
 
-const { title, description = "Erfahre sofort, wenn der Europa-Park ResortPass (Gold oder Silver) wieder verfügbar ist. Kostenlose E-Mail-Benachrichtigung — kein Spam, kein Tracking.", canonical } = Astro.props;
+const lang = Astro.props.lang || defaultLang;
+const tr = (key: string) => getTranslation(lang, key);
+
+const title = Astro.props.title || tr('meta.title');
+const description = Astro.props.description || tr('meta.description');
 const siteUrl = "https://www.resortpass-europapark.ch";
-const currentUrl = canonical || `${siteUrl}${Astro.url.pathname}`;
+const currentUrl = Astro.props.canonical || `${siteUrl}${Astro.url.pathname}`;
+
+const localeMap: Record<Lang, string> = {
+  de: 'de_CH',
+  fr: 'fr_CH',
+  it: 'it_CH',
+  en: 'en_US',
+};
+
+function getPathForLang(targetLang: Lang): string {
+  const path = Astro.url.pathname;
+  // Remove existing lang prefix
+  let cleanPath = path;
+  for (const l of languages) {
+    if (l !== defaultLang && path.startsWith(`/${l}/`)) {
+      cleanPath = path.slice(l.length + 1);
+      break;
+    }
+    if (l !== defaultLang && path === `/${l}`) {
+      cleanPath = '/';
+      break;
+    }
+  }
+  if (targetLang === defaultLang) return cleanPath;
+  return `/${targetLang}${cleanPath === '/' ? '/' : cleanPath}`;
+}
 ---
 
 <!DOCTYPE html>
-<html lang="de">
+<html lang={lang}>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,25 +51,38 @@ const currentUrl = canonical || `${siteUrl}${Astro.url.pathname}`;
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href={currentUrl} />
 
+  <!-- hreflang for all languages -->
+  {languages.map((l) => (
+    <link rel="alternate" hreflang={l} href={`${siteUrl}${getPathForLang(l)}`} />
+  ))}
+  <link rel="alternate" hreflang="x-default" href={`${siteUrl}${getPathForLang(defaultLang)}`} />
+
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content={currentUrl} />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:site_name" content="ResortPass Tracker" />
-  <meta property="og:locale" content="de_CH" />
+  <meta property="og:locale" content={localeMap[lang]} />
+  {languages.filter(l => l !== lang).map(l => (
+    <meta property="og:locale:alternate" content={localeMap[l]} />
+  ))}
 
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
+
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#0B0F1A" />
+  <meta name="color-scheme" content="dark" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
   <title>{title}</title>
 </head>
-<body class="min-h-screen bg-bg text-text-primary">
+<body class="min-h-screen bg-bg text-text-primary antialiased">
   <slot />
 </body>
 </html>

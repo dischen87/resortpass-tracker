@@ -34,6 +34,19 @@ function initSchema() {
       available BOOLEAN NOT NULL,
       checked_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS availability_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pass_type TEXT NOT NULL CHECK(pass_type IN ('silver', 'gold')),
+      available BOOLEAN NOT NULL,
+      checked_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_history_type_checked
+      ON availability_history (pass_type, checked_at);
+
+    CREATE INDEX IF NOT EXISTS idx_history_checked
+      ON availability_history (checked_at);
   `);
 }
 
@@ -105,10 +118,88 @@ export function logStatus(passType: 'silver' | 'gold', available: boolean) {
   d.query('INSERT INTO status_log (pass_type, available) VALUES (?, ?)').run(passType, available ? 1 : 0);
 }
 
+export function logHistory(passType: 'silver' | 'gold', available: boolean) {
+  const d = getDb();
+  d.query('INSERT INTO availability_history (pass_type, available) VALUES (?, ?)').run(passType, available ? 1 : 0);
+}
+
 export function getPreviousStatus(passType: 'silver' | 'gold'): boolean | null {
   const d = getDb();
   const row = d.query(
     'SELECT available FROM status_log WHERE pass_type = ? ORDER BY checked_at DESC LIMIT 1'
   ).get(passType) as { available: number } | null;
   return row ? !!row.available : null;
+}
+
+export function cleanupOldHistory() {
+  const d = getDb();
+  d.query("DELETE FROM availability_history WHERE checked_at < datetime('now', '-5 years')").run();
+}
+
+export function getHistory(passType: 'silver' | 'gold', days: number) {
+  const d = getDb();
+  return d.query(
+    "SELECT id, pass_type, available, checked_at FROM availability_history WHERE pass_type = ? AND checked_at >= datetime('now', ? || ' days') ORDER BY checked_at ASC"
+  ).all(passType, -days) as {
+    id: number;
+    pass_type: string;
+    available: number;
+    checked_at: string;
+  }[];
+}
+
+export function getHistoryStats() {
+  const d = getDb();
+
+  const stats = (type: 'silver' | 'gold') => {
+    const total = d.query(
+      'SELECT COUNT(*) as count FROM availability_history WHERE pass_type = ?'
+    ).get(type) as { count: number };
+
+    const available = d.query(
+      'SELECT COUNT(*) as count FROM availability_history WHERE pass_type = ? AND available = 1'
+    ).get(type) as { count: number };
+
+    const earliest = d.query(
+      'SELECT MIN(checked_at) as earliest FROM availability_history WHERE pass_type = ?'
+    ).get(type) as { earliest: string | null };
+
+    const totalChecks = total.count;
+    const availableChecks = available.count;
+    const percentage = totalChecks > 0 ? Math.round((availableChecks / totalChecks) * 10000) / 100 : 0;
+
+    return {
+      totalChecks,
+      availableChecks,
+      percentage,
+      trackingSince: earliest.earliest || null,
+    };
+  };
+
+  return {
+    silver: stats('silver'),
+    gold: stats('gold'),
+  };
+}
+
+export function getMonthlyHeatmap(passType: 'silver' | 'gold') {
+  const d = getDb();
+  return d.query(`
+    SELECT
+      strftime('%Y', checked_at) as year,
+      strftime('%m', checked_at) as month,
+      COUNT(*) as total_checks,
+      SUM(CASE WHEN available = 1 THEN 1 ELSE 0 END) as available_checks,
+      ROUND(CAST(SUM(CASE WHEN available = 1 THEN 1 ELSE 0 END) AS REAL) / COUNT(*) * 100, 1) as availability_pct
+    FROM availability_history
+    WHERE pass_type = ?
+    GROUP BY strftime('%Y', checked_at), strftime('%m', checked_at)
+    ORDER BY year ASC, month ASC
+  `).all(passType) as {
+    year: string;
+    month: string;
+    total_checks: number;
+    available_checks: number;
+    availability_pct: number;
+  }[];
 }
