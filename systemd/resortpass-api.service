@@ -1,0 +1,23 @@
+[Unit]
+Description=ResortPass Tracker API Server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/resortpass-tracker
+EnvironmentFile=/opt/resortpass-tracker/.env
+ExecStart=/usr/local/bin/bun run server/index.ts
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=resortpass-api
+
+Environment=DB_PATH=/opt/resortpass-tracker/data/resortpass.db
+Environment=STATUS_JSON_PATH=/opt/resortpass-tracker/dist/api/status.json
+Environment=API_PORT=3000
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,17 @@
+[Unit]
+Description=ResortPass Tracker Availability Checker
+After=network.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/resortpass-tracker
+EnvironmentFile=/opt/resortpass-tracker/.env
+ExecStart=/usr/local/bin/bun run server/checker.ts
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=resortpass-checker
+
+Environment=DB_PATH=/opt/resortpass-tracker/data/resortpass.db
+Environment=STATUS_JSON_PATH=/opt/resortpass-tracker/dist/api/status.json
