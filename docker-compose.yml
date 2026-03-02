@@ -22,8 +22,8 @@ services:
       /bin/sh -c "while true; do
         echo \"[$$(date -Iseconds)] Running checker...\";
         bun run server/checker.ts;
-        echo \"[$$(date -Iseconds)] Sleeping 28800s (8h)...\";
-        sleep 28800;
+        echo \"[$$(date -Iseconds)] Sleeping 3600s (1h)...\";
+        sleep 3600;
       done"
     env_file: .env
     environment:
