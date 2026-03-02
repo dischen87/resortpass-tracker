@@ -5,15 +5,26 @@ import { join } from 'path';
 const SITE_URL = process.env.SITE_URL || 'https://www.resortpass-europapark.ch';
 const SMTP_HOST = process.env.SMTP_HOST || 'localhost';
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || '25');
+const SMTP_USER = process.env.SMTP_USER || '';
+const SMTP_PASS = process.env.SMTP_PASS || '';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@resortpass-europapark.ch';
 const FROM_NAME = process.env.FROM_NAME || 'ResortPass Tracker';
 
-const transporter = nodemailer.createTransport({
+const transportConfig: any = {
   host: SMTP_HOST,
   port: SMTP_PORT,
   secure: false,
   tls: { rejectUnauthorized: false },
-});
+};
+
+if (SMTP_USER && SMTP_PASS) {
+  transportConfig.auth = {
+    user: SMTP_USER,
+    pass: SMTP_PASS,
+  };
+}
+
+const transporter = nodemailer.createTransport(transportConfig);
 
 function loadTemplate(name: string): string {
   try {

@@ -4,3 +4,4 @@ data/
 .astro/
 .DS_Store
 *.db
+.env

@@ -3,14 +3,10 @@ services:
     build: .
     container_name: resortpass-api
     restart: unless-stopped
+    env_file: .env
     environment:
       - DB_PATH=/app/data/resortpass.db
       - API_PORT=3000
-      - SITE_URL=https://www.resortpass-europapark.ch
-      - SMTP_HOST=resortpass-postfix
-      - SMTP_PORT=25
-      - FROM_EMAIL=noreply@resortpass-europapark.ch
-      - FROM_NAME=ResortPass Tracker
       - STATUS_JSON_PATH=/app/dist/api/status.json
     volumes:
       - ./data:/app/data
@@ -29,32 +25,13 @@ services:
         echo \"[$$(date -Iseconds)] Sleeping 28800s (8h)...\";
         sleep 28800;
       done"
+    env_file: .env
     environment:
       - DB_PATH=/app/data/resortpass.db
-      - SITE_URL=https://www.resortpass-europapark.ch
-      - SMTP_HOST=resortpass-postfix
-      - SMTP_PORT=25
-      - FROM_EMAIL=noreply@resortpass-europapark.ch
-      - FROM_NAME=ResortPass Tracker
       - STATUS_JSON_PATH=/app/dist/api/status.json
     volumes:
       - ./data:/app/data
       - ./dist:/app/dist
-    networks:
-      - caddy-net
-    depends_on:
-      - resortpass-postfix
-
-  resortpass-postfix:
-    image: boky/postfix
-    container_name: resortpass-postfix
-    restart: unless-stopped
-    environment:
-      - ALLOWED_SENDER_DOMAINS=resortpass-europapark.ch
-      - HOSTNAME=mail.resortpass-europapark.ch
-      - RELAYHOST=
-      - POSTFIX_myhostname=mail.resortpass-europapark.ch
-      - POSTFIX_mydestination=localhost
     networks:
       - caddy-net
 
