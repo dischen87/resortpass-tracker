@@ -14,7 +14,7 @@ export const t: Record<Lang, Record<string, string>> = {
   de: {
     // Meta
     'meta.title': 'ResortPass Tracker \u2014 Europa-Park Jahreskarte Verf\u00fcgbarkeit',
-    'meta.description': 'Werde sofort benachrichtigt, wenn die Europa-Park Jahreskarte (ResortPass Gold oder Silver) wieder verf\u00fcgbar ist. Kostenloser E-Mail-Alert \u2014 kein Spam, kein Tracking.',
+    'meta.description': 'Werde benachrichtigt, wenn die Europa-Park Jahreskarte (ResortPass Gold oder Silver) wieder verf\u00fcgbar ist. Kostenloser E-Mail-Alert \u2014 kein Spam.',
 
     // Hero
     'hero.badge': 'Community-Projekt \u2014 nicht offiziell',

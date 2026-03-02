@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
   site: 'https://www.resortpass-europapark.ch',
-  trailingSlash: 'never',
+  trailingSlash: 'always',
   vite: {
     plugins: [tailwindcss()],
   },
@@ -26,17 +26,13 @@ export default defineConfig({
         return !page.includes('/confirm') && !page.includes('/unsubscribe') && !page.includes('/sitemap') && !page.includes('/404');
       },
       serialize: (item) => {
-        // Remove trailing slashes for consistency
-        if (item.url.endsWith('/') && item.url !== 'https://www.resortpass-europapark.ch/') {
-          return undefined;
-        }
         // Set homepage as highest priority
         if (item.url === 'https://www.resortpass-europapark.ch/') {
           item.priority = 1.0;
           item.changefreq = 'hourly';
         }
         // Language homepages
-        if (item.url.match(/\/(fr|en|it)$/)) {
+        if (item.url.match(/\/(fr|en|it)\/$/)) {
           item.priority = 0.9;
           item.changefreq = 'hourly';
         }

@@ -9,7 +9,7 @@ interface Props {
 const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
 
-const imprintPath = lang === defaultLang ? '/impressum' : `/${lang}/impressum`;
+const imprintPath = lang === defaultLang ? '/impressum/' : `/${lang}/impressum/`;
 ---
 
 <footer class="border-t border-border mt-10 py-10 px-4">

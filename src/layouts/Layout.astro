@@ -14,7 +14,8 @@ const tr = (key: string) => getTranslation(lang, key);
 const title = Astro.props.title || tr('meta.title');
 const description = Astro.props.description || tr('meta.description');
 const siteUrl = "https://www.resortpass-europapark.ch";
-const currentUrl = Astro.props.canonical || `${siteUrl}${Astro.url.pathname}`;
+const rawPath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const currentUrl = Astro.props.canonical || `${siteUrl}${rawPath}`;
 
 const localeMap: Record<Lang, string> = {
   de: 'de_CH',
@@ -28,17 +29,15 @@ function getPathForLang(targetLang: Lang): string {
   // Remove existing lang prefix
   let cleanPath = path;
   for (const l of languages) {
-    if (l !== defaultLang && path.startsWith(`/${l}/`)) {
-      cleanPath = path.slice(l.length + 1);
-      break;
-    }
-    if (l !== defaultLang && path === `/${l}`) {
-      cleanPath = '/';
+    if (l !== defaultLang && (path.startsWith(`/${l}/`) || path === `/${l}`)) {
+      cleanPath = path.slice(l.length + 1) || '/';
       break;
     }
   }
+  // Ensure trailing slash
+  if (!cleanPath.endsWith('/')) cleanPath += '/';
   if (targetLang === defaultLang) return cleanPath;
-  return `/${targetLang}${cleanPath === '/' ? '/' : cleanPath}`;
+  return `/${targetLang}${cleanPath}`;
 }
 ---
 
@@ -62,6 +61,10 @@ function getPathForLang(targetLang: Lang): string {
   <meta property="og:url" content={currentUrl} />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
+  <meta property="og:image" content={`${siteUrl}/og-image.png`} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="ResortPass Tracker — Europa-Park Annual Pass Availability" />
   <meta property="og:site_name" content="ResortPass Tracker" />
   <meta property="og:locale" content={localeMap[lang]} />
   {languages.filter(l => l !== lang).map(l => (
@@ -72,6 +75,7 @@ function getPathForLang(targetLang: Lang): string {
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={`${siteUrl}/og-image.png`} />
 
   <!-- Theme Color -->
   <meta name="theme-color" content="#FFFFFF" />

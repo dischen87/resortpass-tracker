@@ -12,17 +12,15 @@ function getPathForLang(targetLang: Lang): string {
   // Remove existing lang prefix
   let cleanPath = path;
   for (const l of languages) {
-    if (l !== defaultLang && path.startsWith(`/${l}/`)) {
-      cleanPath = path.slice(l.length + 1);
-      break;
-    }
-    if (l !== defaultLang && path === `/${l}`) {
-      cleanPath = '/';
+    if (l !== defaultLang && (path.startsWith(`/${l}/`) || path === `/${l}`)) {
+      cleanPath = path.slice(l.length + 1) || '/';
       break;
     }
   }
+  // Ensure trailing slash
+  if (!cleanPath.endsWith('/')) cleanPath += '/';
   if (targetLang === defaultLang) return cleanPath;
-  return `/${targetLang}${cleanPath === '/' ? '/' : cleanPath}`;
+  return `/${targetLang}${cleanPath}`;
 }
 ---
 
