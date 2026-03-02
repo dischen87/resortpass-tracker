@@ -75,7 +75,7 @@ const c = config[type];
 
   <!-- Includes line -->
   <p class="text-xs text-muted mb-4 flex items-center gap-1.5">
-    <span>{isGold ? '&#127965;&#65039;' : '&#127906;'}</span>
+    <span set:html={isGold ? '&#127965;&#65039;' : '&#127906;'} />
     {c.includes}
   </p>
 
