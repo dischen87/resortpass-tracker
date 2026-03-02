@@ -15,7 +15,8 @@ const isGold = type === 'gold';
 const config = {
   gold: {
     label: 'ResortPass Gold',
-    icon: '&#11088;',
+    icon: '\u2B50',
+    includesIcon: '\uD83C\uDFDD\uFE0F',
     priceAdult: '495',
     priceChild: '430',
     priceSpecial: '430',
@@ -29,7 +30,8 @@ const config = {
   },
   silver: {
     label: 'ResortPass Silver',
-    icon: '&#9898;',
+    icon: '\u26AA',
+    includesIcon: '\uD83C\uDFA2',
     priceAdult: '325',
     priceChild: '275',
     priceSpecial: '275',
@@ -57,7 +59,7 @@ const c = config[type];
   <!-- Card Header -->
   <div class="flex items-center justify-between mb-4">
     <div class="flex items-center gap-2.5">
-      <span class="text-xl" set:html={c.icon} />
+      <span class="text-xl">{c.icon}</span>
       <h2 class:list={[
         'text-sm font-bold uppercase tracking-widest',
         isGold ? 'text-gold-light' : 'text-silver-light',
@@ -75,7 +77,7 @@ const c = config[type];
 
   <!-- Includes line -->
   <p class="text-xs text-muted mb-4 flex items-center gap-1.5">
-    <span set:html={isGold ? '&#127965;&#65039;' : '&#127906;'} />
+    <span>{c.includesIcon}</span>
     {c.includes}
   </p>
 
