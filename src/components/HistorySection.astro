@@ -102,13 +102,14 @@ const tr = (key: string) => getTranslation(lang, key);
       const sincEl = document.getElementById('tracking-since');
 
       if (silverPct && data.silver) {
-        silverPct.textContent = `${data.silver.availablePercent.toFixed(1)}%`;
+        silverPct.textContent = `${data.silver.percentage.toFixed(1)}%`;
       }
       if (goldPct && data.gold) {
-        goldPct.textContent = `${data.gold.availablePercent.toFixed(1)}%`;
+        goldPct.textContent = `${data.gold.percentage.toFixed(1)}%`;
       }
-      if (sincEl && data.trackingSince) {
-        const date = new Date(data.trackingSince);
+      const trackingSince = data.silver?.trackingSince || data.gold?.trackingSince;
+      if (sincEl && trackingSince) {
+        const date = new Date(trackingSince + 'Z');
         const formatted = date.toLocaleDateString(histLang === 'de' ? 'de-CH' : histLang, {
           day: '2-digit',
           month: '2-digit',
