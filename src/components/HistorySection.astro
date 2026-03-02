@@ -39,8 +39,8 @@ const tr = (key: string) => getTranslation(lang, key);
 
       <!-- Stats display -->
       <div id="history-stats" class="hidden">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Silver stats -->
+        <!-- Summary cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div class="rounded-xl bg-bg-light border border-border p-4">
             <div class="flex items-center gap-2 mb-3">
               <span>&#9898;</span>
@@ -49,8 +49,6 @@ const tr = (key: string) => getTranslation(lang, key);
             <div class="text-2xl font-bold font-mono" id="silver-pct">--</div>
             <p class="text-xs text-muted mt-1">{tr('history.available_pct')}</p>
           </div>
-
-          <!-- Gold stats -->
           <div class="rounded-xl bg-bg-light border border-border p-4">
             <div class="flex items-center gap-2 mb-3">
               <span>&#11088;</span>
@@ -62,7 +60,26 @@ const tr = (key: string) => getTranslation(lang, key);
         </div>
 
         <!-- Tracking since -->
-        <div class="mt-4 text-center text-xs text-muted font-mono" id="tracking-since"></div>
+        <div class="mb-6 text-center text-xs text-muted font-mono" id="tracking-since"></div>
+
+        <!-- Recent checks table -->
+        <h3 class="text-sm font-bold mb-3">{tr('history.recent_title')}</h3>
+        <div class="rounded-xl border border-border overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-bg-light text-left text-xs text-muted uppercase tracking-wider">
+                <th class="px-3 py-2.5">{tr('history.time')}</th>
+                <th class="px-3 py-2.5 text-center">&#9898; Silver</th>
+                <th class="px-3 py-2.5 text-center">&#11088; Gold</th>
+              </tr>
+            </thead>
+            <tbody id="recent-checks-body">
+              <tr>
+                <td colspan="3" class="px-3 py-4 text-center text-muted text-xs">{tr('status.loading')}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -78,15 +95,29 @@ const tr = (key: string) => getTranslation(lang, key);
   const histLang = (window as any).__historyLang as Lang || 'de';
   const tr = (key: string) => getTranslation(histLang, key);
 
+  const SILVER_SHOP = 'https://tickets.mackinternational.de/de/ticket/resortpass-silver';
+  const GOLD_SHOP = 'https://tickets.mackinternational.de/de/ticket/resortpass-gold';
+
+  function statusBadge(available: boolean, shopUrl: string): string {
+    if (available) {
+      return `<a href="${shopUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-bold border border-green-200 hover:bg-green-100 transition">&#9679; ${tr('history.available_label')} &rarr;</a>`;
+    }
+    return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-xs font-medium border border-red-200">&#9679; ${tr('history.sold_out_label')}</span>`;
+  }
+
   async function loadHistory() {
     const loadingEl = document.getElementById('history-loading');
     const emptyEl = document.getElementById('history-empty');
     const statsEl = document.getElementById('history-stats');
 
     try {
-      const res = await fetch('/api/history-stats');
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
+      const [statsRes, recentRes] = await Promise.all([
+        fetch('/api/history-stats'),
+        fetch('/api/recent-checks?hours=24'),
+      ]);
+
+      if (!statsRes.ok) throw new Error('Failed to fetch stats');
+      const data = await statsRes.json();
 
       loadingEl?.classList.add('hidden');
 
@@ -97,6 +128,7 @@ const tr = (key: string) => getTranslation(lang, key);
 
       statsEl?.classList.remove('hidden');
 
+      // Summary percentages
       const silverPct = document.getElementById('silver-pct');
       const goldPct = document.getElementById('gold-pct');
       const sincEl = document.getElementById('tracking-since');
@@ -116,6 +148,64 @@ const tr = (key: string) => getTranslation(lang, key);
           year: 'numeric',
         });
         sincEl.textContent = `${tr('history.tracking_since')} ${formatted}`;
+      }
+
+      // Recent checks table
+      if (recentRes.ok) {
+        const checks = await recentRes.json();
+        const tbody = document.getElementById('recent-checks-body');
+        if (!tbody || !checks.length) return;
+
+        // Group checks by timestamp (silver + gold at same time)
+        const grouped: Record<string, { silver?: boolean; gold?: boolean }> = {};
+        for (const check of checks) {
+          const key = check.checked_at;
+          if (!grouped[key]) grouped[key] = {};
+          if (check.pass_type === 'silver') grouped[key].silver = !!check.available;
+          if (check.pass_type === 'gold') grouped[key].gold = !!check.available;
+        }
+
+        // Merge entries that are within 5 seconds of each other
+        const timestamps = Object.keys(grouped).sort().reverse();
+        const merged: { time: string; silver?: boolean; gold?: boolean }[] = [];
+
+        for (const ts of timestamps) {
+          const existing = merged.find((m) => {
+            const diff = Math.abs(new Date(m.time + 'Z').getTime() - new Date(ts + 'Z').getTime());
+            return diff < 5000;
+          });
+          if (existing) {
+            if (grouped[ts].silver !== undefined) existing.silver = grouped[ts].silver;
+            if (grouped[ts].gold !== undefined) existing.gold = grouped[ts].gold;
+          } else {
+            merged.push({ time: ts, ...grouped[ts] });
+          }
+        }
+
+        const locale = histLang === 'de' ? 'de-CH' : histLang === 'fr' ? 'fr-CH' : histLang === 'it' ? 'it-CH' : 'en-US';
+
+        tbody.innerHTML = merged.map((row) => {
+          const date = new Date(row.time + 'Z');
+          const timeStr = date.toLocaleDateString(locale, {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+
+          const silverHtml = row.silver !== undefined
+            ? statusBadge(row.silver, SILVER_SHOP)
+            : '<span class="text-muted text-xs">—</span>';
+          const goldHtml = row.gold !== undefined
+            ? statusBadge(row.gold, GOLD_SHOP)
+            : '<span class="text-muted text-xs">—</span>';
+
+          return `<tr class="border-t border-border">
+            <td class="px-3 py-2.5 font-mono text-xs text-text-secondary whitespace-nowrap">${timeStr}</td>
+            <td class="px-3 py-2.5 text-center">${silverHtml}</td>
+            <td class="px-3 py-2.5 text-center">${goldHtml}</td>
+          </tr>`;
+        }).join('');
       }
     } catch {
       loadingEl?.classList.add('hidden');

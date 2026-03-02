@@ -7,6 +7,7 @@ import {
   getLatestStatus,
   getHistoryStats,
   getMonthlyHeatmap,
+  getRecentChecks,
   getDb,
 } from './db';
 import { sendConfirmationEmail, sendUnsubscribeConfirmation } from './email';
@@ -71,6 +72,13 @@ app.get('/api/history/:type', (c) => {
   }
   const heatmap = getMonthlyHeatmap(type);
   return c.json(heatmap);
+});
+
+// Get recent checks (last 24h by default)
+app.get('/api/recent-checks', (c) => {
+  const hours = parseInt(c.req.query('hours') || '24');
+  const checks = getRecentChecks(Math.min(hours, 168)); // max 7 days
+  return c.json(checks);
 });
 
 // Subscribe

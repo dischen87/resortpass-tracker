@@ -182,6 +182,20 @@ export function getHistoryStats() {
   };
 }
 
+export function getRecentChecks(hours: number = 12) {
+  const d = getDb();
+  return d.query(
+    `SELECT pass_type, available, checked_at
+     FROM availability_history
+     WHERE checked_at >= datetime('now', '-${hours} hours')
+     ORDER BY checked_at DESC`
+  ).all() as {
+    pass_type: string;
+    available: number;
+    checked_at: string;
+  }[];
+}
+
 export function getMonthlyHeatmap(passType: 'silver' | 'gold') {
   const d = getDb();
   return d.query(`
