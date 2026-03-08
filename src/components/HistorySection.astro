@@ -80,6 +80,17 @@ const tr = (key: string) => getTranslation(lang, key);
             </tbody>
           </table>
         </div>
+
+        <!-- Pagination -->
+        <div id="pagination-controls" class="hidden flex items-center justify-between mt-4">
+          <button id="prev-page" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-bg-light text-muted hover:text-text-primary hover:border-gray-400 transition disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+            &larr; {tr('history.prev')}
+          </button>
+          <span id="page-info" class="text-xs text-muted font-mono"></span>
+          <button id="next-page" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-bg-light text-muted hover:text-text-primary hover:border-gray-400 transition disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+            {tr('history.next')} &rarr;
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -113,7 +124,7 @@ const tr = (key: string) => getTranslation(lang, key);
     try {
       const [statsRes, recentRes] = await Promise.all([
         fetch('/api/history-stats'),
-        fetch('/api/recent-checks?hours=24'),
+        fetch('/api/recent-checks?hours=168'),
       ]);
 
       if (!statsRes.ok) throw new Error('Failed to fetch stats');
@@ -183,29 +194,65 @@ const tr = (key: string) => getTranslation(lang, key);
         }
 
         const locale = histLang === 'de' ? 'de-CH' : histLang === 'fr' ? 'fr-CH' : histLang === 'it' ? 'it-CH' : 'en-US';
+        const PAGE_SIZE = 20;
+        let currentPage = 0;
+        const totalPages = Math.ceil(merged.length / PAGE_SIZE);
 
-        tbody.innerHTML = merged.map((row) => {
-          const date = new Date(row.time + 'Z');
-          const timeStr = date.toLocaleDateString(locale, {
-            day: '2-digit',
-            month: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
+        function renderPage() {
+          const start = currentPage * PAGE_SIZE;
+          const pageItems = merged.slice(start, start + PAGE_SIZE);
+
+          tbody!.innerHTML = pageItems.map((row) => {
+            const date = new Date(row.time + 'Z');
+            const timeStr = date.toLocaleDateString(locale, {
+              day: '2-digit',
+              month: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+
+            const silverHtml = row.silver !== undefined
+              ? statusBadge(row.silver, SILVER_SHOP)
+              : '<span class="text-muted text-xs">—</span>';
+            const goldHtml = row.gold !== undefined
+              ? statusBadge(row.gold, GOLD_SHOP)
+              : '<span class="text-muted text-xs">—</span>';
+
+            return `<tr class="border-t border-border">
+              <td class="px-3 py-2.5 font-mono text-xs text-text-secondary whitespace-nowrap">${timeStr}</td>
+              <td class="px-3 py-2.5 text-center">${silverHtml}</td>
+              <td class="px-3 py-2.5 text-center">${goldHtml}</td>
+            </tr>`;
+          }).join('');
+
+          // Update pagination controls
+          const prevBtn = document.getElementById('prev-page') as HTMLButtonElement;
+          const nextBtn = document.getElementById('next-page') as HTMLButtonElement;
+          const pageInfo = document.getElementById('page-info');
+
+          if (prevBtn) prevBtn.disabled = currentPage === 0;
+          if (nextBtn) nextBtn.disabled = currentPage >= totalPages - 1;
+          if (pageInfo) {
+            pageInfo.textContent = tr('history.page_info')
+              .replace('{page}', String(currentPage + 1))
+              .replace('{total}', String(totalPages));
+          }
+        }
+
+        // Show pagination if more than one page
+        if (totalPages > 1) {
+          const controls = document.getElementById('pagination-controls');
+          controls?.classList.remove('hidden');
+
+          document.getElementById('prev-page')?.addEventListener('click', () => {
+            if (currentPage > 0) { currentPage--; renderPage(); }
           });
+          document.getElementById('next-page')?.addEventListener('click', () => {
+            if (currentPage < totalPages - 1) { currentPage++; renderPage(); }
+          });
+        }
 
-          const silverHtml = row.silver !== undefined
-            ? statusBadge(row.silver, SILVER_SHOP)
-            : '<span class="text-muted text-xs">—</span>';
-          const goldHtml = row.gold !== undefined
-            ? statusBadge(row.gold, GOLD_SHOP)
-            : '<span class="text-muted text-xs">—</span>';
-
-          return `<tr class="border-t border-border">
-            <td class="px-3 py-2.5 font-mono text-xs text-text-secondary whitespace-nowrap">${timeStr}</td>
-            <td class="px-3 py-2.5 text-center">${silverHtml}</td>
-            <td class="px-3 py-2.5 text-center">${goldHtml}</td>
-          </tr>`;
-        }).join('');
+        renderPage();
       }
     } catch {
       loadingEl?.classList.add('hidden');

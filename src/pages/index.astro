@@ -40,6 +40,22 @@ const tr = (key: string) => getTranslation(lang, key);
     <Footer lang={lang} />
   </main>
 
+  <!-- Structured Data: WebPage with dynamic dateModified -->
+  <script type="application/ld+json" id="schema-webpage" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": tr('meta.title'),
+    "url": "https://www.resortpass-europapark.ch/",
+    "description": tr('meta.description'),
+    "inLanguage": "de",
+    "dateModified": new Date().toISOString(),
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "ResortPass Tracker",
+      "url": "https://www.resortpass-europapark.ch"
+    }
+  })} />
+
   <!-- Structured Data: WebApplication -->
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
@@ -141,7 +157,7 @@ const tr = (key: string) => getTranslation(lang, key);
 
         const lastCheck = data.silver?.lastCheck || data.gold?.lastCheck;
         if (lastCheck) {
-          const date = new Date(lastCheck);
+          const date = new Date(lastCheck + 'Z');
           const locale = statusLang === 'de' ? 'de-CH' : statusLang;
           const formatted = date.toLocaleDateString(locale, {
             day: '2-digit',
@@ -153,9 +169,18 @@ const tr = (key: string) => getTranslation(lang, key);
           const textEl = document.getElementById('last-check-text');
           const containerEl = document.getElementById('last-check');
           if (textEl) textEl.textContent = `${tr('status.last_check')}: ${formatted} — ${tr('status.updated_3x')}`;
-          // Remove spinner
           const spinner = containerEl?.querySelector('svg');
           if (spinner) spinner.remove();
+
+          // Update Schema.org dateModified
+          const schemaEl = document.getElementById('schema-webpage');
+          if (schemaEl) {
+            try {
+              const schema = JSON.parse(schemaEl.textContent || '{}');
+              schema.dateModified = date.toISOString();
+              schemaEl.textContent = JSON.stringify(schema);
+            } catch {}
+          }
         }
       } catch {
         const textEl = document.getElementById('last-check-text');

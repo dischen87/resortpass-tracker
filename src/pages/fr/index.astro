@@ -40,6 +40,22 @@ const tr = (key: string) => getTranslation(lang, key);
     <Footer lang={lang} />
   </main>
 
+  <!-- Structured Data: WebPage with dynamic dateModified -->
+  <script type="application/ld+json" id="schema-webpage" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": tr('meta.title'),
+    "url": "https://www.resortpass-europapark.ch/fr/",
+    "description": tr('meta.description'),
+    "inLanguage": "fr",
+    "dateModified": new Date().toISOString(),
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "ResortPass Tracker",
+      "url": "https://www.resortpass-europapark.ch"
+    }
+  })} />
+
   <!-- Structured Data: WebApplication -->
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
@@ -88,7 +104,7 @@ const tr = (key: string) => getTranslation(lang, key);
 
         const lastCheck = data.silver?.lastCheck || data.gold?.lastCheck;
         if (lastCheck) {
-          const date = new Date(lastCheck);
+          const date = new Date(lastCheck + 'Z');
           const formatted = date.toLocaleDateString(statusLang, {
             day: '2-digit',
             month: '2-digit',
@@ -101,6 +117,15 @@ const tr = (key: string) => getTranslation(lang, key);
           if (textEl) textEl.textContent = `${tr('status.last_check')}: ${formatted} — ${tr('status.updated_3x')}`;
           const spinner = containerEl?.querySelector('svg');
           if (spinner) spinner.remove();
+
+          const schemaEl = document.getElementById('schema-webpage');
+          if (schemaEl) {
+            try {
+              const schema = JSON.parse(schemaEl.textContent || '{}');
+              schema.dateModified = date.toISOString();
+              schemaEl.textContent = JSON.stringify(schema);
+            } catch {}
+          }
         }
       } catch {
         const textEl = document.getElementById('last-check-text');
