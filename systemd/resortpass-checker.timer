@@ -2,8 +2,8 @@
 Description=Run ResortPass Checker every hour
 
 [Timer]
-OnCalendar=hourly
-RandomizedDelaySec=120
+OnCalendar=*:0/15
+RandomizedDelaySec=30
 Persistent=true
 
 [Install]
