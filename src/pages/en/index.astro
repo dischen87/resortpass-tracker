@@ -40,6 +40,70 @@ const tr = (key: string) => getTranslation(lang, key);
     <Footer lang={lang} />
   </main>
 
+  <!-- Structured Data: WebSite with SearchAction (sitelinks search box) -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "ResortPass Tracker",
+    "alternateName": "Europa-Park Jahreskarte Tracker",
+    "url": "https://www.resortpass-europapark.ch",
+    "inLanguage": ["de", "fr", "it", "en"],
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://www.resortpass-europapark.ch/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  })} />
+
+  <!-- Structured Data: ItemList for pass types -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Europa-Park ResortPass Varianten",
+    "description": "Übersicht der verfügbaren ResortPass-Jahreskarten für den Europa-Park",
+    "numberOfItems": 2,
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "item": {
+          "@type": "Product",
+          "name": "ResortPass Silver",
+          "description": "Unbegrenzter Eintritt in den Europa-Park für eine volle Saison. Ohne Zugang zum Wasserpark Rulantica.",
+          "url": "https://tickets.mackinternational.de/de/ticket/resortpass-silver",
+          "brand": { "@type": "Brand", "name": "Europa-Park" },
+          "offers": {
+            "@type": "AggregateOffer",
+            "lowPrice": "275",
+            "highPrice": "325",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/OutOfStock",
+            "seller": { "@type": "Organization", "name": "MackInternational" }
+          }
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "item": {
+          "@type": "Product",
+          "name": "ResortPass Gold",
+          "description": "Unbegrenzter Eintritt in den Europa-Park und den Wasserpark Rulantica für eine volle Saison.",
+          "url": "https://tickets.mackinternational.de/de/ticket/resortpass-gold",
+          "brand": { "@type": "Brand", "name": "Europa-Park" },
+          "offers": {
+            "@type": "AggregateOffer",
+            "lowPrice": "430",
+            "highPrice": "495",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/OutOfStock",
+            "seller": { "@type": "Organization", "name": "MackInternational" }
+          }
+        }
+      }
+    ]
+  })} />
+
   <!-- Structured Data: WebPage with dynamic dateModified -->
   <script type="application/ld+json" id="schema-webpage" set:html={JSON.stringify({
     "@context": "https://schema.org",
@@ -79,7 +143,31 @@ const tr = (key: string) => getTranslation(lang, key);
       { "@type": "Question", "name": tr('info.why_title'), "acceptedAnswer": { "@type": "Answer", "text": tr('info.why_text') } },
       { "@type": "Question", "name": tr('info.how_title'), "acceptedAnswer": { "@type": "Answer", "text": tr('info.how_text') } },
       { "@type": "Question", "name": "How much does the ResortPass Silver cost?", "acceptedAnswer": { "@type": "Answer", "text": "The ResortPass Silver costs €325 for adults (12+) and €275 for children (4–11) and seniors (60+). It includes unlimited entry to Europa-Park for an entire season, without access to the Rulantica water park." } },
-      { "@type": "Question", "name": "How much does the ResortPass Gold cost?", "acceptedAnswer": { "@type": "Answer", "text": "The ResortPass Gold costs €495 for adults (12+) and €430 for children (4–11) and seniors (60+). It includes unlimited entry to Europa-Park and the Rulantica water park." } }
+      { "@type": "Question", "name": "How much does the ResortPass Gold cost?", "acceptedAnswer": { "@type": "Answer", "text": "The ResortPass Gold costs €495 for adults (12+) and €430 for children (4–11) and seniors (60+). It includes unlimited entry to Europa-Park and the Rulantica water park." } },
+      {
+        "@type": "Question",
+        "name": "When are new ResortPass allocations released?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Europa-Park typically releases new allocations at the start of the season (March/April) and after the summer break. There is no official announcement — availability appears suddenly in the ticket shop and is often gone within days. Our tracker checks every 15 minutes and notifies you instantly by email."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Where can you buy the Europa-Park ResortPass?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The ResortPass can only be purchased through the official MackInternational online ticket shop (tickets.mackinternational.de). There is no on-site sale at the gate and no third-party resellers. When new allocations become available, a purchase button appears on the product page."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the difference between ResortPass Silver and Gold?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The ResortPass Silver (from €275) grants unlimited entry to Europa-Park for one season. The ResortPass Gold (from €430) additionally includes unlimited access to the Rulantica water park. Both passes are valid for the entire season and are non-transferable."
+        }
+      }
     ]
   })} />
 
