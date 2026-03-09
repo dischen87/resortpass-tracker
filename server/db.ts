@@ -196,6 +196,12 @@ export function getRecentChecks(hours: number = 12) {
   }[];
 }
 
+export function getSubscriberCount(): number {
+  const d = getDb();
+  const row = d.query('SELECT COUNT(*) as count FROM subscribers WHERE confirmed = 1').get() as { count: number };
+  return row.count;
+}
+
 export function getMonthlyHeatmap(passType: 'silver' | 'gold') {
   const d = getDb();
   return d.query(`

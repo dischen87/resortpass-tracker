@@ -8,6 +8,7 @@ import {
   getHistoryStats,
   getMonthlyHeatmap,
   getRecentChecks,
+  getSubscriberCount,
   getDb,
 } from './db';
 import { sendConfirmationEmail, sendUnsubscribeConfirmation } from './email';
@@ -48,6 +49,12 @@ getDb();
 
 // Health check
 app.get('/api/health', (c) => c.json({ ok: true }));
+
+// Get subscriber count
+app.get('/api/subscriber-count', (c) => {
+  const count = getSubscriberCount();
+  return c.json({ count });
+});
 
 // Get current status
 app.get('/api/status', (c) => {

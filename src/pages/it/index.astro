@@ -17,6 +17,25 @@ const tr = (key: string) => getTranslation(lang, key);
   <main class="max-w-2xl mx-auto">
     <Hero lang={lang} />
 
+    <!-- Social proof: waiting fans counter -->
+    <section class="px-4 pb-2">
+      <div class="flex items-center justify-center gap-3 py-4">
+        <div class="flex items-center gap-2 px-5 py-3 rounded-2xl bg-accent/5 border border-accent/15">
+          <div class="flex -space-x-2" aria-hidden="true">
+            <div class="w-7 h-7 rounded-full bg-accent/20 border-2 border-white flex items-center justify-center text-xs">&#128100;</div>
+            <div class="w-7 h-7 rounded-full bg-gold/20 border-2 border-white flex items-center justify-center text-xs">&#128100;</div>
+            <div class="w-7 h-7 rounded-full bg-silver/20 border-2 border-white flex items-center justify-center text-xs">&#128100;</div>
+          </div>
+          <div class="text-center ml-2">
+            <p class="text-xs text-text-secondary font-medium">{tr('subscribe.waiting_fans')}</p>
+            <p class="text-2xl font-bold text-accent tabular-nums" id="fan-count">---</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <SubscribeForm lang={lang} />
+
     <!-- Status Cards -->
     <section class="px-4 pb-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -34,11 +53,26 @@ const tr = (key: string) => getTranslation(lang, key);
       </div>
     </section>
 
-    <SubscribeForm lang={lang} />
     <InfoSection lang={lang} />
     <HistorySection lang={lang} />
     <Footer lang={lang} />
   </main>
+
+  <!-- Sticky CTA Button -->
+  <div id="sticky-cta" class="fixed bottom-0 left-0 right-0 z-50 pointer-events-none opacity-0 translate-y-full transition-all duration-300">
+    <div class="max-w-2xl mx-auto px-4 pb-4 pt-2">
+      <div class="pointer-events-auto">
+        <a
+          href="#benachrichtigung"
+          class="flex items-center justify-center gap-2 w-full rounded-2xl bg-accent py-4 px-6 font-bold text-white text-base shadow-lg shadow-accent/25 transition hover:bg-blue-400 hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.01] active:scale-[0.99]"
+        >
+          <span>&#128276;</span>
+          <span>{tr('subscribe.sticky_cta')}</span>
+        </a>
+      </div>
+    </div>
+    <div class="absolute inset-0 -z-10 bg-gradient-to-t from-white via-white/95 to-transparent pointer-events-none"></div>
+  </div>
 
   <!-- Structured Data: WebSite with SearchAction (sitelinks search box) -->
   <script type="application/ld+json" set:html={JSON.stringify({
@@ -250,5 +284,47 @@ const tr = (key: string) => getTranslation(lang, key);
 
     loadStatus();
     setInterval(loadStatus, 5 * 60 * 1000);
+
+    // Load subscriber count
+    async function loadFanCount() {
+      try {
+        const res = await fetch('/api/subscriber-count');
+        const data = await res.json();
+        const el = document.getElementById('fan-count');
+        if (el && data.count !== undefined) {
+          el.textContent = data.count.toLocaleString('de-CH');
+        }
+      } catch {}
+    }
+    loadFanCount();
+
+    // Sticky CTA: show when subscribe form is out of view
+    const stickyCta = document.getElementById('sticky-cta');
+    const subscribeSection = document.getElementById('benachrichtigung');
+
+    if (stickyCta && subscribeSection) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            stickyCta.classList.add('opacity-0', 'translate-y-full');
+            stickyCta.classList.remove('opacity-100', 'translate-y-0');
+          } else {
+            stickyCta.classList.remove('opacity-0', 'translate-y-full');
+            stickyCta.classList.add('opacity-100', 'translate-y-0');
+          }
+        },
+        { threshold: 0.1 }
+      );
+      observer.observe(subscribeSection);
+
+      stickyCta.querySelector('a')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        subscribeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+          const emailInput = document.getElementById('email') as HTMLInputElement;
+          emailInput?.focus();
+        }, 600);
+      });
+    }
   </script>
 </Layout>
