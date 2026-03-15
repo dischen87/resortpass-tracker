@@ -12,36 +12,89 @@ const tr = (key: string) => getTranslation(lang, key);
 const imprintPath = lang === defaultLang ? '/impressum/' : `/${lang}/impressum/`;
 ---
 
-<footer class="border-t border-border mt-10 pt-10 pb-24 px-4">
-  <div class="max-w-2xl mx-auto text-center space-y-5">
+<!-- CTA Section -->
+<section class="py-16 md:py-20">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="card rounded-3xl p-8 md:p-12 text-center" style="border-color: var(--color-accent); box-shadow: 5px 5px 0px var(--color-accent);">
+      <h2 class="text-2xl md:text-3xl font-bold mb-3" style="font-family: var(--font-heading);">{tr('subscribe.title')}</h2>
+      <p class="text-text-secondary max-w-lg mx-auto mb-6">
+        {tr('subscribe.desc').split('.')[0]}.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
+        <a href="#benachrichtigung" class="btn-primary cursor-pointer">
+          {tr('subscribe.sticky_cta')}
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </a>
+      </div>
+      <div class="flex items-center justify-center gap-4 text-xs text-muted">
+        <span class="flex items-center gap-1">
+          <svg class="w-4 h-4 text-available" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          {tr('subscribe.privacy').split('.')[0]}
+        </span>
+        <span class="flex items-center gap-1">
+          <svg class="w-4 h-4 text-available" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          {tr('subscribe.privacy').split('.')[2]?.trim() || tr('subscribe.privacy').split('.')[1]?.trim()}
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- Disclaimer -->
-    <p class="text-xs text-muted leading-relaxed max-w-lg mx-auto">
-      {tr('footer.disclaimer')}
-    </p>
+<!-- Footer -->
+<footer class="border-t-2 border-border-light py-12">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
+      <!-- Brand -->
+      <div class="md:col-span-2">
+        <a href={lang === defaultLang ? '/' : `/${lang}/`} class="flex items-center gap-2 mb-4">
+          <div class="w-9 h-9 rounded-lg bg-accent border-2 border-border flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+            </svg>
+          </div>
+        </a>
+        <p class="text-sm text-muted leading-relaxed max-w-sm mb-4">
+          {tr('footer.disclaimer')}
+        </p>
+        <div class="flex items-center gap-1.5 text-xs text-muted font-bold">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          {tr('footer.no_tracking')}
+        </div>
+      </div>
 
-    <p class="text-xs text-muted">
-      {tr('footer.unsubscribe_hint')}
-    </p>
+      <!-- Links -->
+      <div>
+        <h4 class="text-sm font-bold mb-3" style="font-family: var(--font-heading);">Links</h4>
+        <ul class="space-y-2">
+          <li><a href="#benachrichtigung" class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('subscribe.sticky_cta')}</a></li>
+          <li><a href="#info" class="text-sm text-muted hover:text-text-primary transition cursor-pointer">Info</a></li>
+          <li><a href="#history" class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('history.title')}</a></li>
+        </ul>
+      </div>
 
-    <!-- No-tracking badge -->
-    <div class="flex items-center justify-center">
-      <span class="inline-flex items-center gap-1.5 text-xs text-muted bg-bg-light px-3 py-1.5 rounded-full border border-border">
-        <span>&#128737;&#65039;</span>
-        {tr('footer.no_tracking')}
-      </span>
+      <!-- Legal -->
+      <div>
+        <h4 class="text-sm font-bold mb-3" style="font-family: var(--font-heading);">{tr('footer.imprint')}</h4>
+        <ul class="space-y-2">
+          <li><a href={imprintPath} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('footer.imprint')}</a></li>
+        </ul>
+        <div class="mt-6">
+          <LanguageSwitcher lang={lang} />
+        </div>
+      </div>
     </div>
 
-    <!-- Links -->
-    <div class="flex items-center justify-center gap-4 text-xs text-muted">
-      <a href={imprintPath} class="hover:text-text-primary transition">
-        {tr('footer.imprint')}
-      </a>
-    </div>
-
-    <!-- Language switcher -->
-    <div class="flex justify-center pt-2">
-      <LanguageSwitcher lang={lang} />
+    <div class="mt-10 pt-6 border-t-2 border-border-light flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p class="text-xs text-muted">{tr('footer.unsubscribe_hint')}</p>
+      <p class="text-xs text-muted">&copy; {new Date().getFullYear()} ResortPass Tracker</p>
     </div>
   </div>
 </footer>

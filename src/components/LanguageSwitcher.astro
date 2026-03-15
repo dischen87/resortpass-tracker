@@ -9,7 +9,6 @@ const lang = Astro.props.lang || defaultLang;
 
 function getPathForLang(targetLang: Lang): string {
   const path = Astro.url.pathname;
-  // Remove existing lang prefix
   let cleanPath = path;
   for (const l of languages) {
     if (l !== defaultLang && (path.startsWith(`/${l}/`) || path === `/${l}`)) {
@@ -17,7 +16,6 @@ function getPathForLang(targetLang: Lang): string {
       break;
     }
   }
-  // Ensure trailing slash
   if (!cleanPath.endsWith('/')) cleanPath += '/';
   if (targetLang === defaultLang) return cleanPath;
   return `/${targetLang}${cleanPath}`;
@@ -29,10 +27,10 @@ function getPathForLang(targetLang: Lang): string {
     <a
       href={getPathForLang(l)}
       class:list={[
-        'px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide transition-all',
+        'px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide transition-all cursor-pointer',
         l === lang
-          ? 'bg-accent/10 text-accent border border-accent/20'
-          : 'text-muted hover:text-text-primary hover:bg-surface border border-transparent',
+          ? 'bg-accent/10 text-accent border-2 border-accent/30'
+          : 'text-muted hover:text-text-primary hover:bg-bg border-2 border-transparent',
       ]}
       aria-current={l === lang ? 'page' : undefined}
       aria-label={langNames[l]}

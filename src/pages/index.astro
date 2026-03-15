@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
 import Hero from '../components/Hero.astro';
 import StatusCard from '../components/StatusCard.astro';
 import SubscribeForm from '../components/SubscribeForm.astro';
@@ -14,45 +15,34 @@ const tr = (key: string) => getTranslation(lang, key);
 ---
 
 <Layout lang={lang}>
-  <main class="max-w-2xl mx-auto">
+  <Navbar lang={lang} />
+
+  <main>
     <Hero lang={lang} />
 
-    <!-- Social proof: waiting fans counter -->
-    <section class="px-4 pb-2">
-      <div class="flex items-center justify-center gap-3 py-4">
-        <div class="flex items-center gap-2 px-5 py-3 rounded-2xl bg-accent/5 border border-accent/15">
-          <div class="flex -space-x-2" aria-hidden="true">
-            <div class="w-7 h-7 rounded-full bg-accent/20 border-2 border-white flex items-center justify-center text-xs">&#128100;</div>
-            <div class="w-7 h-7 rounded-full bg-gold/20 border-2 border-white flex items-center justify-center text-xs">&#128100;</div>
-            <div class="w-7 h-7 rounded-full bg-silver/20 border-2 border-white flex items-center justify-center text-xs">&#128100;</div>
-          </div>
-          <div class="text-center ml-2">
-            <p class="text-xs text-text-secondary font-medium">{tr('subscribe.waiting_fans')}</p>
-            <p class="text-2xl font-bold text-accent tabular-nums" id="fan-count">---</p>
-          </div>
+    <!-- Status Cards -->
+    <section class="py-12 md:py-16">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+          <h2 class="text-2xl md:text-3xl font-bold" style="font-family: var(--font-heading);">Status</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <StatusCard type="silver" lang={lang} />
+          <StatusCard type="gold" lang={lang} />
+        </div>
+
+        <!-- Last check timestamp -->
+        <div class="mt-6 flex items-center justify-center gap-2 text-xs text-muted font-mono" id="last-check">
+          <svg class="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span id="last-check-text">{tr('status.loading')}</span>
         </div>
       </div>
     </section>
 
     <SubscribeForm lang={lang} />
-
-    <!-- Status Cards -->
-    <section class="px-4 pb-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <StatusCard type="silver" lang={lang} />
-        <StatusCard type="gold" lang={lang} />
-      </div>
-
-      <!-- Last check timestamp -->
-      <div class="mt-5 flex items-center justify-center gap-2 text-xs text-muted font-mono" id="last-check">
-        <svg class="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-        </svg>
-        <span id="last-check-text">{tr('status.loading')}</span>
-      </div>
-    </section>
-
     <InfoSection lang={lang} />
     <HistorySection lang={lang} />
     <Footer lang={lang} />
@@ -60,19 +50,20 @@ const tr = (key: string) => getTranslation(lang, key);
 
   <!-- Sticky CTA Button -->
   <div id="sticky-cta" class="fixed bottom-0 left-0 right-0 z-50 pointer-events-none opacity-0 translate-y-full transition-all duration-300">
-    <div class="max-w-2xl mx-auto px-4 pb-4 pt-2">
-      <div class="pointer-events-auto">
+    <div class="max-w-6xl mx-auto px-4 pb-4 pt-2">
+      <div class="pointer-events-auto max-w-md mx-auto">
         <a
           href="#benachrichtigung"
-          class="flex items-center justify-center gap-2 w-full rounded-2xl bg-accent py-4 px-6 font-bold text-white text-base shadow-lg shadow-accent/25 transition hover:bg-blue-400 hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.01] active:scale-[0.99]"
+          class="btn-primary w-full py-4 rounded-2xl text-base"
         >
-          <span>&#128276;</span>
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
           <span>{tr('subscribe.sticky_cta')}</span>
         </a>
       </div>
     </div>
-    <!-- Gradient backdrop for readability -->
-    <div class="absolute inset-0 -z-10 bg-gradient-to-t from-white via-white/95 to-transparent pointer-events-none"></div>
+    <div class="absolute inset-0 -z-10 bg-gradient-to-t from-bg via-bg/95 to-transparent pointer-events-none"></div>
   </div>
 
   <!-- Structured Data: WebSite with SearchAction (sitelinks search box) -->
@@ -304,7 +295,6 @@ const tr = (key: string) => getTranslation(lang, key);
           const spinner = containerEl?.querySelector('svg');
           if (spinner) spinner.remove();
 
-          // Update Schema.org dateModified
           const schemaEl = document.getElementById('schema-webpage');
           if (schemaEl) {
             try {
@@ -332,7 +322,6 @@ const tr = (key: string) => getTranslation(lang, key);
       const availableEl = card.querySelector('.status-available');
       const errorEl = card.querySelector('.status-error');
 
-      // Hide loading
       loadingEl?.classList.add('hidden');
 
       if (status.available) {
@@ -383,11 +372,9 @@ const tr = (key: string) => getTranslation(lang, key);
       );
       observer.observe(subscribeSection);
 
-      // Smooth scroll and hide CTA on click
       stickyCta.querySelector('a')?.addEventListener('click', (e) => {
         e.preventDefault();
         subscribeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Focus email input after scroll
         setTimeout(() => {
           const emailInput = document.getElementById('email') as HTMLInputElement;
           emailInput?.focus();
