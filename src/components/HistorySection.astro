@@ -23,7 +23,7 @@ const tr = (key: string) => getTranslation(lang, key);
         <p class="text-text-secondary max-w-lg mx-auto">{tr('history.desc')}</p>
       </div>
 
-      <div class="card rounded-none sm:rounded-2xl p-0 sm:p-6 md:p-8 border-x-0 sm:border-x-[2.5px]" id="history-container">
+      <div class="sm:card sm:rounded-2xl p-0 sm:p-6 md:p-8" id="history-container">
         <!-- Loading state -->
         <div id="history-loading" class="text-center py-6 px-4 sm:px-0">
           <div class="inline-flex items-center gap-2 text-sm text-muted">
@@ -78,7 +78,7 @@ const tr = (key: string) => getTranslation(lang, key);
           <div class="mb-6 text-center text-xs text-muted font-mono px-4 sm:px-0" id="tracking-since"></div>
 
           <h3 class="text-sm font-bold mb-3 px-4 sm:px-0" style="font-family: var(--font-heading);">{tr('history.recent_title')}</h3>
-          <div class="inner-card overflow-hidden rounded-none sm:rounded-xl border-x-0 sm:border-x-2">
+          <div class="overflow-hidden rounded-xl border-2 border-border-light sm:rounded-xl">
             <table class="w-full text-sm">
               <thead>
                 <tr class="bg-bg text-left text-xs text-muted uppercase tracking-wider border-b-2 border-border-light">
