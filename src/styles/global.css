@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #FFF5EE;
-  --color-bg-light: #FFF0E6;
+  --color-bg: #FFFFFF;
+  --color-bg-light: #F0F4FF;
   --color-surface: #FFFFFF;
-  --color-surface-light: #FFF8F2;
+  --color-surface-light: #F8FAFF;
   --color-available: #16A34A;
   --color-unavailable: #DC2626;
   --color-accent: #2563EB;
@@ -19,7 +19,7 @@
   --color-muted: #8B8BA8;
   --color-border: #1B1B3A;
   --color-border-light: #D4D4E0;
-  --color-red: #E53E3E;
+  --color-red: #DC2626;
   --font-heading: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
   --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
 }
@@ -71,7 +71,31 @@ h1, h2, h3, h4, h5, h6 {
 /* Top accent bar */
 .top-bar {
   height: 6px;
-  background: var(--color-red);
+  background: var(--color-accent);
+}
+
+/* Background blobs */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.blob-blue {
+  background: var(--color-accent);
+}
+
+.blob-white {
+  background: #DBEAFE;
+  opacity: 0.4;
+}
+
+.blob-gold {
+  background: var(--color-gold);
+  opacity: 0.12;
 }
 
 /* ===== CARD SYSTEM ===== */
@@ -89,7 +113,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .card-gold {
-  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  background: linear-gradient(135deg, #FFFDF5 0%, #FFF9E6 100%);
   border: 2.5px solid var(--color-gold);
 }
 
