@@ -10,10 +10,10 @@ const tr = (key: string) => getTranslation(lang, key);
 ---
 
 <section class="py-16 md:py-20" id="history">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto px-0 sm:px-6 lg:px-8">
     <div class="max-w-3xl mx-auto">
       <!-- Section header -->
-      <div class="text-center mb-8">
+      <div class="text-center mb-8 px-4 sm:px-0">
         <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent/10 border-2 border-accent/30 mb-4">
           <svg class="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -23,9 +23,9 @@ const tr = (key: string) => getTranslation(lang, key);
         <p class="text-text-secondary max-w-lg mx-auto">{tr('history.desc')}</p>
       </div>
 
-      <div class="card rounded-2xl p-6 md:p-8" id="history-container">
+      <div class="card rounded-none sm:rounded-2xl p-0 sm:p-6 md:p-8 border-x-0 sm:border-x-[2.5px]" id="history-container">
         <!-- Loading state -->
-        <div id="history-loading" class="text-center py-6">
+        <div id="history-loading" class="text-center py-6 px-4 sm:px-0">
           <div class="inline-flex items-center gap-2 text-sm text-muted">
             <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -36,7 +36,7 @@ const tr = (key: string) => getTranslation(lang, key);
         </div>
 
         <!-- No data state -->
-        <div id="history-empty" class="hidden text-center py-8">
+        <div id="history-empty" class="hidden text-center py-8 px-4 sm:px-0">
           <div class="w-14 h-14 rounded-2xl bg-muted/10 border-2 border-border-light flex items-center justify-center mx-auto mb-3">
             <svg class="w-7 h-7 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -48,7 +48,7 @@ const tr = (key: string) => getTranslation(lang, key);
         <!-- Stats display -->
         <div id="history-stats" class="hidden">
           <!-- Summary cards -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 px-4 sm:px-0">
             <div class="inner-card p-5">
               <div class="flex items-center gap-2.5 mb-3">
                 <div class="w-8 h-8 rounded-lg bg-silver/15 border-2 border-silver/30 flex items-center justify-center">
@@ -75,10 +75,10 @@ const tr = (key: string) => getTranslation(lang, key);
             </div>
           </div>
 
-          <div class="mb-6 text-center text-xs text-muted font-mono" id="tracking-since"></div>
+          <div class="mb-6 text-center text-xs text-muted font-mono px-4 sm:px-0" id="tracking-since"></div>
 
-          <h3 class="text-sm font-bold mb-3" style="font-family: var(--font-heading);">{tr('history.recent_title')}</h3>
-          <div class="inner-card overflow-hidden">
+          <h3 class="text-sm font-bold mb-3 px-4 sm:px-0" style="font-family: var(--font-heading);">{tr('history.recent_title')}</h3>
+          <div class="inner-card overflow-hidden rounded-none sm:rounded-xl border-x-0 sm:border-x-2">
             <table class="w-full text-sm">
               <thead>
                 <tr class="bg-bg text-left text-xs text-muted uppercase tracking-wider border-b-2 border-border-light">
@@ -95,7 +95,7 @@ const tr = (key: string) => getTranslation(lang, key);
             </table>
           </div>
 
-          <div id="pagination-controls" class="hidden flex items-center justify-between mt-4">
+          <div id="pagination-controls" class="hidden flex items-center justify-between mt-4 px-4 sm:px-0">
             <button id="prev-page" class="px-3 py-1.5 text-xs font-bold rounded-lg border-2 border-border bg-surface text-muted hover:text-text-primary hover:shadow-[2px_2px_0px_var(--color-border)] transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed" disabled>
               &larr; {tr('history.prev')}
             </button>
