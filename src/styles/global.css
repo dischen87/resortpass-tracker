@@ -78,24 +78,42 @@ h1, h2, h3, h4, h5, h6 {
 .blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.25;
+  filter: blur(60px);
   pointer-events: none;
   z-index: 0;
 }
 
 .blob-blue {
-  background: var(--color-accent);
+  background: #93B5FF;
+  opacity: 0.45;
+  animation: blob-float-1 6s ease-in-out infinite;
 }
 
 .blob-white {
   background: #DBEAFE;
-  opacity: 0.4;
+  opacity: 0.5;
+  animation: blob-float-2 8s ease-in-out infinite;
 }
 
 .blob-gold {
-  background: var(--color-gold);
-  opacity: 0.12;
+  background: #FCD34D;
+  opacity: 0.25;
+  animation: blob-float-3 7s ease-in-out infinite;
+}
+
+@keyframes blob-float-1 {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-30px); }
+}
+
+@keyframes blob-float-2 {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(25px); }
+}
+
+@keyframes blob-float-3 {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-20px) translateX(15px); }
 }
 
 /* ===== CARD SYSTEM ===== */
