@@ -2,7 +2,12 @@ services:
   resortpass-api:
     build: .
     container_name: resortpass-api
-    restart: unless-stopped
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
     env_file: .env
     environment:
       - DB_PATH=/app/data/resortpass.db
@@ -17,7 +22,12 @@ services:
   resortpass-checker:
     build: .
     container_name: resortpass-checker
-    restart: unless-stopped
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
     command: >
       /bin/sh -c "while true; do
         echo \"[$$(date -Iseconds)] Running checker...\";
