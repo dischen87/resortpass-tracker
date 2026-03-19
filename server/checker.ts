@@ -23,6 +23,14 @@ const DETAIL_SOLD_OUT = 'Leider ist dieses Produkt derzeit nicht verfügbar';
 // Sold-out indicator on overview page
 const OVERVIEW_SOLD_OUT = 'Derzeit nicht verfügbar';
 
+// Bot-gate / JS-redirect pages are tiny and contain this marker.
+// Real shop pages are much larger and never contain it.
+const BOT_GATE_MARKER = 'document.location.href';
+const MIN_REAL_PAGE_SIZE = 5000;
+
+// Delay between first and confirmation check (ms)
+const CONFIRM_DELAY_MS = 30_000;
+
 const FETCH_HEADERS = {
   'User-Agent': 'ResortPassTracker/1.0 (Community Tool; resortpass-europapark.ch)',
   'Accept': 'text/html,application/xhtml+xml',
@@ -31,7 +39,7 @@ const FETCH_HEADERS = {
 
 async function fetchPage(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url, { headers: FETCH_HEADERS });
+    const res = await fetch(url, { headers: FETCH_HEADERS, redirect: 'follow' });
     if (!res.ok) {
       console.error(`HTTP ${res.status} for ${url}`);
       return null;
@@ -43,48 +51,95 @@ async function fetchPage(url: string): Promise<string | null> {
   }
 }
 
-async function checkAvailability(type: 'silver' | 'gold'): Promise<boolean> {
-  // Check the detail page
+function isRealShopPage(html: string): boolean {
+  if (html.includes(BOT_GATE_MARKER)) return false;
+  if (html.length < MIN_REAL_PAGE_SIZE) return false;
+  return true;
+}
+
+function checkDetailPage(type: 'silver' | 'gold', html: string): 'sold_out' | 'available' | 'unknown' {
+  if (!isRealShopPage(html)) {
+    console.log(`[${type}] Detail page: not real shop content (${html.length} bytes, bot-gate=${html.includes(BOT_GATE_MARKER)})`);
+    return 'unknown';
+  }
+
+  if (html.includes(DETAIL_SOLD_OUT)) {
+    return 'sold_out';
+  }
+  return 'available';
+}
+
+function checkOverviewPage(type: 'silver' | 'gold', html: string): 'sold_out' | 'available' | 'unknown' {
+  if (!isRealShopPage(html)) {
+    console.log(`[${type}] Overview page: not real shop content (${html.length} bytes)`);
+    return 'unknown';
+  }
+
+  const typeLabel = type === 'silver' ? 'Silver' : 'Gold';
+  const overviewLower = html.toLowerCase();
+  const soldOutLower = OVERVIEW_SOLD_OUT.toLowerCase();
+
+  const typeIndex = overviewLower.indexOf(typeLabel.toLowerCase());
+  if (typeIndex !== -1) {
+    const searchRegion = overviewLower.substring(typeIndex, typeIndex + 500);
+    if (searchRegion.includes(soldOutLower)) {
+      return 'sold_out';
+    }
+  }
+  return 'available';
+}
+
+async function singleCheck(type: 'silver' | 'gold'): Promise<boolean | null> {
   const detailHtml = await fetchPage(DETAIL_URLS[type]);
-  if (detailHtml === null) {
-    return false; // Assume unavailable on error -- no false alarms
-  }
+  if (detailHtml === null) return false;
 
-  const detailSoldOut = detailHtml.includes(DETAIL_SOLD_OUT);
-  if (detailSoldOut) {
-    console.log(`[${type}] Detail page: sold out`);
-    return false;
-  }
+  const detailResult = checkDetailPage(type, detailHtml);
+  if (detailResult === 'unknown') return null;
+  if (detailResult === 'sold_out') return false;
 
-  // Also check overview page for extra confidence
   const overviewHtml = await fetchPage(OVERVIEW_URL);
   if (overviewHtml === null) {
-    // If overview fails but detail says available, trust the detail page
-    console.log(`[${type}] Overview page fetch failed, trusting detail page result`);
+    console.log(`[${type}] Overview fetch failed, trusting detail page`);
     return true;
   }
 
-  // The overview page may list both pass types. We look for the sold-out indicator
-  // near the relevant pass type. As a simple heuristic, if the overview contains
-  // the sold-out string at all, we check the detail page result as the authority.
-  // The detail page already passed, so we return available.
-  // However, if the overview specifically marks this type as unavailable, we note it.
-  const typeLabel = type === 'silver' ? 'Silver' : 'Gold';
-  const overviewLower = overviewHtml.toLowerCase();
-  const soldOutLower = OVERVIEW_SOLD_OUT.toLowerCase();
-
-  // Find sections related to this pass type in the overview
-  const typeIndex = overviewLower.indexOf(typeLabel.toLowerCase());
-  if (typeIndex !== -1) {
-    // Check if the sold-out indicator appears near (within 500 chars after) the type mention
-    const searchRegion = overviewLower.substring(typeIndex, typeIndex + 500);
-    if (searchRegion.includes(soldOutLower)) {
-      console.log(`[${type}] Overview page: sold out for ${typeLabel}`);
-      return false;
-    }
+  const overviewResult = checkOverviewPage(type, overviewHtml);
+  if (overviewResult === 'sold_out') return false;
+  if (overviewResult === 'unknown') {
+    console.log(`[${type}] Overview not real content, trusting detail page`);
+    return true;
   }
 
-  console.log(`[${type}] Available (confirmed by detail + overview pages)`);
+  return true;
+}
+
+async function checkAvailability(type: 'silver' | 'gold'): Promise<boolean> {
+  // First check
+  const first = await singleCheck(type);
+  if (first === null) {
+    console.log(`[${type}] First check: unknown (bot-gate/redirect), assuming unavailable`);
+    return false;
+  }
+  if (first === false) {
+    console.log(`[${type}] First check: sold out`);
+    return false;
+  }
+
+  // First check says available -- do a confirmation check after a delay
+  console.log(`[${type}] First check: available. Waiting ${CONFIRM_DELAY_MS / 1000}s for confirmation check...`);
+  await new Promise((r) => setTimeout(r, CONFIRM_DELAY_MS));
+
+  const second = await singleCheck(type);
+  if (second === null) {
+    console.log(`[${type}] Confirmation check: unknown (bot-gate/redirect), NOT confirming availability`);
+    return false;
+  }
+  if (second === false) {
+    console.log(`[${type}] Confirmation check: sold out (first was false positive)`);
+    return false;
+  }
+
+  console.log(`[${type}] Available (confirmed by two consecutive checks)`);
   return true;
 }
 
