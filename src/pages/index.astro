@@ -7,6 +7,7 @@ import SubscribeForm from '../components/SubscribeForm.astro';
 import InfoSection from '../components/InfoSection.astro';
 import HistorySection from '../components/HistorySection.astro';
 import NewsSection from '../components/NewsSection.astro';
+import CommunitySection from '../components/CommunitySection.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
 import { getTranslation } from '../i18n/translations';
@@ -47,6 +48,7 @@ const tr = (key: string) => getTranslation(lang, key);
     <InfoSection lang={lang} />
     <HistorySection lang={lang} />
     <NewsSection lang={lang} />
+    <CommunitySection lang={lang} />
     <Footer lang={lang} />
   </main>
 

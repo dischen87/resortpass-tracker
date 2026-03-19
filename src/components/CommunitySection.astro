@@ -1,0 +1,125 @@
+---
+import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+
+interface Props {
+  lang?: Lang;
+}
+
+const lang = Astro.props.lang || defaultLang;
+const tr = (key: string) => getTranslation(lang, key);
+const langPrefix = lang === 'de' ? '' : `/${lang}`;
+---
+
+<section class="py-16 md:py-20" id="community">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="text-center mb-10">
+      <h2 class="text-2xl md:text-3xl font-bold mb-3" style="font-family: var(--font-heading);">
+        {tr('community.title')}
+      </h2>
+      <p class="text-text-secondary max-w-xl mx-auto">{tr('community.desc')}</p>
+    </div>
+
+    <div class="max-w-2xl mx-auto">
+      <!-- Posts container (loaded via JS) -->
+      <div id="community-posts" class="space-y-4 mb-6">
+        <p class="text-center text-muted text-sm py-8" id="community-empty">{tr('community.empty')}</p>
+      </div>
+
+      <div id="community-load-more-wrap" class="text-center hidden mb-6">
+        <button id="community-load-more" class="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors">
+          {tr('community.load_more')}
+        </button>
+      </div>
+
+      <div class="text-center">
+        <a
+          href={`${langPrefix}/community/neu`}
+          class="inline-flex items-center gap-2 btn-primary px-6 py-3 rounded-xl text-sm font-semibold"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          {tr('community.share')}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ lang }}>
+  window.__communityLang = lang;
+</script>
+
+<script>
+  const lang = (window as any).__communityLang || 'de';
+  const byLabel = lang === 'de' ? 'von' : lang === 'fr' ? 'par' : lang === 'it' ? 'di' : 'by';
+
+  let offset = 0;
+  const limit = 10;
+  let total = 0;
+
+  function escapeHtml(s: string) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function formatDate(dateStr: string) {
+    const d = new Date(dateStr + 'Z');
+    const locale = lang === 'de' ? 'de-CH' : lang;
+    return d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  function renderPost(post: { author_name: string; title: string; body: string; created_at: string }) {
+    return `
+      <article class="card rounded-2xl p-5">
+        <div class="flex items-start gap-3">
+          <div class="w-9 h-9 rounded-xl bg-blue-500/10 border-2 border-blue-500/30 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-sm font-bold mb-1" style="font-family: var(--font-heading);">${escapeHtml(post.title)}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed mb-2 whitespace-pre-line">${escapeHtml(post.body)}</p>
+            <p class="text-xs text-muted">${byLabel} ${escapeHtml(post.author_name)} &middot; ${formatDate(post.created_at)}</p>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  async function loadPosts(append = false) {
+    try {
+      const res = await fetch(`/api/community?limit=${limit}&offset=${offset}`);
+      const data = await res.json();
+      total = data.total || 0;
+
+      const container = document.getElementById('community-posts')!;
+      const emptyEl = document.getElementById('community-empty');
+      const loadMoreWrap = document.getElementById('community-load-more-wrap');
+
+      if (data.posts && data.posts.length > 0) {
+        if (emptyEl) emptyEl.remove();
+
+        const html = data.posts.map(renderPost).join('');
+        if (append) {
+          container.insertAdjacentHTML('beforeend', html);
+        } else {
+          container.innerHTML = html;
+        }
+        offset += data.posts.length;
+
+        if (loadMoreWrap) {
+          loadMoreWrap.classList.toggle('hidden', offset >= total);
+        }
+      } else if (!append) {
+        // No posts at all — keep empty message
+      }
+    } catch {}
+  }
+
+  const loadMoreBtn = document.getElementById('community-load-more');
+  loadMoreBtn?.addEventListener('click', () => loadPosts(true));
+
+  loadPosts();
+</script>

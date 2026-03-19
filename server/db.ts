@@ -47,7 +47,28 @@ function initSchema() {
 
     CREATE INDEX IF NOT EXISTS idx_history_checked
       ON availability_history (checked_at);
+
+    CREATE TABLE IF NOT EXISTS community_posts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      subscriber_id INTEGER NOT NULL,
+      author_name TEXT NOT NULL,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected')),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (subscriber_id) REFERENCES subscribers(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_community_status
+      ON community_posts (status, created_at);
   `);
+
+  // Add community_token column if it doesn't exist yet
+  try {
+    db.exec('ALTER TABLE subscribers ADD COLUMN community_token TEXT');
+  } catch {
+    // Column already exists
+  }
 }
 
 export function generateToken(): string {
@@ -200,6 +221,81 @@ export function getSubscriberCount(): number {
   const d = getDb();
   const row = d.query('SELECT COUNT(*) as count FROM subscribers WHERE confirmed = 1').get() as { count: number };
   return row.count;
+}
+
+export function ensureCommunityToken(subscriberId: number): string {
+  const d = getDb();
+  const row = d.query('SELECT community_token FROM subscribers WHERE id = ?').get(subscriberId) as { community_token: string | null } | null;
+  if (row?.community_token) return row.community_token;
+  const token = generateToken();
+  d.query('UPDATE subscribers SET community_token = ? WHERE id = ?').run(token, subscriberId);
+  return token;
+}
+
+export function getSubscriberByCommunityToken(token: string) {
+  const d = getDb();
+  return d.query('SELECT id, email FROM subscribers WHERE community_token = ? AND confirmed = 1').get(token) as { id: number; email: string } | null;
+}
+
+export function createCommunityPost(subscriberId: number, authorName: string, title: string, body: string) {
+  const d = getDb();
+  d.query('INSERT INTO community_posts (subscriber_id, author_name, title, body) VALUES (?, ?, ?, ?)').run(subscriberId, authorName, title, body);
+}
+
+export function getApprovedPosts(limit = 20, offset = 0) {
+  const d = getDb();
+  return d.query(
+    'SELECT id, author_name, title, body, created_at FROM community_posts WHERE status = ? ORDER BY created_at DESC LIMIT ? OFFSET ?'
+  ).all('approved', limit, offset) as {
+    id: number;
+    author_name: string;
+    title: string;
+    body: string;
+    created_at: string;
+  }[];
+}
+
+export function getApprovedPostCount(): number {
+  const d = getDb();
+  const row = d.query('SELECT COUNT(*) as count FROM community_posts WHERE status = ?').get('approved') as { count: number };
+  return row.count;
+}
+
+export function getPendingPosts() {
+  const d = getDb();
+  return d.query(
+    "SELECT cp.id, cp.author_name, cp.title, cp.body, cp.created_at, s.email FROM community_posts cp JOIN subscribers s ON cp.subscriber_id = s.id WHERE cp.status = 'pending' ORDER BY cp.created_at ASC"
+  ).all() as {
+    id: number;
+    author_name: string;
+    title: string;
+    body: string;
+    created_at: string;
+    email: string;
+  }[];
+}
+
+export function moderatePost(postId: number, action: 'approved' | 'rejected'): boolean {
+  const d = getDb();
+  const result = d.query('UPDATE community_posts SET status = ? WHERE id = ? AND status = ?').run(action, postId, 'pending');
+  return result.changes > 0;
+}
+
+export function getPostCountBySubscriberToday(subscriberId: number): number {
+  const d = getDb();
+  const row = d.query(
+    "SELECT COUNT(*) as count FROM community_posts WHERE subscriber_id = ? AND created_at >= datetime('now', '-1 day')"
+  ).get(subscriberId) as { count: number };
+  return row.count;
+}
+
+export function getAllConfirmedSubscribers() {
+  const d = getDb();
+  return d.query('SELECT id, email, unsubscribe_token FROM subscribers WHERE confirmed = 1').all() as {
+    id: number;
+    email: string;
+    unsubscribe_token: string;
+  }[];
 }
 
 export function getMonthlyHeatmap(passType: 'silver' | 'gold') {

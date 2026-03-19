@@ -9,6 +9,13 @@ import {
   getMonthlyHeatmap,
   getRecentChecks,
   getSubscriberCount,
+  getSubscriberByCommunityToken,
+  createCommunityPost,
+  getApprovedPosts,
+  getApprovedPostCount,
+  getPendingPosts,
+  moderatePost,
+  getPostCountBySubscriberToday,
   getDb,
 } from './db';
 import { sendConfirmationEmail, sendUnsubscribeConfirmation } from './email';
@@ -171,6 +178,98 @@ app.get('/api/unsubscribe', async (c) => {
     return c.json({ success: true, message: 'Erfolgreich abgemeldet.' });
   }
   return c.json({ error: 'Der Abmelde-Link ist ungültig.' }, 400);
+});
+
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';
+
+// --- Community endpoints ---
+
+app.get('/api/community', (c) => {
+  const limit = Math.min(parseInt(c.req.query('limit') || '20'), 50);
+  const offset = parseInt(c.req.query('offset') || '0');
+  const posts = getApprovedPosts(limit, offset);
+  const total = getApprovedPostCount();
+  return c.json({ posts, total });
+});
+
+app.post('/api/community/submit', async (c) => {
+  try {
+    const body = await c.req.json();
+    const { token, author_name, title, body: postBody } = body;
+
+    if (!token || typeof token !== 'string') {
+      return c.json({ error: 'Ungültiger Community-Link.' }, 401);
+    }
+
+    const subscriber = getSubscriberByCommunityToken(token);
+    if (!subscriber) {
+      return c.json({ error: 'Ungültiger oder abgelaufener Link. Bist du noch als Abonnent angemeldet?' }, 401);
+    }
+
+    if (!author_name || typeof author_name !== 'string' || author_name.trim().length < 1) {
+      return c.json({ error: 'Bitte gib einen Namen ein.' }, 400);
+    }
+    if (!title || typeof title !== 'string' || title.trim().length < 3) {
+      return c.json({ error: 'Bitte gib einen Titel ein (mind. 3 Zeichen).' }, 400);
+    }
+    if (!postBody || typeof postBody !== 'string' || postBody.trim().length < 10) {
+      return c.json({ error: 'Dein Beitrag ist zu kurz (mind. 10 Zeichen).' }, 400);
+    }
+    if (title.length > 100) {
+      return c.json({ error: 'Titel ist zu lang (max. 100 Zeichen).' }, 400);
+    }
+    if (postBody.length > 2000) {
+      return c.json({ error: 'Beitrag ist zu lang (max. 2000 Zeichen).' }, 400);
+    }
+
+    const todayCount = getPostCountBySubscriberToday(subscriber.id);
+    if (todayCount >= 3) {
+      return c.json({ error: 'Du hast heute schon 3 Beiträge eingereicht. Probier es morgen nochmal!' }, 429);
+    }
+
+    createCommunityPost(subscriber.id, author_name.trim(), title.trim(), postBody.trim());
+
+    return c.json({
+      success: true,
+      message: 'Danke für deinen Tipp! Er wird geprüft und erscheint bald auf der Seite.',
+    });
+  } catch (err) {
+    console.error('Community submit error:', err);
+    return c.json({ error: 'Ein Fehler ist aufgetreten.' }, 500);
+  }
+});
+
+app.get('/api/community/pending', (c) => {
+  const adminToken = c.req.query('admin_token');
+  if (!ADMIN_TOKEN || adminToken !== ADMIN_TOKEN) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  const posts = getPendingPosts();
+  return c.json({ posts });
+});
+
+app.post('/api/community/moderate', async (c) => {
+  try {
+    const body = await c.req.json();
+    const { id, action, admin_token } = body;
+
+    if (!ADMIN_TOKEN || admin_token !== ADMIN_TOKEN) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+    if (!id || !['approve', 'reject'].includes(action)) {
+      return c.json({ error: 'Ungültige Anfrage.' }, 400);
+    }
+
+    const status = action === 'approve' ? 'approved' : 'rejected';
+    const ok = moderatePost(id, status as 'approved' | 'rejected');
+    if (ok) {
+      return c.json({ success: true, message: `Beitrag ${action === 'approve' ? 'genehmigt' : 'abgelehnt'}.` });
+    }
+    return c.json({ error: 'Beitrag nicht gefunden oder bereits moderiert.' }, 404);
+  } catch (err) {
+    console.error('Moderate error:', err);
+    return c.json({ error: 'Ein Fehler ist aufgetreten.' }, 500);
+  }
 });
 
 const PORT = parseInt(process.env.API_PORT || '3000');
