@@ -24,8 +24,11 @@ const DETAIL_SOLD_OUT = 'Leider ist dieses Produkt derzeit nicht verfügbar';
 const OVERVIEW_SOLD_OUT = 'Derzeit nicht verfügbar';
 
 // Bot-gate / JS-redirect pages are tiny and contain this marker.
-// Real shop pages are much larger and never contain it.
 const BOT_GATE_MARKER = 'document.location.href';
+// Queue-it waiting room pages contain this marker instead of real shop content.
+const QUEUE_IT_MARKER = 'queue-it.net';
+// Real shop pages must contain a product-related keyword to be trusted.
+const REAL_SHOP_MARKER = 'mackinternational';
 const MIN_REAL_PAGE_SIZE = 5000;
 
 // Delay between first and confirmation check (ms)
@@ -53,13 +56,16 @@ async function fetchPage(url: string): Promise<string | null> {
 
 function isRealShopPage(html: string): boolean {
   if (html.includes(BOT_GATE_MARKER)) return false;
+  if (html.includes(QUEUE_IT_MARKER)) return false;
   if (html.length < MIN_REAL_PAGE_SIZE) return false;
+  if (!html.toLowerCase().includes(REAL_SHOP_MARKER)) return false;
   return true;
 }
 
 function checkDetailPage(type: 'silver' | 'gold', html: string): 'sold_out' | 'available' | 'unknown' {
   if (!isRealShopPage(html)) {
-    console.log(`[${type}] Detail page: not real shop content (${html.length} bytes, bot-gate=${html.includes(BOT_GATE_MARKER)})`);
+    const reason = html.includes(BOT_GATE_MARKER) ? 'bot-gate' : html.includes(QUEUE_IT_MARKER) ? 'queue-it' : html.length < MIN_REAL_PAGE_SIZE ? 'too-small' : 'no-shop-marker';
+    console.log(`[${type}] Detail page: not real shop content (${html.length} bytes, reason=${reason})`);
     return 'unknown';
   }
 
