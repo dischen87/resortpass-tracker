@@ -1,0 +1,64 @@
+---
+// PostHog Analytics - deferred loading
+// Loads after 3s idle or on first user interaction (whichever comes first)
+const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
+const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST;
+---
+
+{posthogKey && posthogHost && (
+  <script
+    is:inline
+    data-posthog-key={posthogKey}
+    data-posthog-host={posthogHost}
+  >
+    (function() {
+      var loaded = false;
+      var script = document.currentScript;
+      var key = script.getAttribute('data-posthog-key');
+      var host = script.getAttribute('data-posthog-host');
+
+      function loadPostHog() {
+        if (loaded) return;
+        loaded = true;
+
+        var s = document.createElement('script');
+        s.src = host + '/static/array.js';
+        s.onload = function() {
+          if (window.posthog) {
+            window.posthog.init(key, {
+              api_host: host,
+              autocapture: true,
+              capture_pageview: true,
+              capture_pageleave: true,
+              enable_recording_console_log: false,
+              session_recording: {
+                recordCrossOriginIframes: false,
+              },
+              persistence: 'localStorage+cookie',
+              loaded: function(posthog) {
+                if (import.meta.env.DEV) {
+                  posthog.opt_out_capturing();
+                }
+              }
+            });
+          }
+        };
+        document.head.appendChild(s);
+      }
+
+      // Load after 3s idle or first interaction
+      var timer = setTimeout(loadPostHog, 3000);
+      var events = ['click', 'scroll', 'keydown', 'touchstart'];
+      function onInteraction() {
+        clearTimeout(timer);
+        events.forEach(function(e) {
+          document.removeEventListener(e, onInteraction, { capture: true });
+        });
+        loadPostHog();
+      }
+      events.forEach(function(e) {
+        document.addEventListener(e, onInteraction, { capture: true, once: true });
+      });
+    })();
+  </script>
+)}

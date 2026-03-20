@@ -19,6 +19,7 @@ import {
   getDb,
 } from './db';
 import { sendConfirmationEmail, sendUnsubscribeConfirmation } from './email';
+import { captureEvent } from './posthog';
 
 const app = new Hono();
 
@@ -130,6 +131,17 @@ app.post('/api/subscribe', async (c) => {
       console.error('Failed to send confirmation email:', err);
       return c.json({ error: 'E-Mail konnte nicht gesendet werden. Bitte versuche es später.' }, 500);
     }
+
+    // Track email alert registration
+    captureEvent(
+      `email:${email.toLowerCase().trim()}`,
+      'email_alert_registered',
+      {
+        email: email.toLowerCase().trim(),
+        notify_silver: !!notify_silver,
+        notify_gold: !!notify_gold,
+      },
+    );
 
     return c.json({
       success: true,
