@@ -1,6 +1,6 @@
 ---
 const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY || '';
-const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || 'https://analytics.diisi.dev';
+const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || '/a';
 ---
 
 {posthogKey && (
@@ -9,7 +9,6 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || 'https://analytics.di
 
     posthog.init(posthogKey, {
       api_host: posthogHost,
-      ui_host: 'https://us.posthog.com',
       person_profiles: 'identified_only',
       autocapture: true,
       capture_pageview: true,
