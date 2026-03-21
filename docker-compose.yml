@@ -1,6 +1,10 @@
 services:
   resortpass-api:
-    build: .
+    build:
+      context: .
+      args:
+        PUBLIC_POSTHOG_KEY: ${PUBLIC_POSTHOG_KEY:-}
+        PUBLIC_POSTHOG_HOST: ${PUBLIC_POSTHOG_HOST:-/a}
     container_name: resortpass-api
     restart: always
     deploy:

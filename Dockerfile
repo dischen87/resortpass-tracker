@@ -8,6 +8,12 @@ RUN bun install --frozen-lockfile 2>/dev/null || bun install
 # Copy source
 COPY . .
 
+# PostHog build-time variables (Astro bakes PUBLIC_ vars at build time)
+ARG PUBLIC_POSTHOG_KEY
+ARG PUBLIC_POSTHOG_HOST=/a
+ENV PUBLIC_POSTHOG_KEY=$PUBLIC_POSTHOG_KEY
+ENV PUBLIC_POSTHOG_HOST=$PUBLIC_POSTHOG_HOST
+
 # Build Astro site
 RUN bun run build
 
