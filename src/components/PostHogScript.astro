@@ -21,15 +21,22 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST;
         if (loaded) return;
         loaded = true;
 
+        // Load PostHog JS from CDN (self-hosted hobby doesn't serve static JS)
         var s = document.createElement('script');
-        s.src = host + '/static/array.js';
+        s.type = 'text/javascript';
+        s.crossOrigin = 'anonymous';
+        s.async = true;
+        s.src = 'https://us-assets.i.posthog.com/static/array.js';
+        document.head.appendChild(s);
         s.onload = function() {
           if (window.posthog) {
             window.posthog.init(key, {
               api_host: host,
+              ui_host: 'https://us.posthog.com',
               autocapture: true,
               capture_pageview: true,
               capture_pageleave: true,
+              disable_external_dependency_loading: true,
               enable_recording_console_log: false,
               session_recording: {
                 recordCrossOriginIframes: false,
@@ -43,7 +50,6 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST;
             });
           }
         };
-        document.head.appendChild(s);
       }
 
       // Load after 3s idle or first interaction
