@@ -37,6 +37,8 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST;
               capture_pageview: true,
               capture_pageleave: true,
               disable_external_dependency_loading: true,
+            advanced_disable_feature_flags: true,
+            disable_surveys: true,
               enable_recording_console_log: false,
               session_recording: {
                 recordCrossOriginIframes: false,
@@ -53,7 +55,7 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST;
       }
 
       // Load after 3s idle or first interaction
-      var timer = setTimeout(loadPostHog, 3000);
+      var timer = setTimeout(loadPostHog, 1500);
       var events = ['click', 'scroll', 'keydown', 'touchstart'];
       function onInteraction() {
         clearTimeout(timer);
