@@ -21,6 +21,7 @@ export function captureEvent(
   distinctId: string,
   event: string,
   properties?: Record<string, unknown>,
+  sessionId?: string | null,
 ) {
   const ph = getPostHog();
   if (!ph) return;
@@ -29,7 +30,10 @@ export function captureEvent(
     ph.capture({
       distinctId,
       event,
-      properties,
+      properties: {
+        ...properties,
+        ...(sessionId ? { $session_id: sessionId } : {}),
+      },
     });
   } catch (err) {
     console.error('PostHog capture error:', err);

@@ -133,6 +133,7 @@ app.post('/api/subscribe', async (c) => {
     }
 
     // Track email alert registration
+    const sessionId = c.req.header('x-posthog-session-id');
     captureEvent(
       `email:${email.toLowerCase().trim()}`,
       'email_alert_registered',
@@ -141,6 +142,7 @@ app.post('/api/subscribe', async (c) => {
         notify_silver: !!notify_silver,
         notify_gold: !!notify_gold,
       },
+      sessionId,
     );
 
     return c.json({
