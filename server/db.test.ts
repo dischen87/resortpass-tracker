@@ -26,6 +26,7 @@ test('subscriber community lifecycle keeps locale and removes related data', asy
       assert.equal(confirmSubscriber(signup.confirmToken), true);
 
       const db = getDb();
+      assert.equal(db.query('PRAGMA busy_timeout').get().timeout, 10_000);
       const subscriber = db.query(
         'SELECT id, lang, unsubscribe_token, community_token FROM subscribers WHERE email = ?',
       ).get('fan@example.test');

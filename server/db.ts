@@ -25,6 +25,7 @@ export interface DailyAvailabilityAggregate {
 export function getDb(): Database {
   if (!db) {
     db = new Database(DB_PATH, { create: true });
+    db.exec('PRAGMA busy_timeout = 10000');
     db.exec('PRAGMA journal_mode = WAL');
     db.exec('PRAGMA foreign_keys = ON');
     initSchema();
