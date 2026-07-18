@@ -114,6 +114,7 @@ SMTP_USER=your-smtp-user
 SMTP_PASS=your-smtp-password
 FROM_EMAIL=noreply@resortpass-europapark.ch
 FROM_NAME=ResortPass Tracker
+PARK_QUEUE_TIMES_API_KEY=your-parkqueuetimes-api-key
 ```
 
 ### Starten
@@ -202,7 +203,9 @@ sudo systemctl enable --now resortpass-checker.timer
 | ResortPass Gold | `https://tickets.mackinternational.de/de/ticket/resortpass-gold` |
 | Übersicht | `https://tickets.mackinternational.de/de/resortpass/uebersicht` |
 
-Die Live-Wartezeiten werden über die dokumentierte Queue-Times-API geladen. Die geforderte Attribution „Powered by Queue-Times.com“ wird auf jeder Wartezeiten-Seite angezeigt.
+Die Live-Wartezeiten werden über die dokumentierte ParkQueueTimes-API geladen und serverseitig fünf Minuten zwischengespeichert. Dafür ist `PARK_QUEUE_TIMES_API_KEY` erforderlich. Die geforderte Attribution „Powered by ParkQueueTimes.com“ wird auf jeder Wartezeiten-Seite angezeigt. Der browserseitige Endpunkt ist nur für die eigene Website vorgesehen, nicht indexierbar und liefert normalisierte Anzeigefelder. Rohdaten-Feeds, Historien, abgeleitete Datendienste oder eine Weitergabe erfordern vorab eine gesonderte Erlaubnis des Anbieters.
+
+Da Park-ID 31 auch Rulantica- und Resort-Einträge enthält, lässt der Server ausschliesslich die gepflegte Europa-Park-Bahn-Liste zu. Neue oder umbenannte Attraktionen müssen nach einer echten API-Antwort bewusst ergänzt werden; unbekannte Namen werden nicht veröffentlicht.
 
 ---
 

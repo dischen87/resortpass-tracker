@@ -16,7 +16,7 @@ const tr = (key: string) => getTranslation(lang, key);
 
 const title = Astro.props.title || tr('meta.title');
 const description = Astro.props.description || tr('meta.description');
-const ogImage = Astro.props.ogImage || '/og-image.png';
+const ogImage = Astro.props.ogImage || '/og-resortpass-v2.png';
 const ogImageAlt = Astro.props.ogImageAlt || tr('meta.og_alt');
 const siteUrl = "https://www.resortpass-europapark.ch";
 const rawPath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
@@ -30,10 +30,10 @@ const localeMap: Record<Lang, string> = {
   en: 'en_US',
 };
 const hreflangMap: Record<Lang, string> = {
-  de: 'de-CH',
-  fr: 'fr-CH',
-  it: 'it-CH',
-  en: 'en-US',
+  de: 'de',
+  fr: 'fr',
+  it: 'it',
+  en: 'en',
 };
 
 function getPathForLang(targetLang: Lang): string {
@@ -57,7 +57,12 @@ function getPathForLang(targetLang: Lang): string {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content={description} />
-  <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
+  <meta
+    name="robots"
+    content={noindex
+      ? 'noindex, nofollow'
+      : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'}
+  />
   <link rel="canonical" href={currentUrl} />
 
   <!-- hreflang for all languages -->

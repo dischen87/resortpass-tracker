@@ -13,10 +13,10 @@ export default defineConfig({
       i18n: {
         defaultLocale: 'de',
         locales: {
-          de: 'de-CH',
-          fr: 'fr-CH',
-          it: 'it-CH',
-          en: 'en-US',
+          de: 'de',
+          fr: 'fr',
+          it: 'it',
+          en: 'en',
         },
       },
       filter: (page) => {

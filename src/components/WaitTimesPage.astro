@@ -11,6 +11,21 @@ interface Props {
 
 const { lang } = Astro.props;
 const tr = (key: string) => getTranslation(lang, key);
+const siteUrl = 'https://www.resortpass-europapark.ch';
+const pagePath = lang === 'de' ? '/wartezeiten/' : `/${lang}/wartezeiten/`;
+const homePath = lang === 'de' ? '/' : `/${lang}/`;
+const breadcrumbNames: Record<Lang, [string, string]> = {
+  de: ['Startseite', 'Wartezeiten'],
+  fr: ['Accueil', 'Temps d’attente'],
+  it: ['Home', 'Tempi di attesa'],
+  en: ['Home', 'Wait times'],
+};
+const faqItems = [
+  [tr('wait.faq_current_q'), tr('wait.faq_current_a')],
+  [tr('wait.faq_popular_q'), tr('wait.faq_popular_a')],
+  [tr('wait.faq_update_q'), tr('wait.faq_update_a')],
+  [tr('wait.faq_official_q'), tr('wait.faq_official_a')],
+];
 const officialAppUrls: Record<Lang, string> = {
   de: 'https://www.europapark.de/de/freizeitpark/infos/media-unterhaltung/europa-park-rulantica-app',
   fr: 'https://www.europapark.de/fr/parc-de-loisirs/infos/medias-et-divertissements/appli-europa-park-rulantica',
@@ -25,8 +40,11 @@ const clientCopy = {
   closed: tr('wait.closed'),
   minutes: tr('wait.minutes'),
   openNow: tr('wait.open_now'),
+  down: tr('wait.status_down'),
+  refurbishment: tr('wait.status_refurbishment'),
   results: tr('wait.results'),
   noResults: tr('wait.no_results'),
+  noData: tr('wait.no_data'),
   unavailableTitle: tr('wait.error_title'),
   unavailableText: tr('wait.error_text'),
 };
@@ -35,14 +53,35 @@ const clientCopy = {
 <Layout lang={lang} title={tr('wait.meta_title')} description={tr('wait.meta_description')} ogImage="/og-wartezeiten.png" ogImageAlt={tr('wait.og_alt')}>
   <script type="application/ld+json" set:html={JSON.stringify({
     '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    name: tr('wait.title'),
-    description: tr('wait.meta_description'),
-    isPartOf: {
-      '@type': 'WebSite',
-      name: 'ResortPass Tracker',
-      url: 'https://www.resortpass-europapark.ch/',
-    },
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': `${siteUrl}${pagePath}#webpage`,
+        url: `${siteUrl}${pagePath}`,
+        name: tr('wait.meta_title'),
+        description: tr('wait.meta_description'),
+        inLanguage: lang,
+        isPartOf: { '@type': 'WebSite', name: 'ResortPass Tracker', url: siteUrl },
+        breadcrumb: { '@id': `${siteUrl}${pagePath}#breadcrumb` },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${siteUrl}${pagePath}#breadcrumb`,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: breadcrumbNames[lang][0], item: `${siteUrl}${homePath}` },
+          { '@type': 'ListItem', position: 2, name: breadcrumbNames[lang][1], item: `${siteUrl}${pagePath}` },
+        ],
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${siteUrl}${pagePath}#faq`,
+        mainEntity: faqItems.map(([name, text]) => ({
+          '@type': 'Question',
+          name,
+          acceptedAnswer: { '@type': 'Answer', text },
+        })),
+      },
+    ],
   })} />
 
   <Navbar lang={lang} />
@@ -74,26 +113,26 @@ const clientCopy = {
             </button>
           </p>
         </div>
-        <a href="https://queue-times.com/" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-sm font-bold text-text-secondary hover:text-accent hover:underline">
-          Powered by Queue-Times.com
+        <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-sm font-bold text-text-secondary hover:text-accent hover:underline">
+          Powered by ParkQueueTimes.com
         </a>
       </div>
     </section>
 
     <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-1 py-8 md:py-10" aria-labelledby="wait-summary-title">
       <h2 id="wait-summary-title" class="sr-only">{tr('wait.summary_title')}</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-3 gap-2 sm:gap-4">
         <article class="summary-card">
           <p class="text-sm font-bold text-muted mb-2">{tr('wait.open')}</p>
           <p class="flex items-baseline gap-2"><strong id="open-rides" class="text-4xl font-bold">—</strong><span class="text-sm text-text-secondary">{tr('wait.rides')}</span></p>
         </article>
         <article class="summary-card">
           <p class="text-sm font-bold text-muted mb-2">{tr('wait.average')}</p>
-          <p class="flex items-baseline gap-2"><strong id="average-wait" class="text-4xl font-bold">—</strong><span class="text-sm text-text-secondary">{tr('wait.minutes')}</span></p>
+          <p class="flex items-baseline gap-2"><strong id="average-wait" class="text-4xl font-bold">—</strong><span id="average-wait-unit" class="hidden text-sm text-text-secondary">{tr('wait.minutes')}</span></p>
         </article>
         <article class="summary-card summary-card-accent">
           <p class="text-sm font-bold text-muted mb-2">{tr('wait.longest')}</p>
-          <p class="flex items-baseline gap-2"><strong id="longest-wait" class="text-4xl font-bold">—</strong><span class="text-sm text-text-secondary">{tr('wait.minutes')}</span></p>
+          <p class="flex items-baseline gap-2"><strong id="longest-wait" class="text-4xl font-bold">—</strong><span id="longest-wait-unit" class="hidden text-sm text-text-secondary">{tr('wait.minutes')}</span></p>
         </article>
       </div>
     </section>
@@ -174,12 +213,15 @@ const clientCopy = {
         </li>
       </template>
 
-      <noscript><p class="glass-card p-5 text-text-secondary">{tr('wait.javascript')}</p></noscript>
+      <noscript>
+        <style>#wait-loading { display: none; }</style>
+        <p class="glass-card p-5 text-text-secondary">{tr('wait.javascript')}</p>
+      </noscript>
 
       <div class="mt-8 glass-card p-5 md:p-6 text-sm text-text-secondary leading-relaxed">
         <p>{tr('wait.source_note')}</p>
         <p class="mt-2">
-          <a href="https://queue-times.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">Powered by Queue-Times.com</a>
+          <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">Powered by ParkQueueTimes.com</a>
           <span aria-hidden="true"> · </span>
           <a href={officialAppUrls[lang]} target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">{tr('wait.official_app')}</a>
         </p>
@@ -199,6 +241,18 @@ const clientCopy = {
             <p class="text-text-secondary leading-relaxed">{tr('wait.explainer_use_text')}</p>
           </article>
         </div>
+      </div>
+    </section>
+
+    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-18" aria-labelledby="wait-faq-title">
+      <h2 id="wait-faq-title" class="text-2xl md:text-3xl font-bold mb-7">{tr('wait.faq_title')}</h2>
+      <div class="grid gap-4">
+        {faqItems.map(([question, answer]) => (
+          <article class="glass-card p-6">
+            <h3 class="text-lg font-bold mb-2">{question}</h3>
+            <p class="text-text-secondary leading-relaxed">{answer}</p>
+          </article>
+        ))}
       </div>
     </section>
   </main>
@@ -240,13 +294,14 @@ const clientCopy = {
     let activeFilter = 'open';
 
     function localizedLand(name) {
+      if (!name) return '';
       if (specialLands[lang]?.[name]) return specialLands[lang][name];
       return regionCodes[name] && regionNames ? (regionNames.of(regionCodes[name]) || name) : name;
     }
 
     function waitLevel(ride) {
       if (!ride.isOpen) return 'closed';
-      if (ride.waitTime === 0) return 'unknown';
+      if (ride.waitTime === null) return 'unknown';
       if (ride.waitTime <= 15) return 'low';
       if (ride.waitTime <= 30) return 'medium';
       return 'high';
@@ -258,7 +313,7 @@ const clientCopy = {
         const matchesQuery = `${ride.name} ${localizedLand(ride.land)}`.toLocaleLowerCase(locale).includes(query);
         const matchesFilter = activeFilter === 'all'
           || (activeFilter === 'open' && ride.isOpen)
-          || (activeFilter === 'quick' && ride.isOpen && ride.waitTime > 0 && ride.waitTime <= 15);
+          || (activeFilter === 'quick' && ride.isOpen && ride.waitTime !== null && ride.waitTime <= 15);
         return matchesQuery && matchesFilter;
       });
 
@@ -266,27 +321,36 @@ const clientCopy = {
         if (sort.value === 'name') return a.name.localeCompare(b.name, locale);
         if (a.isOpen !== b.isOpen) return a.isOpen ? -1 : 1;
         if (sort.value === 'shortest') {
-          const aWait = a.waitTime > 0 ? a.waitTime : Number.POSITIVE_INFINITY;
-          const bWait = b.waitTime > 0 ? b.waitTime : Number.POSITIVE_INFINITY;
+          const aWait = a.waitTime !== null ? a.waitTime : Number.POSITIVE_INFINITY;
+          const bWait = b.waitTime !== null ? b.waitTime : Number.POSITIVE_INFINITY;
           return aWait - bWait || a.name.localeCompare(b.name, locale);
         }
-        return b.waitTime - a.waitTime || a.name.localeCompare(b.name, locale);
+        return (b.waitTime ?? -1) - (a.waitTime ?? -1) || a.name.localeCompare(b.name, locale);
       });
 
       list.replaceChildren();
       for (const ride of filtered) {
         const card = template.content.firstElementChild.cloneNode(true);
-        card.querySelector('.ride-land').textContent = localizedLand(ride.land);
+        const land = localizedLand(ride.land);
+        const landElement = card.querySelector('.ride-land');
+        landElement.textContent = land;
+        landElement.classList.toggle('hidden', !land);
         card.querySelector('.ride-name').textContent = ride.name;
-        card.querySelector('.ride-status').textContent = ride.isOpen ? clientCopy.openNow : clientCopy.closed;
+        const statusText = ride.status === 'DOWN'
+          ? clientCopy.down
+          : ride.status === 'REFURBISHMENT'
+          ? clientCopy.refurbishment
+          : ride.isOpen ? clientCopy.openNow : clientCopy.closed;
+        card.querySelector('.ride-status').textContent = statusText;
         const badge = card.querySelector('.wait-badge');
         badge.dataset.level = waitLevel(ride);
-        card.querySelector('.ride-wait').textContent = ride.isOpen && ride.waitTime > 0 ? String(ride.waitTime) : (ride.isOpen ? clientCopy.openNow : clientCopy.closed);
-        card.querySelector('.ride-unit').textContent = ride.isOpen && ride.waitTime > 0 ? clientCopy.minutes : '';
+        card.querySelector('.ride-wait').textContent = ride.isOpen && ride.waitTime !== null ? String(ride.waitTime) : (ride.isOpen ? clientCopy.openNow : clientCopy.closed);
+        card.querySelector('.ride-unit').textContent = ride.isOpen && ride.waitTime !== null ? clientCopy.minutes : '';
         list.append(card);
       }
 
       resultCount.textContent = clientCopy.results.replace('{count}', String(filtered.length));
+      empty.textContent = rides.length === 0 ? clientCopy.noData : clientCopy.noResults;
       empty.classList.toggle('hidden', filtered.length > 0);
       list.classList.toggle('hidden', filtered.length === 0);
       list.setAttribute('aria-busy', 'false');
@@ -315,8 +379,10 @@ const clientCopy = {
 
         rides = data.rides;
         document.querySelector('#open-rides').textContent = String(data.summary.openRides);
-        document.querySelector('#average-wait').textContent = String(data.summary.averageWait);
-        document.querySelector('#longest-wait').textContent = String(data.summary.longestWait);
+        document.querySelector('#average-wait').textContent = data.summary.averageWait === null ? '—' : String(data.summary.averageWait);
+        document.querySelector('#longest-wait').textContent = data.summary.longestWait === null ? '—' : String(data.summary.longestWait);
+        document.querySelector('#average-wait-unit').classList.toggle('hidden', data.summary.averageWait === null);
+        document.querySelector('#longest-wait-unit').classList.toggle('hidden', data.summary.longestWait === null);
         if (data.summary.openRides === 0) activeFilter = 'all';
         filterButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.filter === activeFilter)));
         updateLiveState(data);
@@ -434,7 +500,7 @@ const clientCopy = {
 
   .wait-badge[data-level="low"] { background: #f0fdf4; border-color: #86efac; color: var(--color-available); }
   .wait-badge[data-level="medium"] { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
-  .wait-badge[data-level="high"] { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
+  .wait-badge[data-level="high"] { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
   .wait-badge[data-level="unknown"] { background: #eff6ff; border-color: #93c5fd; color: var(--color-accent-dark); }
   .wait-badge[data-level="closed"] { background: var(--color-surface-light); border-color: var(--color-border-light); color: var(--color-muted); }
 
@@ -445,8 +511,26 @@ const clientCopy = {
   @keyframes wait-pulse { 50% { opacity: 0.45; } }
 
   @media (max-width: 640px) {
+    .summary-card {
+      box-shadow: 2px 2px 0 var(--color-border);
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+    }
+    .summary-card-accent { box-shadow: 2px 2px 0 var(--color-accent); }
+    .summary-card > p:first-child {
+      font-size: 0.7rem;
+      line-height: 1.15;
+      margin-bottom: 0.5rem;
+      min-height: 2.3em;
+    }
+    .summary-card > p:last-child {
+      align-items: center;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+    .summary-card strong { font-size: 1.75rem; }
     .wait-toolbar { position: static; }
-    .filter-group button { padding-inline: 0.6rem; }
+    .filter-group button { padding-inline: 0.3rem; }
     .wait-ride-card { padding-left: 1rem; }
   }
 </style>

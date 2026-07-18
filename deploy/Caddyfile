@@ -10,6 +10,16 @@ www.resortpass-europapark.ch {
 	# Keep the conventional sitemap URL machine-readable.
 	redir /sitemap.xml /sitemap-index.xml 308
 
+	# Redirect duplicate static-page URLs to Astro's canonical trailing-slash form.
+	@explicitIndex path_regexp explicit_index ^(.*/)index\.html$
+	redir @explicitIndex {re.explicit_index.1} 308
+
+	@directoryWithoutSlash {
+		not path /api/* */
+		file {path}/index.html
+	}
+	redir @directoryWithoutSlash {path}/ 308
+
 	# Astro is a static multi-page site. Missing files must stay 404s.
 	handle {
 		try_files {path} {path}.html {path}/index.html
@@ -30,9 +40,22 @@ www.resortpass-europapark.ch {
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
 	}
 
-	# Cache static assets
-	@static path *.css *.js *.svg *.png *.jpg *.woff2 *.ico
-	header @static Cache-Control "public, max-age=31536000, immutable"
+	# Astro content-hashed bundles are safe to cache immutably.
+	@hashedAssets path /_astro/*
+	header @hashedAssets Cache-Control "public, max-age=31536000, immutable"
+
+	# Fixed-name images and fonts can change between deploys, so keep their cache short.
+	@fixedImages {
+		not path /_astro/*
+		path *.svg *.png *.jpg *.jpeg *.webp *.avif *.ico
+	}
+	header @fixedImages Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
+
+	@fixedFonts {
+		not path /_astro/*
+		path *.woff *.woff2
+	}
+	header @fixedFonts Cache-Control "public, max-age=604800"
 
 	# Short cache for status.json
 	@status path /api/status.json
@@ -41,8 +64,8 @@ www.resortpass-europapark.ch {
 	encode gzip zstd
 
 	log {
-		output file /data/access.log {
-			roll_size 10mb
+		output file /var/log/caddy/resortpass-access.log {
+			roll_size 10MiB
 			roll_keep 3
 		}
 	}

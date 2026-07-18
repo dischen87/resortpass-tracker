@@ -153,18 +153,20 @@ app.get('/api/health', (c) => {
     gold: statusFreshness(status.gold),
   };
   const fresh = passes.silver.fresh && passes.gold.fresh;
+  const waitTimes = getWaitTimesCacheHealth();
+  const ready = fresh && waitTimes.state !== 'unavailable';
   const knownAges = [passes.silver.ageMinutes, passes.gold.ageMinutes].filter((age): age is number => age !== null);
   const body = {
-    ok: fresh,
+    ok: ready,
     database: true,
     checker: {
       fresh,
       ageMinutes: knownAges.length ? Math.max(...knownAges) : null,
       passes,
     },
-    waitTimes: getWaitTimesCacheHealth(),
+    waitTimes,
   };
-  return c.json(body, fresh ? 200 : 503);
+  return c.json(body, ready ? 200 : 503);
 });
 
 // Get subscriber count
@@ -191,9 +193,11 @@ app.get('/api/status', (c) => {
 
 // Live Europa-Park attraction wait times, cached for the provider's five-minute update cycle.
 app.get('/api/wait-times', async (c) => {
+  c.header('X-Robots-Tag', 'noindex, nofollow');
+  c.header('Cross-Origin-Resource-Policy', 'same-origin');
   try {
     const waitTimes = await getWaitTimes();
-    c.header('Cache-Control', 'public, max-age=60, s-maxage=300');
+    c.header('Cache-Control', 'private, max-age=60');
     return c.json(waitTimes);
   } catch (error) {
     console.error('Wait-times error:', error);
