@@ -21,6 +21,11 @@ import {
 } from './db';
 import { localizedSiteUrl, sendConfirmationEmail, sendUnsubscribeConfirmation } from './email';
 import { buildRss, formatDailyDigest, normalizeFeedLanguage } from './feed';
+import {
+  getCrowdCalendar,
+  getCrowdCalendarCacheHealth,
+  startCrowdCalendarPoller,
+} from './crowd-calendar';
 import { getWaitTimes, getWaitTimesCacheHealth, startWaitTimesPoller } from './wait-times';
 
 const app = new Hono();
@@ -144,6 +149,7 @@ setInterval(() => {
 // Initialize DB on start
 getDb();
 startWaitTimesPoller();
+startCrowdCalendarPoller();
 
 // Health check
 app.get('/api/health', (c) => {
@@ -154,6 +160,7 @@ app.get('/api/health', (c) => {
   };
   const fresh = passes.silver.fresh && passes.gold.fresh;
   const waitTimes = getWaitTimesCacheHealth();
+  const crowdCalendar = getCrowdCalendarCacheHealth();
   const ready = fresh && waitTimes.state !== 'unavailable';
   const knownAges = [passes.silver.ageMinutes, passes.gold.ageMinutes].filter((age): age is number => age !== null);
   const body = {
@@ -165,6 +172,7 @@ app.get('/api/health', (c) => {
       passes,
     },
     waitTimes,
+    crowdCalendar,
   };
   return c.json(body, ready ? 200 : 503);
 });
@@ -203,6 +211,21 @@ app.get('/api/wait-times', async (c) => {
     console.error('Wait-times error:', error);
     c.header('Cache-Control', 'no-store');
     return c.json({ error: 'Live wait times are temporarily unavailable.' }, 503);
+  }
+});
+
+// Normalized monthly crowd forecast and opening hours for visit planning.
+app.get('/api/crowd-calendar', async (c) => {
+  c.header('X-Robots-Tag', 'noindex, nofollow');
+  c.header('Cross-Origin-Resource-Policy', 'same-origin');
+  try {
+    const calendar = await getCrowdCalendar();
+    c.header('Cache-Control', 'private, max-age=300');
+    return c.json(calendar);
+  } catch (error) {
+    console.error('Crowd-calendar error:', error);
+    c.header('Cache-Control', 'no-store');
+    return c.json({ error: 'Crowd forecast is temporarily unavailable.' }, 503);
   }
 });
 

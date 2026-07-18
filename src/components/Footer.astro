@@ -1,5 +1,5 @@
 ---
-import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+import { type Lang, defaultLang, crowdCalendarPaths, getTranslation } from '../i18n/translations';
 import LanguageSwitcher from './LanguageSwitcher.astro';
 
 interface Props {
@@ -14,6 +14,8 @@ const tr = (key: string) => getTranslation(lang, key);
 const imprintPath = lang === defaultLang ? '/impressum/' : `/${lang}/impressum/`;
 const homePath = lang === defaultLang ? '/' : `/${lang}/`;
 const waitTimesPath = `${homePath}wartezeiten/`;
+const crowdCalendarPath = crowdCalendarPaths[lang];
+const isCrowdCalendarPage = Object.values(crowdCalendarPaths).includes(Astro.url.pathname as (typeof crowdCalendarPaths)[Lang]);
 ---
 
 <!-- CTA Section -->
@@ -79,6 +81,7 @@ const waitTimesPath = `${homePath}wartezeiten/`;
         <h4 class="text-sm font-bold mb-3" style="font-family: var(--font-heading);">Links</h4>
         <ul class="space-y-2">
           <li><a href={waitTimesPath} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('nav.wait_times')}</a></li>
+          <li><a href={crowdCalendarPath} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('nav.crowd_forecast')}</a></li>
           <li><a href={`${homePath}#benachrichtigung`} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('subscribe.sticky_cta')}</a></li>
           <li><a href={`${homePath}#info`} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">Info</a></li>
           <li><a href={`${homePath}#history`} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('history.title')}</a></li>
@@ -94,7 +97,7 @@ const waitTimesPath = `${homePath}wartezeiten/`;
         </ul>
         {showLanguageSwitcher && (
           <div class="mt-6">
-            <LanguageSwitcher lang={lang} />
+            <LanguageSwitcher lang={lang} paths={isCrowdCalendarPage ? crowdCalendarPaths : undefined} />
           </div>
         )}
       </div>

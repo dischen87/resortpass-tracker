@@ -14,6 +14,7 @@ Der Europa-Park ResortPass ist derzeit ausverkauft; ein neuer Verkaufstermin ist
 
 - **15-Minuten-Verfügbarkeitscheck** — Silver & Gold, mit zweiter Bestätigung vor einem Alert
 - **Live-Wartezeiten** — Europa-Park-Attraktionen, serverseitig alle fünf Minuten aktualisiert
+- **Besucherprognose** — kommende Öffnungstage mit Crowd-Index und gemeldeten Öffnungszeiten, stündlich aktualisiert
 - **E-Mail-Benachrichtigung** — Double Opt-In, sofortiger Alarm bei Verfügbarkeit
 - **Verlauf und Feed** — reale Prüfungen, tägliche Zusammenfassungen und RSS
 - **Mehrsprachig** — Deutsch, Englisch, Französisch, Italienisch
@@ -47,6 +48,7 @@ resortpass-tracker/
 │   ├── pages/
 │   │   ├── index.astro           # Hauptseite (DE)
 │   │   ├── wartezeiten.astro     # Live-Wartezeiten (DE)
+│   │   ├── besucherprognose.astro # Besucherprognose (DE)
 │   │   ├── {en,fr,it}/            # Lokalisierte Seiten
 │   │   ├── impressum.astro       # Impressum + Datenschutz
 │   │   ├── confirm.astro         # E-Mail-Bestätigung
@@ -55,6 +57,7 @@ resortpass-tracker/
 │   ├── components/
 │   │   ├── HomePage.astro        # Gemeinsame lokalisierte Startseite
 │   │   ├── WaitTimesPage.astro   # Gemeinsame Live-Wartezeiten-Seite
+│   │   ├── CrowdCalendarPage.astro # Gemeinsame Besucherprognose-Seite
 │   │   ├── TokenPage.astro       # Bestätigung und Abmeldung
 │   │   ├── CommunityFormPage.astro
 │   │   ├── StatusCard.astro
@@ -68,6 +71,7 @@ resortpass-tracker/
 │   ├── db.ts                     # SQLite Setup & Queries
 │   ├── email.ts                  # E-Mail Versand
 │   ├── wait-times.ts             # Wartezeiten-API, Cache und Normalisierung
+│   ├── crowd-calendar.ts         # Prognose/Öffnungszeiten, Cache und Normalisierung
 │   └── checker.ts                # Scraper/Checker Script
 ├── emails/                       # E-Mail Templates (HTML)
 │   ├── confirm.html
@@ -92,7 +96,7 @@ resortpass-tracker/
 ### Voraussetzungen
 
 - [Bun](https://bun.sh/) >= 1.0
-- Node.js 18+ (optional, für Kompatibilität)
+- Node.js 22.12+ (optional, für Astro-Kompatibilität)
 
 ### Installation
 
@@ -179,6 +183,7 @@ sudo systemctl enable --now resortpass-checker.timer
 |---------|------|-------------|
 | `GET` | `/api/status` | Aktueller Verfügbarkeitsstatus |
 | `GET` | `/api/wait-times` | Aktuelle Europa-Park-Wartezeiten (5-Minuten-Cache) |
+| `GET` | `/api/crowd-calendar` | Normalisierte Besucherprognose und gemeldete Öffnungszeiten (1-Stunden-Cache) |
 | `GET` | `/api/health` | Health Check |
 | `GET` | `/api/news?lang=de` | Tägliche, lokalisierte Statusberichte |
 | `GET` | `/api/feed.xml?lang=de` | RSS-Feed |
@@ -204,6 +209,8 @@ sudo systemctl enable --now resortpass-checker.timer
 | Übersicht | `https://tickets.mackinternational.de/de/resortpass/uebersicht` |
 
 Die Live-Wartezeiten werden über die dokumentierte ParkQueueTimes-API geladen und serverseitig fünf Minuten zwischengespeichert. Dafür ist `PARK_QUEUE_TIMES_API_KEY` erforderlich. Die geforderte Attribution „Powered by ParkQueueTimes.com“ wird auf jeder Wartezeiten-Seite angezeigt. Der browserseitige Endpunkt ist nur für die eigene Website vorgesehen, nicht indexierbar und liefert normalisierte Anzeigefelder. Rohdaten-Feeds, Historien, abgeleitete Datendienste oder eine Weitergabe erfordern vorab eine gesonderte Erlaubnis des Anbieters.
+
+Die Besucherprognose kombiniert den von ParkQueueTimes gelieferten Crowd-Index mit gemeldeten Öffnungszeiten. Sie zeigt nur heute und zukünftige Tage aus dem aktuell verfügbaren Quellzeitraum, wird stündlich erneuert und bleibt ausdrücklich eine Orientierung — keine Besucherzählung, Wartezeitgarantie oder eigene KI-Prognose.
 
 Da Park-ID 31 auch Rulantica- und Resort-Einträge enthält, lässt der Server ausschliesslich die gepflegte Europa-Park-Bahn-Liste zu. Neue oder umbenannte Attraktionen müssen nach einer echten API-Antwort bewusst ergänzt werden; unbekannte Namen werden nicht veröffentlicht.
 

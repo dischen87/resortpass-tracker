@@ -1,0 +1,610 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from './Navbar.astro';
+import Footer from './Footer.astro';
+import { crowdCalendarPaths, type Lang, getTranslation } from '../i18n/translations';
+import '../styles/global.css';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const tr = (key: string) => getTranslation(lang, key);
+const pageTitle = tr('crowd.meta_title').replace('{year}', String(new Date().getFullYear()));
+const siteUrl = 'https://www.resortpass-europapark.ch';
+const pagePath = crowdCalendarPaths[lang];
+const homePath = lang === 'de' ? '/' : `/${lang}/`;
+const waitTimesPath = lang === 'de' ? '/wartezeiten/' : `/${lang}/wartezeiten/`;
+const officialHoursUrls: Record<Lang, string> = {
+  de: 'https://www.europapark.de/de/freizeitpark/infos/planen-sie-ihren-besuch/europa-park-oeffnungszeiten-saisons',
+  fr: 'https://www.europapark.de/fr/parc-de-loisirs/infos/planifiez-votre-sejour/les-saisons-les-horaires-douverture-deuropa-park',
+  it: 'https://www.europapark.de/it/parco-divertimenti/info/pianifica-la-tua-visita/orari-di-apertura-stagioni-delleuropa-park',
+  en: 'https://www.europapark.de/en/theme-park/info/plan-your-visit/europa-park-opening-hours-seasons',
+};
+const breadcrumbNames: Record<Lang, [string, string]> = {
+  de: ['Startseite', 'Besucherprognose'],
+  fr: ['Accueil', 'Prévision d’affluence'],
+  it: ['Home', 'Previsione affluenza'],
+  en: ['Home', 'Crowd calendar'],
+};
+const faqItems = [
+  [tr('crowd.faq_source_q'), tr('crowd.faq_source_a')],
+  [tr('crowd.faq_accuracy_q'), tr('crowd.faq_accuracy_a')],
+  [tr('crowd.faq_best_q'), tr('crowd.faq_best_a')],
+  [tr('crowd.faq_scale_q'), tr('crowd.faq_scale_a')],
+];
+const clientCopy = {
+  loading: tr('crowd.loading'),
+  refreshing: tr('crowd.refreshing'),
+  fresh: tr('crowd.fresh'),
+  scheduleOnly: tr('crowd.schedule_only'),
+  stale: tr('crowd.stale'),
+  updated: tr('crowd.updated'),
+  today: tr('crowd.today'),
+  tomorrow: tr('crowd.tomorrow'),
+  low: tr('crowd.low'),
+  medium: tr('crowd.medium'),
+  high: tr('crowd.high'),
+  veryHigh: tr('crowd.very_high'),
+  noForecast: tr('crowd.no_forecast'),
+  closed: tr('crowd.closed'),
+  open: tr('crowd.open'),
+  hours: tr('crowd.hours'),
+  hoursUnknown: tr('crowd.hours_unknown'),
+  indexLabel: tr('crowd.index_label'),
+  range: tr('crowd.range'),
+  scheduleRange: tr('crowd.schedule_range'),
+  errorTitle: tr('crowd.error_title'),
+};
+---
+
+<Layout
+  lang={lang}
+  title={pageTitle}
+  description={tr('crowd.meta_description')}
+  ogImage="/og-besucherprognose.png"
+  ogImageAlt={tr('crowd.og_alt')}
+  alternatePaths={crowdCalendarPaths}
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': `${siteUrl}${pagePath}#webpage`,
+        url: `${siteUrl}${pagePath}`,
+        name: pageTitle,
+        description: tr('crowd.meta_description'),
+        inLanguage: lang,
+        about: { '@type': 'AmusementPark', name: 'Europa-Park' },
+        isPartOf: { '@type': 'WebSite', name: 'ResortPass Tracker', url: siteUrl },
+        breadcrumb: { '@id': `${siteUrl}${pagePath}#breadcrumb` },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${siteUrl}${pagePath}#breadcrumb`,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: breadcrumbNames[lang][0], item: `${siteUrl}${homePath}` },
+          { '@type': 'ListItem', position: 2, name: breadcrumbNames[lang][1], item: `${siteUrl}${pagePath}` },
+        ],
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${siteUrl}${pagePath}#faq`,
+        mainEntity: faqItems.map(([name, text]) => ({
+          '@type': 'Question',
+          name,
+          acceptedAnswer: { '@type': 'Answer', text },
+        })),
+      },
+    ],
+  })} />
+
+  <Navbar lang={lang} />
+
+  <main id="main-content">
+    <section class="relative overflow-hidden border-b-2 border-border-light bg-bg-light">
+      <div class="blob blob-blue w-72 h-72 -top-32 -right-28" aria-hidden="true"></div>
+      <div class="blob blob-gold w-72 h-72 -bottom-44 -left-28" aria-hidden="true"></div>
+
+      <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12 md:pt-16 md:pb-16">
+        <div class="max-w-3xl">
+          <p class="inline-flex items-center rounded-full border-2 border-accent/30 bg-white px-3 py-1.5 text-xs font-bold text-accent mb-5">
+            {tr('crowd.badge')}
+          </p>
+          <h1 class="text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] mb-5">{tr('crowd.title')}</h1>
+          <p class="text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl">{tr('crowd.subtitle')}</p>
+        </div>
+
+        <div class="mt-7 flex flex-col sm:flex-row gap-3">
+          <a href={waitTimesPath} class="btn-primary">{tr('crowd.live_waits')}</a>
+          <a href="#crowd-calendar" class="btn-secondary">{tr('crowd.to_calendar')}</a>
+        </div>
+
+        <div class="mt-7 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 text-sm">
+          <div id="crowd-live-state" class="inline-flex w-fit items-center gap-2 rounded-full border-2 border-border bg-white px-3 py-1.5 font-bold" aria-live="polite">
+            <span class="h-2.5 w-2.5 rounded-full bg-muted" aria-hidden="true"></span>
+            <span>{tr('crowd.loading')}</span>
+          </div>
+          <p class="text-muted">
+            <span id="crowd-updated">{tr('crowd.updated')} —</span>
+            <button id="refresh-crowd-calendar" type="button" class="ml-2 font-bold text-accent hover:underline cursor-pointer">
+              {tr('crowd.refresh')}
+            </button>
+          </p>
+        </div>
+        <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-sm font-bold text-text-secondary hover:text-accent hover:underline">
+          Powered by ParkQueueTimes.com
+        </a>
+      </div>
+    </section>
+
+    <div id="crowd-stale-warning" class="hidden max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-7" role="status">
+      <div class="rounded-2xl border-2 border-gold bg-amber-50 p-4 text-sm text-text-secondary">
+        <strong class="text-text-primary">{tr('crowd.stale_title')}</strong>
+        <span> {tr('crowd.stale_text')}</span>
+      </div>
+    </div>
+
+    <section id="crowd-loading" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14" aria-label={tr('crowd.loading')}>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
+        {[1, 2, 3, 4].map(() => (
+          <div class="crowd-skeleton" aria-hidden="true">
+            <div class="h-3 w-16 rounded bg-border-light"></div>
+            <div class="h-5 w-3/4 rounded bg-border-light"></div>
+            <div class="h-12 w-20 rounded bg-border-light"></div>
+            <div class="h-3 w-24 rounded bg-border-light"></div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section id="crowd-error" class="hidden max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16" role="alert">
+      <div class="card p-8 md:p-10 text-center">
+        <h2 class="text-2xl font-bold mb-2">{tr('crowd.error_title')}</h2>
+        <p class="text-text-secondary mb-5">{tr('crowd.error_text')}</p>
+        <button id="retry-crowd-calendar" type="button" class="btn-primary">{tr('crowd.retry')}</button>
+      </div>
+    </section>
+
+    <section id="crowd-empty" class="hidden max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16" role="status">
+      <div class="glass-card p-8 text-center text-text-secondary">{tr('crowd.no_data')}</div>
+    </section>
+
+    <div id="crowd-content" class="hidden">
+      <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16" aria-labelledby="near-term-title">
+        <div class="mb-6">
+          <h2 id="near-term-title" class="text-2xl md:text-3xl font-bold">{tr('crowd.near_title')}</h2>
+          <p class="text-text-secondary mt-1">{tr('crowd.near_desc')}</p>
+        </div>
+        <ol id="near-term-days" class="grid sm:grid-cols-2 gap-4 md:gap-5"></ol>
+      </section>
+
+      <section id="best-days-section" class="border-y-2 border-border-light bg-surface-light py-12 md:py-16" aria-labelledby="best-days-title">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="mb-6 max-w-3xl">
+            <h2 id="best-days-title" class="text-2xl md:text-3xl font-bold">{tr('crowd.best_title')}</h2>
+            <p class="text-text-secondary mt-1">{tr('crowd.best_desc')}</p>
+          </div>
+          <ol id="best-days" class="grid md:grid-cols-3 gap-4"></ol>
+        </div>
+      </section>
+
+      <section id="crowd-calendar" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16" aria-labelledby="calendar-title">
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-7">
+          <div class="max-w-3xl">
+            <h2 id="calendar-title" class="text-2xl md:text-3xl font-bold">{tr('crowd.calendar_title')}</h2>
+            <p class="text-text-secondary mt-1">{tr('crowd.calendar_desc')}</p>
+            <p id="crowd-range" class="text-sm font-bold text-muted mt-2"></p>
+          </div>
+          <ul class="crowd-legend" aria-label={tr('crowd.index_label')}>
+            <li data-level="low"><span aria-hidden="true"></span>{tr('crowd.low')} · 0–25</li>
+            <li data-level="medium"><span aria-hidden="true"></span>{tr('crowd.medium')} · 26–50</li>
+            <li data-level="high"><span aria-hidden="true"></span>{tr('crowd.high')} · 51–75</li>
+            <li data-level="very-high"><span aria-hidden="true"></span>{tr('crowd.very_high')} · 76–100</li>
+          </ul>
+        </div>
+
+        <ol id="calendar-days" class="crowd-calendar-grid"></ol>
+
+        <div class="mt-8 glass-card p-5 md:p-6 text-sm text-text-secondary leading-relaxed">
+          <p>{tr('crowd.source_note')}</p>
+          <p class="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+            <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">Powered by ParkQueueTimes.com</a>
+            <a href={officialHoursUrls[lang]} target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">{tr('crowd.official_hours')}</a>
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <template id="crowd-day-template">
+      <li class="min-w-0">
+        <div class="crowd-day-card">
+          <header class="min-w-0">
+            <p class="day-relative hidden text-xs font-bold uppercase tracking-wide text-accent"></p>
+            <time class="day-date block font-bold leading-tight"></time>
+            <p class="day-weekday text-sm text-muted mt-1"></p>
+          </header>
+          <div class="day-index" data-level="none">
+            <strong class="day-value"></strong>
+            <span class="day-unit"></span>
+          </div>
+          <p class="day-level text-sm font-bold"></p>
+          <p class="day-hours text-sm text-text-secondary"></p>
+        </div>
+      </li>
+    </template>
+
+    <noscript>
+      <style>#crowd-loading { display: none; }</style>
+      <p class="max-w-3xl mx-auto my-10 glass-card p-5 text-text-secondary">{tr('crowd.javascript')}</p>
+    </noscript>
+
+    <section class="border-y-2 border-border-light bg-bg-light py-14 md:py-18">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl md:text-3xl font-bold mb-7">{tr('crowd.method_title')}</h2>
+        <div class="grid md:grid-cols-2 gap-5">
+          <article class="glass-card p-6">
+            <p class="text-text-secondary leading-relaxed">{tr('crowd.method_text')}</p>
+          </article>
+          <article class="glass-card p-6">
+            <p class="text-text-secondary leading-relaxed">{tr('crowd.method_scale')}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-18" aria-labelledby="crowd-faq-title">
+      <h2 id="crowd-faq-title" class="text-2xl md:text-3xl font-bold mb-7">{tr('crowd.faq_title')}</h2>
+      <div class="grid gap-4">
+        {faqItems.map(([question, answer]) => (
+          <article class="glass-card p-6">
+            <h3 class="text-lg font-bold mb-2">{question}</h3>
+            <p class="text-text-secondary leading-relaxed">{answer}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <Footer lang={lang} />
+
+  <script define:vars={{ lang, clientCopy }}>
+    const localeByLanguage = { de: 'de-CH', fr: 'fr-CH', it: 'it-CH', en: 'en-GB' };
+    const locale = localeByLanguage[lang] || 'de-CH';
+    const shortDate = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const cardDate = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
+    const weekday = new Intl.DateTimeFormat(locale, { weekday: 'long' });
+    const dateTime = new Intl.DateTimeFormat(locale, {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin',
+    });
+
+    const loading = document.querySelector('#crowd-loading');
+    const errorBox = document.querySelector('#crowd-error');
+    const emptyBox = document.querySelector('#crowd-empty');
+    const content = document.querySelector('#crowd-content');
+    const staleWarning = document.querySelector('#crowd-stale-warning');
+    const liveState = document.querySelector('#crowd-live-state');
+    const updatedLabel = document.querySelector('#crowd-updated');
+    const nearList = document.querySelector('#near-term-days');
+    const bestList = document.querySelector('#best-days');
+    const bestSection = document.querySelector('#best-days-section');
+    const calendarList = document.querySelector('#calendar-days');
+    const rangeLabel = document.querySelector('#crowd-range');
+    const template = document.querySelector('#crowd-day-template');
+    const refreshButtons = [document.querySelector('#refresh-crowd-calendar'), document.querySelector('#retry-crowd-calendar')];
+    let hasData = false;
+
+    function parseDate(value) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+      if (!match) return null;
+      const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function dateInTimeZone(timeZone) {
+      try {
+        const parts = new Intl.DateTimeFormat('en-CA', {
+          timeZone,
+          year: 'numeric', month: '2-digit', day: '2-digit',
+        }).formatToParts(new Date());
+        const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+        return `${values.year}-${values.month}-${values.day}`;
+      } catch {
+        return new Date().toISOString().slice(0, 10);
+      }
+    }
+
+    function addDays(isoDate, amount) {
+      const date = new Date(`${isoDate}T12:00:00Z`);
+      date.setUTCDate(date.getUTCDate() + amount);
+      return date.toISOString().slice(0, 10);
+    }
+
+    function formatTime(value, timeZone) {
+      if (typeof value !== 'string' || !value) return null;
+      if (/^\d{2}:\d{2}(?::\d{2})?$/.test(value)) return value.slice(0, 5);
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return null;
+      try {
+        return new Intl.DateTimeFormat(locale, {
+          hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone,
+        }).format(date);
+      } catch {
+        return new Intl.DateTimeFormat(locale, {
+          hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Berlin',
+        }).format(date);
+      }
+    }
+
+    function levelFor(day) {
+      if (day?.isOpen === false) return { key: 'closed', label: clientCopy.closed };
+      if (!day || day.crowdPercent === null) return { key: 'none', label: clientCopy.noForecast };
+      if (day.crowdPercent <= 25) return { key: 'low', label: clientCopy.low };
+      if (day.crowdPercent <= 50) return { key: 'medium', label: clientCopy.medium };
+      if (day.crowdPercent <= 75) return { key: 'high', label: clientCopy.high };
+      return { key: 'very-high', label: clientCopy.veryHigh };
+    }
+
+    function normalizedDays(rawDays) {
+      const seen = new Set();
+      return rawDays
+        .filter((day) => day && parseDate(day.date) && !seen.has(day.date) && seen.add(day.date))
+        .map((day) => ({
+          date: day.date,
+          crowdPercent: typeof day.crowdPercent === 'number' && Number.isFinite(day.crowdPercent) && day.crowdPercent >= 0 && day.crowdPercent <= 100
+            ? Math.round(day.crowdPercent)
+            : null,
+          openingTime: typeof day.openingTime === 'string' ? day.openingTime : null,
+          closingTime: typeof day.closingTime === 'string' ? day.closingTime : null,
+          isOpen: day.isOpen === true ? true : day.isOpen === false ? false : null,
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    function makeDayCard(day, relativeLabel = '', timeZone = 'Europe/Berlin') {
+      const item = template.content.firstElementChild.cloneNode(true);
+      const card = item.querySelector('.crowd-day-card');
+      const date = day ? parseDate(day.date) : null;
+      const level = levelFor(day);
+      const relative = item.querySelector('.day-relative');
+      relative.textContent = relativeLabel;
+      relative.classList.toggle('hidden', !relativeLabel);
+
+      const time = item.querySelector('.day-date');
+      time.textContent = date ? cardDate.format(date) : relativeLabel;
+      if (day) time.setAttribute('datetime', day.date);
+      item.querySelector('.day-weekday').textContent = date ? weekday.format(date) : clientCopy.noForecast;
+
+      const index = item.querySelector('.day-index');
+      index.dataset.level = level.key;
+      const showValue = day && day.isOpen !== false && day.crowdPercent !== null;
+      item.querySelector('.day-value').textContent = showValue ? String(day.crowdPercent) : '—';
+      item.querySelector('.day-unit').textContent = showValue ? '%' : '';
+      item.querySelector('.day-level').textContent = level.label;
+
+      const openingTime = formatTime(day?.openingTime, timeZone);
+      const closingTime = formatTime(day?.closingTime, timeZone);
+      const hours = openingTime && closingTime
+        ? clientCopy.hours.replace('{start}', openingTime).replace('{end}', closingTime)
+        : clientCopy.hoursUnknown;
+      item.querySelector('.day-hours').textContent = day?.isOpen === false ? clientCopy.closed : hours;
+      card.setAttribute('aria-label', [
+        relativeLabel,
+        date ? shortDate.format(date) : '',
+        level.label,
+        showValue ? `${clientCopy.indexLabel} ${day.crowdPercent}%` : '',
+        day?.isOpen === false ? clientCopy.closed : hours,
+      ].filter(Boolean).join(', '));
+      return item;
+    }
+
+    function renderDays(days, timeZone, hasForecast) {
+      const today = dateInTimeZone(timeZone);
+      const tomorrow = addDays(today, 1);
+      nearList.replaceChildren(
+        makeDayCard(days.find((day) => day.date === today), clientCopy.today, timeZone),
+        makeDayCard(days.find((day) => day.date === tomorrow), clientCopy.tomorrow, timeZone),
+      );
+
+      const bestDays = days
+        .filter((day) => day.date > today && day.isOpen === true && day.crowdPercent !== null)
+        .sort((a, b) => a.crowdPercent - b.crowdPercent || a.date.localeCompare(b.date))
+        .slice(0, 3)
+        .sort((a, b) => a.date.localeCompare(b.date));
+      bestList.replaceChildren(...bestDays.map((day) => makeDayCard(day, '', timeZone)));
+      bestSection.classList.toggle('hidden', bestDays.length === 0);
+
+      calendarList.replaceChildren(...days.map((day) => makeDayCard(day, '', timeZone)));
+      const rangeDays = hasForecast ? days.filter((day) => day.crowdPercent !== null) : days;
+      const firstDate = parseDate(rangeDays[0].date);
+      const lastDate = parseDate(rangeDays[rangeDays.length - 1].date);
+      rangeLabel.textContent = (hasForecast ? clientCopy.range : clientCopy.scheduleRange)
+        .replace('{start}', shortDate.format(firstDate))
+        .replace('{end}', shortDate.format(lastDate));
+    }
+
+    function updateStatus(data, hasForecast, hasSchedule = true) {
+      const updatedAt = new Date(data.fetchedAt || data.updatedAt);
+      const hasTimestamp = !Number.isNaN(updatedAt.getTime());
+      liveState.dataset.state = data.stale ? 'stale' : hasForecast ? 'fresh' : hasSchedule ? 'schedule' : 'empty';
+      liveState.querySelector('span:last-child').textContent = data.stale
+        ? clientCopy.stale
+        : hasForecast ? clientCopy.fresh : hasSchedule ? clientCopy.scheduleOnly : clientCopy.noForecast;
+      updatedLabel.textContent = `${clientCopy.updated} ${hasTimestamp ? dateTime.format(updatedAt) : '—'}`;
+      staleWarning.classList.toggle('hidden', !data.stale);
+    }
+
+    async function loadCrowdCalendar() {
+      refreshButtons.forEach((button) => { if (button) button.disabled = true; });
+      liveState.setAttribute('aria-busy', 'true');
+      if (hasData) {
+        liveState.dataset.state = 'loading';
+        liveState.querySelector('span:last-child').textContent = clientCopy.refreshing;
+      }
+      try {
+        const response = await fetch('/api/crowd-calendar', { cache: 'no-cache', headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!data || !Array.isArray(data.days)) throw new Error('Invalid response');
+
+        const days = normalizedDays(data.days);
+        loading.classList.add('hidden');
+        errorBox.classList.add('hidden');
+        if (days.length === 0) {
+          content.classList.add('hidden');
+          emptyBox.classList.remove('hidden');
+          hasData = false;
+          updateStatus(data, false, false);
+          return;
+        }
+
+        const hasForecast = days.some((day) => day.crowdPercent !== null);
+        renderDays(days, data.park?.timezone || 'Europe/Berlin', hasForecast);
+        emptyBox.classList.add('hidden');
+        content.classList.remove('hidden');
+        updateStatus(data, hasForecast);
+        hasData = true;
+      } catch {
+        loading.classList.add('hidden');
+        if (hasData) {
+          staleWarning.classList.remove('hidden');
+          liveState.dataset.state = 'stale';
+          liveState.querySelector('span:last-child').textContent = clientCopy.stale;
+        } else {
+          content.classList.add('hidden');
+          emptyBox.classList.add('hidden');
+          errorBox.classList.remove('hidden');
+          liveState.dataset.state = 'error';
+          liveState.querySelector('span:last-child').textContent = clientCopy.errorTitle;
+        }
+      } finally {
+        refreshButtons.forEach((button) => { if (button) button.disabled = false; });
+        liveState.removeAttribute('aria-busy');
+      }
+    }
+
+    refreshButtons.forEach((button) => button?.addEventListener('click', loadCrowdCalendar));
+    loadCrowdCalendar();
+    window.setInterval(loadCrowdCalendar, 60 * 60 * 1000);
+  </script>
+</Layout>
+
+<style>
+  .crowd-skeleton,
+  .crowd-day-card {
+    background: var(--color-surface);
+    border: 2px solid var(--color-border-light);
+    border-radius: 1rem;
+    min-width: 0;
+    padding: 1rem;
+  }
+
+  .crowd-skeleton {
+    animation: crowd-pulse 1.5s ease-in-out infinite;
+    display: grid;
+    gap: 0.9rem;
+    min-height: 12rem;
+  }
+
+  .crowd-day-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem 1rem;
+    height: 100%;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .crowd-day-card:hover {
+    border-color: var(--color-border);
+    transform: translateY(-1px);
+  }
+
+  .day-index {
+    align-items: baseline;
+    align-self: start;
+    border: 2px solid;
+    border-radius: 0.85rem;
+    display: flex;
+    justify-content: center;
+    min-width: 4.5rem;
+    padding: 0.65rem 0.55rem;
+  }
+
+  .day-index strong { font-size: 1.6rem; line-height: 1; }
+  .day-index span { font-size: 0.75rem; font-weight: 700; margin-inline-start: 0.15rem; }
+  .day-level, .day-hours { grid-column: 1 / -1; margin: 0; }
+  .day-hours { overflow-wrap: anywhere; }
+
+  .day-index[data-level="low"] { background: #f0fdf4; border-color: #86efac; color: #166534; }
+  .day-index[data-level="medium"] { background: #fffbeb; border-color: #fcd34d; color: #854d0e; }
+  .day-index[data-level="high"] { background: #fff7ed; border-color: #fdba74; color: #9a3412; }
+  .day-index[data-level="very-high"] { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+  .day-index[data-level="none"],
+  .day-index[data-level="closed"] { background: var(--color-surface-light); border-color: var(--color-border-light); color: var(--color-muted); }
+
+  .crowd-calendar-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 1fr;
+  }
+
+  .crowd-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    max-width: 32rem;
+  }
+
+  .crowd-legend li {
+    align-items: center;
+    color: var(--color-text-secondary);
+    display: flex;
+    font-size: 0.75rem;
+    font-weight: 700;
+    gap: 0.4rem;
+  }
+
+  .crowd-legend span {
+    border: 1px solid var(--color-border);
+    border-radius: 0.25rem;
+    height: 0.8rem;
+    width: 0.8rem;
+  }
+
+  .crowd-legend li[data-level="low"] span { background: #86efac; }
+  .crowd-legend li[data-level="medium"] span { background: #fcd34d; }
+  .crowd-legend li[data-level="high"] span { background: #fdba74; }
+  .crowd-legend li[data-level="very-high"] span { background: #fca5a5; }
+
+  #crowd-live-state[data-state="fresh"] span:first-child { background: var(--color-available); }
+  #crowd-live-state[data-state="stale"] span:first-child { background: var(--color-gold); }
+  #crowd-live-state[data-state="error"] span:first-child { background: var(--color-unavailable); }
+
+  #refresh-crowd-calendar:disabled,
+  #retry-crowd-calendar:disabled {
+    cursor: wait;
+    opacity: 0.55;
+  }
+
+  @keyframes crowd-pulse { 50% { opacity: 0.45; } }
+
+  @media (min-width: 480px) {
+    .crowd-calendar-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (min-width: 768px) {
+    .crowd-calendar-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  @media (min-width: 1024px) {
+    .crowd-calendar-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .crowd-skeleton { animation: none; }
+    .crowd-day-card { transition: none; }
+    .crowd-day-card:hover { transform: none; }
+  }
+</style>

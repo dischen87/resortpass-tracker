@@ -9,6 +9,7 @@ interface Props {
   noindex?: boolean;
   ogImage?: string;
   ogImageAlt?: string;
+  alternatePaths?: Partial<Record<Lang, string>>;
 }
 
 const lang = Astro.props.lang || defaultLang;
@@ -22,6 +23,7 @@ const siteUrl = "https://www.resortpass-europapark.ch";
 const rawPath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
 const currentUrl = Astro.props.canonical || `${siteUrl}${rawPath}`;
 const noindex = Astro.props.noindex || false;
+const alternatePaths = Astro.props.alternatePaths;
 
 const localeMap: Record<Lang, string> = {
   de: 'de_CH',
@@ -37,6 +39,7 @@ const hreflangMap: Record<Lang, string> = {
 };
 
 function getPathForLang(targetLang: Lang): string {
+  if (alternatePaths?.[targetLang]) return alternatePaths[targetLang];
   const path = Astro.url.pathname;
   let cleanPath = path;
   for (const l of languages) {
@@ -92,6 +95,7 @@ function getPathForLang(targetLang: Lang): string {
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={`${siteUrl}${ogImage}`} />
+  <meta name="twitter:image:alt" content={ogImageAlt} />
 
   <!-- Theme Color -->
   <meta name="theme-color" content="#FFFFFF" />

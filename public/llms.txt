@@ -1,17 +1,21 @@
 # ResortPass Europa-Park
 
-> Independent multilingual information service for Europa-Park ResortPass availability and current attraction wait times.
+> Independent multilingual information service for Europa-Park ResortPass availability, current attraction wait times and day-by-day crowd forecasts.
 
 ## Canonical pages
 
 - German: https://www.resortpass-europapark.ch/
 - German wait times: https://www.resortpass-europapark.ch/wartezeiten/
+- German crowd forecast: https://www.resortpass-europapark.ch/besucherprognose/
 - French: https://www.resortpass-europapark.ch/fr/
 - French wait times: https://www.resortpass-europapark.ch/fr/wartezeiten/
+- French crowd forecast: https://www.resortpass-europapark.ch/fr/affluence/
 - Italian: https://www.resortpass-europapark.ch/it/
 - Italian wait times: https://www.resortpass-europapark.ch/it/wartezeiten/
+- Italian crowd forecast: https://www.resortpass-europapark.ch/it/affluenza/
 - English: https://www.resortpass-europapark.ch/en/
 - English wait times: https://www.resortpass-europapark.ch/en/wartezeiten/
+- English crowd forecast: https://www.resortpass-europapark.ch/en/crowd-calendar/
 
 ## ResortPass update feeds
 
@@ -24,6 +28,7 @@
 
 - ResortPass availability is checked regularly and summarized from recorded observations.
 - Attraction wait times are supplied by ParkQueueTimes.com and cached for about five minutes.
+- Crowd-index forecasts and opening hours are supplied by ParkQueueTimes.com; the site does not claim an exact visitor count or guaranteed wait time.
 - The canonical web pages are the intended representation of wait-time data; the feeds contain written ResortPass availability updates, not raw attraction data.
 - Timestamps and source notes on each page explain freshness and limitations. Official Europa-Park channels remain authoritative.
 

@@ -1,13 +1,17 @@
 ---
-import { type Lang, defaultLang, languages, langNames } from '../i18n/translations';
+import { type Lang, defaultLang, languages, langNames, getTranslation } from '../i18n/translations';
 
 interface Props {
   lang?: Lang;
+  paths?: Partial<Record<Lang, string>>;
 }
 
 const lang = Astro.props.lang || defaultLang;
+const paths = Astro.props.paths;
+const languageLabel = getTranslation(lang, 'nav.language');
 
 function getPathForLang(targetLang: Lang): string {
+  if (paths?.[targetLang]) return paths[targetLang];
   const path = Astro.url.pathname;
   let cleanPath = path;
   for (const l of languages) {
@@ -22,7 +26,7 @@ function getPathForLang(targetLang: Lang): string {
 }
 ---
 
-<nav aria-label="Language" class="flex items-center gap-1">
+<nav aria-label={languageLabel} class="flex items-center gap-1">
   {languages.map((l) => (
     <a
       href={getPathForLang(l)}

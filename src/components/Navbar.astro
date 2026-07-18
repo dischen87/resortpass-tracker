@@ -1,5 +1,5 @@
 ---
-import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+import { type Lang, defaultLang, crowdCalendarPaths, getTranslation } from '../i18n/translations';
 import LanguageSwitcher from './LanguageSwitcher.astro';
 
 interface Props {
@@ -13,10 +13,12 @@ const tr = (key: string) => getTranslation(lang, key);
 const homePath = lang === defaultLang ? '/' : `/${lang}/`;
 const waitTimesPath = `${homePath}wartezeiten/`;
 const isWaitTimesPage = Astro.url.pathname.endsWith('/wartezeiten/');
+const crowdCalendarPath = crowdCalendarPaths[lang];
+const isCrowdCalendarPage = Object.values(crowdCalendarPaths).includes(Astro.url.pathname as (typeof crowdCalendarPaths)[Lang]);
 ---
 
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
-  <nav class="nav-card px-4 sm:px-6 py-3">
+  <nav aria-label={tr('nav.main')} class="nav-card px-4 sm:px-6 py-3">
     <div class="flex items-center justify-between">
       <!-- Logo -->
       <a href={homePath} aria-label="ResortPass Tracker" class="flex items-center gap-2 group cursor-pointer">
@@ -28,12 +30,18 @@ const isWaitTimesPage = Astro.url.pathname.endsWith('/wartezeiten/');
       </a>
 
       <!-- Nav links (desktop) -->
-      <div class="hidden md:flex items-center gap-1">
+      <div class="hidden xl:flex items-center gap-1">
         <a href={waitTimesPath} aria-current={isWaitTimesPage ? 'page' : undefined} class:list={[
           'px-3 py-2 text-sm font-medium rounded-lg transition-all cursor-pointer',
           isWaitTimesPage ? 'bg-accent/10 text-accent font-bold' : 'text-text-secondary hover:text-text-primary hover:bg-bg',
         ]}>
           {tr('nav.wait_times')}
+        </a>
+        <a href={crowdCalendarPath} aria-current={isCrowdCalendarPage ? 'page' : undefined} class:list={[
+          'px-3 py-2 text-sm font-medium rounded-lg transition-all cursor-pointer',
+          isCrowdCalendarPage ? 'bg-accent/10 text-accent font-bold' : 'text-text-secondary hover:text-text-primary hover:bg-bg',
+        ]}>
+          {tr('nav.crowd_forecast')}
         </a>
         <a href={`${homePath}#benachrichtigung`} class="px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-bg transition-all cursor-pointer">
           {tr('subscribe.sticky_cta')}
@@ -48,22 +56,28 @@ const isWaitTimesPage = Astro.url.pathname.endsWith('/wartezeiten/');
 
       <!-- Right side -->
       <div class="flex items-center gap-3">
-        {showLanguageSwitcher && <LanguageSwitcher lang={lang} />}
+        {showLanguageSwitcher && <LanguageSwitcher lang={lang} paths={isCrowdCalendarPage ? crowdCalendarPaths : undefined} />}
         <a
           href={`${homePath}#benachrichtigung`}
-          class="hidden md:inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-accent text-white rounded-lg border-2 border-border shadow-[2px_2px_0px_var(--color-border)] hover:shadow-[3px_3px_0px_var(--color-border)] hover:translate-x-[-1px] hover:translate-y-[-1px] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+          class="hidden xl:inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-accent text-white rounded-lg border-2 border-border shadow-[2px_2px_0px_var(--color-border)] hover:shadow-[3px_3px_0px_var(--color-border)] hover:translate-x-[-1px] hover:translate-y-[-1px] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
         >
           {tr('nav.alert')}
         </a>
       </div>
     </div>
 
-    <div class="md:hidden grid grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_auto] gap-2 mt-3 pt-3 border-t-2 border-border-light">
+    <div class="xl:hidden grid grid-cols-2 gap-2 mt-3 pt-3 border-t-2 border-border-light">
       <a href={waitTimesPath} aria-current={isWaitTimesPage ? 'page' : undefined} class:list={[
         'rounded-lg px-3 py-2 text-center text-sm font-bold cursor-pointer',
         isWaitTimesPage ? 'bg-accent text-white' : 'bg-bg text-text-secondary hover:text-text-primary',
       ]}>
         {tr('nav.wait_short')}
+      </a>
+      <a href={crowdCalendarPath} aria-current={isCrowdCalendarPage ? 'page' : undefined} class:list={[
+        'rounded-lg px-3 py-2 text-center text-sm font-bold cursor-pointer',
+        isCrowdCalendarPage ? 'bg-accent text-white' : 'bg-bg text-text-secondary hover:text-text-primary',
+      ]}>
+        {tr('nav.crowd_short')}
       </a>
       <a href={`${homePath}#history`} class="rounded-lg bg-bg px-3 py-2 text-center text-sm font-bold text-text-secondary hover:text-text-primary cursor-pointer">
         {tr('nav.history_short')}
