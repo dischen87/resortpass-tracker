@@ -6,12 +6,9 @@ import '../styles/global.css';
 const lang = 'de' as const;
 ---
 
-<Layout lang={lang} title="404 — Seite nicht gefunden" description="Die gesuchte Seite wurde nicht gefunden.">
-  <main class="max-w-2xl mx-auto px-4 py-20 text-center">
+<Layout lang={lang} title="404 — Seite nicht gefunden" description="Die gesuchte Seite wurde nicht gefunden." noindex>
+  <main id="main-content" class="max-w-2xl mx-auto px-4 py-20 text-center">
     <div class="glass-card rounded-2xl p-8 md:p-12 max-w-md mx-auto animate-fade-in-up">
-
-      <!-- Icon -->
-      <div class="text-6xl mb-6">&#127906;</div>
 
       <!-- 404 Number -->
       <div class="text-7xl font-bold text-accent/20 font-mono mb-4">404</div>
@@ -27,11 +24,10 @@ const lang = 'de' as const;
         href="/"
         class="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-bold text-white transition hover:bg-accent-light hover:scale-[1.01] active:scale-[0.99]"
       >
-        <span>&larr;</span>
         <span>Zur Startseite</span>
       </a>
     </div>
   </main>
 
-  <Footer lang={lang} />
+  <Footer lang={lang} showLanguageSwitcher={false} />
 </Layout>

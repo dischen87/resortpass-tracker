@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Der Europa-Park ResortPass (Jahreskarte) ist chronisch ausverkauft. Es gibt keine offizielle Warteliste und keine Benachrichtigung. **ResortPass Tracker** prüft stündlich den Ticketshop und benachrichtigt dich per E-Mail, sobald der Pass wieder verfügbar ist.
+Der Europa-Park ResortPass ist derzeit ausverkauft; ein neuer Verkaufstermin ist nicht angekündigt. **ResortPass Tracker** prüft den offiziellen Ticketshop alle 15 Minuten und benachrichtigt bestätigte Abonnenten, sobald ein Pass wirklich kaufbar ist.
 
 🔗 **Live:** [www.resortpass-europapark.ch](https://www.resortpass-europapark.ch)
 
@@ -12,11 +12,12 @@ Der Europa-Park ResortPass (Jahreskarte) ist chronisch ausverkauft. Es gibt kein
 
 ## Features
 
-- **Stündlicher Verfügbarkeitscheck** — Silver & Gold ResortPass
+- **15-Minuten-Verfügbarkeitscheck** — Silver & Gold, mit zweiter Bestätigung vor einem Alert
 - **E-Mail-Benachrichtigung** — Double Opt-In, sofortiger Alarm bei Verfügbarkeit
-- **Verlaufsstatistiken** — Heatmap & Tracker seit Beginn der Überwachung
+- **Verlauf und Feed** — reale Prüfungen, tägliche Zusammenfassungen und RSS
 - **Mehrsprachig** — Deutsch, Englisch, Französisch, Italienisch
-- **Kein Tracking** — Keine Cookies, kein Analytics, keine Werbung
+- **Kein Nutzer-Tracking** — keine Tracking-Cookies, kein Analytics, keine Werbung; technische Server-Logs sind in der Datenschutzerklärung beschrieben
+- **Community** — moderierte Tipps von bestätigten Abonnenten
 - **Open Source** — 100% transparent
 
 ---
@@ -125,6 +126,10 @@ bun run server
 
 # Checker einmalig ausführen
 bun run check
+
+# Tests und Typen
+bun run test
+bun run typecheck
 ```
 
 ---
@@ -160,7 +165,7 @@ sudo systemctl daemon-reload
 # API Server starten
 sudo systemctl enable --now resortpass-api
 
-# Checker Timer starten (stündlich)
+# Checker Timer starten (alle 15 Minuten)
 sudo systemctl enable --now resortpass-checker.timer
 ```
 
@@ -172,12 +177,18 @@ sudo systemctl enable --now resortpass-checker.timer
 |---------|------|-------------|
 | `GET` | `/api/status` | Aktueller Verfügbarkeitsstatus |
 | `GET` | `/api/health` | Health Check |
+| `GET` | `/api/news?lang=de` | Tägliche, lokalisierte Statusberichte |
+| `GET` | `/api/feed.xml?lang=de` | RSS-Feed |
 | `GET` | `/api/history-stats` | Aggregierte Statistiken |
 | `GET` | `/api/history/:type` | Monatliche Heatmap (silver/gold) |
 | `GET` | `/api/recent-checks` | Letzte Checks (default: 24h) |
 | `POST` | `/api/subscribe` | E-Mail-Abo anlegen |
 | `GET` | `/api/confirm?token=` | E-Mail bestätigen (Double Opt-In) |
-| `GET` | `/api/unsubscribe?token=` | Abmelden |
+| `POST` | `/api/unsubscribe` | Abmelden (Token im JSON-Body) |
+| `GET` | `/api/community` | Freigegebene Community-Tipps |
+| `POST` | `/api/community/submit` | Tipp mit Community-Token einreichen |
+| `GET` | `/api/community/pending` | Offene Tipps (`Authorization: Bearer …`) |
+| `POST` | `/api/community/moderate` | Tipp moderieren (`Authorization: Bearer …`) |
 
 ---
 

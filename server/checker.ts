@@ -8,7 +8,7 @@ import {
   getHistoryStats,
   cleanupOldHistory,
 } from './db';
-import { sendAlertEmail } from './email';
+import { localizedSiteUrl, sendAlertEmail } from './email';
 
 const OVERVIEW_URL = 'https://tickets.mackinternational.de/de/resortpass/uebersicht';
 
@@ -19,20 +19,23 @@ const DETAIL_URLS = {
 
 // Sold-out indicator on detail pages
 const DETAIL_SOLD_OUT = 'Leider ist dieses Produkt derzeit nicht verfügbar';
+// A buyable detail page exposes the product configurator's add-to-basket URL.
+const DETAIL_AVAILABLE = '&quot;addToBasketUrl&quot;';
 
 // Sold-out indicator on overview page
 const OVERVIEW_SOLD_OUT = 'Derzeit nicht verfügbar';
 
 // Bot-gate / JS-redirect pages are tiny and contain this marker.
 const BOT_GATE_MARKER = 'document.location.href';
-// Queue-it waiting room pages contain this marker instead of real shop content.
-const QUEUE_IT_MARKER = 'queue-it.net';
 // Real shop pages must contain a product-related keyword to be trusted.
 const REAL_SHOP_MARKER = 'mackinternational';
 const MIN_REAL_PAGE_SIZE = 5000;
 
 // Delay between first and confirmation check (ms)
 const CONFIRM_DELAY_MS = 30_000;
+const FETCH_TIMEOUT_MS = 15_000;
+
+export type AvailabilityResult = 'sold_out' | 'available' | 'unknown';
 
 const FETCH_HEADERS = {
   'User-Agent': 'ResortPassTracker/1.0 (Community Tool; resortpass-europapark.ch)',
@@ -42,9 +45,17 @@ const FETCH_HEADERS = {
 
 async function fetchPage(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url, { headers: FETCH_HEADERS, redirect: 'follow' });
+    const res = await fetch(url, {
+      headers: FETCH_HEADERS,
+      redirect: 'follow',
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
     if (!res.ok) {
       console.error(`HTTP ${res.status} for ${url}`);
+      return null;
+    }
+    if (!isTrustedShopUrl(res.url)) {
+      console.error(`Unexpected final URL for ${url}: ${res.url}`);
       return null;
     }
     return await res.text();
@@ -54,17 +65,25 @@ async function fetchPage(url: string): Promise<string | null> {
   }
 }
 
-function isRealShopPage(html: string): boolean {
+export function isTrustedShopUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' && parsed.hostname === 'tickets.mackinternational.de';
+  } catch {
+    return false;
+  }
+}
+
+export function isRealShopPage(html: string): boolean {
   if (html.includes(BOT_GATE_MARKER)) return false;
-  if (html.includes(QUEUE_IT_MARKER)) return false;
   if (html.length < MIN_REAL_PAGE_SIZE) return false;
   if (!html.toLowerCase().includes(REAL_SHOP_MARKER)) return false;
   return true;
 }
 
-function checkDetailPage(type: 'silver' | 'gold', html: string): 'sold_out' | 'available' | 'unknown' {
+export function checkDetailPage(type: 'silver' | 'gold', html: string): AvailabilityResult {
   if (!isRealShopPage(html)) {
-    const reason = html.includes(BOT_GATE_MARKER) ? 'bot-gate' : html.includes(QUEUE_IT_MARKER) ? 'queue-it' : html.length < MIN_REAL_PAGE_SIZE ? 'too-small' : 'no-shop-marker';
+    const reason = html.includes(BOT_GATE_MARKER) ? 'bot-gate' : html.length < MIN_REAL_PAGE_SIZE ? 'too-small' : 'no-shop-marker';
     console.log(`[${type}] Detail page: not real shop content (${html.length} bytes, reason=${reason})`);
     return 'unknown';
   }
@@ -72,63 +91,91 @@ function checkDetailPage(type: 'silver' | 'gold', html: string): 'sold_out' | 'a
   if (html.includes(DETAIL_SOLD_OUT)) {
     return 'sold_out';
   }
-  return 'available';
+  if (html.includes(DETAIL_AVAILABLE)) {
+    return 'available';
+  }
+  console.log(`[${type}] Detail page has no explicit sold-out or buyable marker`);
+  return 'unknown';
 }
 
-function checkOverviewPage(type: 'silver' | 'gold', html: string): 'sold_out' | 'available' | 'unknown' {
+export function checkOverviewPage(type: 'silver' | 'gold', html: string): AvailabilityResult {
   if (!isRealShopPage(html)) {
     console.log(`[${type}] Overview page: not real shop content (${html.length} bytes)`);
     return 'unknown';
   }
 
-  const typeLabel = type === 'silver' ? 'Silver' : 'Gold';
-  const overviewLower = html.toLowerCase();
-  const soldOutLower = OVERVIEW_SOLD_OUT.toLowerCase();
+  const productPath = `/de/ticket/resortpass-${type}`;
+  let occurrence = html.indexOf(`href="${productPath}"`);
+  let productCard: string | null = null;
 
-  const typeIndex = overviewLower.indexOf(typeLabel.toLowerCase());
-  if (typeIndex !== -1) {
-    const searchRegion = overviewLower.substring(typeIndex, typeIndex + 500);
-    if (searchRegion.includes(soldOutLower)) {
-      return 'sold_out';
+  while (occurrence !== -1) {
+    const articleStart = html.lastIndexOf('<article', occurrence);
+    const articleEnd = html.indexOf('</article>', occurrence);
+    if (articleStart !== -1 && articleEnd !== -1) {
+      const article = html.slice(articleStart, articleEnd + '</article>'.length);
+      const openingTag = article.slice(0, article.indexOf('>') + 1);
+      if (openingTag.includes('is-teaser-type-product')) {
+        productCard = article;
+        break;
+      }
     }
+    occurrence = html.indexOf(`href="${productPath}"`, occurrence + 1);
+  }
+
+  if (!productCard || !productCard.toLowerCase().includes(type)) {
+    console.log(`[${type}] Overview page does not contain the matching product card`);
+    return 'unknown';
+  }
+
+  if (productCard.toLowerCase().includes(OVERVIEW_SOLD_OUT.toLowerCase())) {
+    return 'sold_out';
   }
   return 'available';
 }
 
-async function singleCheck(type: 'silver' | 'gold'): Promise<boolean | null> {
+export function resolveConfirmation(
+  first: AvailabilityResult,
+  confirmation?: AvailabilityResult,
+): AvailabilityResult {
+  if (first !== 'available') return first;
+  return confirmation ?? 'unknown';
+}
+
+export function toAvailabilityValue(result: AvailabilityResult): boolean | null {
+  if (result === 'unknown') return null;
+  return result === 'available';
+}
+
+async function singleCheck(type: 'silver' | 'gold'): Promise<AvailabilityResult> {
   const detailHtml = await fetchPage(DETAIL_URLS[type]);
-  if (detailHtml === null) return false;
+  if (detailHtml === null) return 'unknown';
 
   const detailResult = checkDetailPage(type, detailHtml);
-  if (detailResult === 'unknown') return null;
-  if (detailResult === 'sold_out') return false;
+  if (detailResult !== 'available') return detailResult;
 
   const overviewHtml = await fetchPage(OVERVIEW_URL);
   if (overviewHtml === null) {
-    console.log(`[${type}] Overview fetch failed, trusting detail page`);
-    return true;
+    console.log(`[${type}] Overview fetch failed; result is unknown`);
+    return 'unknown';
   }
 
   const overviewResult = checkOverviewPage(type, overviewHtml);
-  if (overviewResult === 'sold_out') return false;
   if (overviewResult === 'unknown') {
-    console.log(`[${type}] Overview not real content, trusting detail page`);
-    return true;
+    console.log(`[${type}] Overview not real content; result is unknown`);
   }
-
-  return true;
+  return overviewResult;
 }
 
-async function checkAvailability(type: 'silver' | 'gold'): Promise<boolean> {
+async function checkAvailability(type: 'silver' | 'gold'): Promise<AvailabilityResult> {
   // First check
   const first = await singleCheck(type);
-  if (first === null) {
-    console.log(`[${type}] First check: unknown (bot-gate/redirect), assuming unavailable`);
-    return false;
+  if (first === 'unknown') {
+    console.log(`[${type}] First check: unknown; preserving the previous status`);
+    return first;
   }
-  if (first === false) {
+  if (first === 'sold_out') {
     console.log(`[${type}] First check: sold out`);
-    return false;
+    return first;
   }
 
   // First check says available -- do a confirmation check after a delay
@@ -136,17 +183,18 @@ async function checkAvailability(type: 'silver' | 'gold'): Promise<boolean> {
   await new Promise((r) => setTimeout(r, CONFIRM_DELAY_MS));
 
   const second = await singleCheck(type);
-  if (second === null) {
-    console.log(`[${type}] Confirmation check: unknown (bot-gate/redirect), NOT confirming availability`);
-    return false;
+  const result = resolveConfirmation(first, second);
+  if (result === 'unknown') {
+    console.log(`[${type}] Confirmation check: unknown; preserving the previous status`);
+    return result;
   }
-  if (second === false) {
+  if (result === 'sold_out') {
     console.log(`[${type}] Confirmation check: sold out (first was false positive)`);
-    return false;
+    return result;
   }
 
   console.log(`[${type}] Available (confirmed by two consecutive checks)`);
-  return true;
+  return result;
 }
 
 async function sendAlerts(passType: 'silver' | 'gold') {
@@ -155,7 +203,10 @@ async function sendAlerts(passType: 'silver' | 'gold') {
 
   for (const sub of subscribers) {
     try {
-      await sendAlertEmail(sub.email, passType, sub.unsubscribe_token);
+      const communityUrl = sub.community_token
+        ? `${localizedSiteUrl(sub.lang, 'community/neu')}?token=${encodeURIComponent(sub.community_token)}`
+        : undefined;
+      await sendAlertEmail(sub.email, passType, sub.unsubscribe_token, sub.lang, communityUrl);
       console.log(`[${passType}] Alert sent to ${sub.email}`);
     } catch (err) {
       console.error(`[${passType}] Failed to send to ${sub.email}:`, err);
@@ -197,7 +248,13 @@ async function run() {
 
   for (const type of ['silver', 'gold'] as const) {
     try {
-      const available = await checkAvailability(type);
+      const result = await checkAvailability(type);
+      const available = toAvailabilityValue(result);
+      if (available === null) {
+        console.warn(`[${type}] Check inconclusive; skipping status/history persistence and alerts.`);
+        continue;
+      }
+
       const previous = getPreviousStatus(type);
 
       console.log(`[${type}] Available: ${available} (was: ${previous})`);
@@ -223,7 +280,9 @@ async function run() {
   console.log(`[${new Date().toISOString()}] Check complete.`);
 }
 
-run().catch((err) => {
-  console.error('Checker failed:', err);
-  process.exit(1);
-});
+if (import.meta.main) {
+  run().catch((err) => {
+    console.error('Checker failed:', err);
+    process.exit(1);
+  });
+}

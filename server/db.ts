@@ -2,8 +2,25 @@ import { Database } from 'bun:sqlite';
 import { randomBytes } from 'crypto';
 
 const DB_PATH = process.env.DB_PATH || './data/resortpass.db';
+export type SubscriberLang = 'de' | 'fr' | 'it' | 'en';
 
 let db: Database;
+
+// Incident 2026-03-19: every `available = 1` row on this UTC date came from
+// the known protection-page false alarm. Aggregates keep the checks in their
+// totals but treat them as unavailable; raw history is intentionally untouched.
+export const FALSE_POSITIVE_AVAILABLE_DATE = '2026-03-19';
+const VALID_AVAILABLE_SQL = `available = 1 AND date(checked_at) <> '${FALSE_POSITIVE_AVAILABLE_DATE}'`;
+
+export interface DailyAvailabilityAggregate {
+  date: string;
+  silverChecks: number;
+  silverAvailableChecks: number;
+  goldChecks: number;
+  goldAvailableChecks: number;
+  firstCheckedAt: string;
+  lastCheckedAt: string;
+}
 
 export function getDb(): Database {
   if (!db) {
@@ -69,32 +86,55 @@ function initSchema() {
   } catch {
     // Column already exists
   }
+
+  try {
+    db.exec("ALTER TABLE subscribers ADD COLUMN lang TEXT NOT NULL DEFAULT 'de' CHECK(lang IN ('de', 'fr', 'it', 'en'))");
+  } catch {
+    // Column already exists
+  }
+
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_subscribers_community_token ON subscribers (community_token)');
 }
 
 export function generateToken(): string {
   return randomBytes(32).toString('hex');
 }
 
-export function addSubscriber(email: string, notifySilver: boolean, notifyGold: boolean) {
+export function addSubscriber(email: string, notifySilver: boolean, notifyGold: boolean, lang: SubscriberLang = 'de') {
   const d = getDb();
   const confirmToken = generateToken();
   const unsubscribeToken = generateToken();
+  const communityToken = generateToken();
 
   // Check if subscriber already exists
-  const existing = d.query('SELECT id, confirmed FROM subscribers WHERE email = ?').get(email) as { id: number; confirmed: boolean } | null;
+  const existing = d.query('SELECT id, confirmed, community_token FROM subscribers WHERE email = ?').get(email) as {
+    id: number;
+    confirmed: boolean;
+    community_token: string | null;
+  } | null;
 
   if (existing) {
-    // Update preferences
-    d.query('UPDATE subscribers SET notify_silver = ?, notify_gold = ?, confirm_token = ? WHERE email = ?')
-      .run(notifySilver ? 1 : 0, notifyGold ? 1 : 0, confirmToken, email);
-    return { confirmToken, isNew: false, alreadyConfirmed: existing.confirmed };
+    const token = existing.community_token || communityToken;
+    if (existing.confirmed) {
+      // Active preferences can only be changed through an authenticated flow.
+      // A public signup request must not let someone alter another person's alerts.
+      if (!existing.community_token) {
+        d.query('UPDATE subscribers SET community_token = ? WHERE id = ?').run(token, existing.id);
+      }
+      return { confirmToken, communityToken: token, isNew: false, alreadyConfirmed: true };
+    }
+
+    // The address is not active yet, so replace its pending signup request.
+    d.query('UPDATE subscribers SET notify_silver = ?, notify_gold = ?, confirm_token = ?, community_token = ?, lang = ? WHERE email = ?')
+      .run(notifySilver ? 1 : 0, notifyGold ? 1 : 0, confirmToken, token, lang, email);
+    return { confirmToken, communityToken: token, isNew: false, alreadyConfirmed: false };
   }
 
   d.query(
-    'INSERT INTO subscribers (email, notify_silver, notify_gold, confirm_token, unsubscribe_token) VALUES (?, ?, ?, ?, ?)'
-  ).run(email, notifySilver ? 1 : 0, notifyGold ? 1 : 0, confirmToken, unsubscribeToken);
+    'INSERT INTO subscribers (email, notify_silver, notify_gold, confirm_token, unsubscribe_token, community_token, lang) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).run(email, notifySilver ? 1 : 0, notifyGold ? 1 : 0, confirmToken, unsubscribeToken, communityToken, lang);
 
-  return { confirmToken, isNew: true, alreadyConfirmed: false };
+  return { confirmToken, communityToken, isNew: true, alreadyConfirmed: false };
 }
 
 export function confirmSubscriber(token: string): boolean {
@@ -105,16 +145,24 @@ export function confirmSubscriber(token: string): boolean {
 
 export function unsubscribe(token: string): boolean {
   const d = getDb();
-  const result = d.query('DELETE FROM subscribers WHERE unsubscribe_token = ?').run(token);
-  return result.changes > 0;
+  const remove = d.transaction((unsubscribeToken: string) => {
+    const subscriber = d.query('SELECT id FROM subscribers WHERE unsubscribe_token = ?').get(unsubscribeToken) as { id: number } | null;
+    if (!subscriber) return false;
+    d.query('DELETE FROM community_posts WHERE subscriber_id = ?').run(subscriber.id);
+    d.query('DELETE FROM subscribers WHERE id = ?').run(subscriber.id);
+    return true;
+  });
+  return remove(token);
 }
 
 export function getConfirmedSubscribers(passType: 'silver' | 'gold') {
   const d = getDb();
   const column = passType === 'silver' ? 'notify_silver' : 'notify_gold';
-  return d.query(`SELECT email, unsubscribe_token FROM subscribers WHERE confirmed = 1 AND ${column} = 1`).all() as {
+  return d.query(`SELECT email, unsubscribe_token, community_token, lang FROM subscribers WHERE confirmed = 1 AND ${column} = 1`).all() as {
     email: string;
     unsubscribe_token: string;
+    community_token: string | null;
+    lang: SubscriberLang;
   }[];
 }
 
@@ -169,16 +217,14 @@ export function getHistory(passType: 'silver' | 'gold', days: number) {
   }[];
 }
 
-export function getHistoryStats() {
-  const d = getDb();
-
+export function getHistoryStats(d: Database = getDb()) {
   const stats = (type: 'silver' | 'gold') => {
     const total = d.query(
       'SELECT COUNT(*) as count FROM availability_history WHERE pass_type = ?'
     ).get(type) as { count: number };
 
     const available = d.query(
-      'SELECT COUNT(*) as count FROM availability_history WHERE pass_type = ? AND available = 1'
+      `SELECT COUNT(*) as count FROM availability_history WHERE pass_type = ? AND ${VALID_AVAILABLE_SQL}`
     ).get(type) as { count: number };
 
     const earliest = d.query(
@@ -201,6 +247,25 @@ export function getHistoryStats() {
     silver: stats('silver'),
     gold: stats('gold'),
   };
+}
+
+export function getDailyAvailabilityAggregates(limit: number = 30, d: Database = getDb()) {
+  const safeLimit = Math.max(1, Math.min(Math.trunc(limit) || 30, 90));
+
+  return d.query(`
+    SELECT
+      date(checked_at) AS date,
+      SUM(CASE WHEN pass_type = 'silver' THEN 1 ELSE 0 END) AS silverChecks,
+      SUM(CASE WHEN pass_type = 'silver' AND ${VALID_AVAILABLE_SQL} THEN 1 ELSE 0 END) AS silverAvailableChecks,
+      SUM(CASE WHEN pass_type = 'gold' THEN 1 ELSE 0 END) AS goldChecks,
+      SUM(CASE WHEN pass_type = 'gold' AND ${VALID_AVAILABLE_SQL} THEN 1 ELSE 0 END) AS goldAvailableChecks,
+      MIN(checked_at) AS firstCheckedAt,
+      MAX(checked_at) AS lastCheckedAt
+    FROM availability_history
+    GROUP BY date(checked_at)
+    ORDER BY date DESC
+    LIMIT ?
+  `).all(safeLimit) as DailyAvailabilityAggregate[];
 }
 
 export function getRecentChecks(hours: number = 12) {
@@ -291,22 +356,23 @@ export function getPostCountBySubscriberToday(subscriberId: number): number {
 
 export function getAllConfirmedSubscribers() {
   const d = getDb();
-  return d.query('SELECT id, email, unsubscribe_token FROM subscribers WHERE confirmed = 1').all() as {
+  return d.query('SELECT id, email, unsubscribe_token, community_token, lang FROM subscribers WHERE confirmed = 1').all() as {
     id: number;
     email: string;
     unsubscribe_token: string;
+    community_token: string | null;
+    lang: SubscriberLang;
   }[];
 }
 
-export function getMonthlyHeatmap(passType: 'silver' | 'gold') {
-  const d = getDb();
+export function getMonthlyHeatmap(passType: 'silver' | 'gold', d: Database = getDb()) {
   return d.query(`
     SELECT
       strftime('%Y', checked_at) as year,
       strftime('%m', checked_at) as month,
       COUNT(*) as total_checks,
-      SUM(CASE WHEN available = 1 THEN 1 ELSE 0 END) as available_checks,
-      ROUND(CAST(SUM(CASE WHEN available = 1 THEN 1 ELSE 0 END) AS REAL) / COUNT(*) * 100, 1) as availability_pct
+      SUM(CASE WHEN ${VALID_AVAILABLE_SQL} THEN 1 ELSE 0 END) as available_checks,
+      ROUND(CAST(SUM(CASE WHEN ${VALID_AVAILABLE_SQL} THEN 1 ELSE 0 END) AS REAL) / COUNT(*) * 100, 1) as availability_pct
     FROM availability_history
     WHERE pass_type = ?
     GROUP BY strftime('%Y', checked_at), strftime('%m', checked_at)

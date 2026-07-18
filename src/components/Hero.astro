@@ -16,11 +16,11 @@ const tr = (key: string) => getTranslation(lang, key);
   <div class="blob blob-gold w-[280px] h-[280px]" style="bottom: -40px; right: 20%;"></div>
   <div class="blob blob-blue w-[200px] h-[200px]" style="bottom: 20px; left: 10%;"></div>
 
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12 md:pt-20 md:pb-24 relative z-10">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-7 pb-10 md:pt-16 md:pb-20 relative z-10">
 
     <div class="max-w-2xl mx-auto text-center lg:max-w-3xl">
       <!-- Badge -->
-      <div class="mb-6 animate-fade-in-up">
+      <div class="mb-4 md:mb-6 animate-fade-in-up">
         <span class="badge">
           <span class="badge-dot"></span>
           {tr('hero.badge')}
@@ -28,17 +28,30 @@ const tr = (key: string) => getTranslation(lang, key);
       </div>
 
       <!-- Main heading -->
-      <h1 class="text-4xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.1] mb-6 animate-fade-in-up-delay-1" style="font-family: var(--font-heading);">
+      <h1 class="text-[2.15rem] md:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.08] mb-4 md:mb-6 animate-fade-in-up-delay-1" style="font-family: var(--font-heading);">
         {tr('hero.title')}
       </h1>
 
       <!-- Subtitle -->
-      <p class="text-text-secondary text-lg leading-relaxed mb-8 max-w-lg mx-auto animate-fade-in-up-delay-2">
+      <p class="text-text-secondary text-base md:text-lg leading-relaxed mb-5 md:mb-8 max-w-xl mx-auto animate-fade-in-up-delay-2">
         {tr('hero.subtitle')}
       </p>
 
+      <!-- The answer visitors came for, visible before the mobile fold -->
+      <div class="hero-status max-w-xl mx-auto mb-5 md:mb-7 animate-fade-in-up-delay-2" role="status" aria-live="polite" aria-atomic="true">
+        <div class="hero-status-row">
+          <span class="hero-status-label">ResortPass Silver</span>
+          <span class="hero-status-value" id="hero-status-silver">{tr('status.loading')}</span>
+        </div>
+        <div class="hero-status-row">
+          <span class="hero-status-label">ResortPass Gold</span>
+          <span class="hero-status-value" id="hero-status-gold">{tr('status.loading')}</span>
+        </div>
+        <p class="hero-status-time" id="hero-status-time">{tr('status.updated_3x')}</p>
+      </div>
+
       <!-- CTA buttons -->
-      <div id="hero-cta" class="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10 animate-fade-in-up-delay-3">
+      <div id="hero-cta" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 mb-6 md:mb-9 animate-fade-in-up-delay-3">
         <a href="#benachrichtigung" class="btn-primary cursor-pointer">
           {tr('subscribe.sticky_cta')}
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -51,14 +64,10 @@ const tr = (key: string) => getTranslation(lang, key);
       </div>
 
       <!-- Stats bar -->
-      <div class="flex items-center justify-center gap-8 sm:gap-12 animate-fade-in-up-delay-3">
+      <div class="flex items-center justify-center animate-fade-in-up-delay-3">
         <div>
-          <p class="text-3xl font-bold" style="font-family: var(--font-heading);" id="fan-count">---</p>
+          <p class="text-2xl md:text-3xl font-bold" style="font-family: var(--font-heading);" id="fan-count">---</p>
           <p class="text-sm text-muted">{tr('subscribe.waiting_fans')}</p>
-        </div>
-        <div>
-          <p class="text-3xl font-bold" style="font-family: var(--font-heading);">15 min</p>
-          <p class="text-sm text-muted">{tr('status.updated_3x')}</p>
         </div>
       </div>
     </div>

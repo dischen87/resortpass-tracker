@@ -4,12 +4,15 @@ import LanguageSwitcher from './LanguageSwitcher.astro';
 
 interface Props {
   lang?: Lang;
+  showLanguageSwitcher?: boolean;
 }
 
 const lang = Astro.props.lang || defaultLang;
+const showLanguageSwitcher = Astro.props.showLanguageSwitcher ?? true;
 const tr = (key: string) => getTranslation(lang, key);
 
 const imprintPath = lang === defaultLang ? '/impressum/' : `/${lang}/impressum/`;
+const homePath = lang === defaultLang ? '/' : `/${lang}/`;
 ---
 
 <!-- CTA Section -->
@@ -21,7 +24,7 @@ const imprintPath = lang === defaultLang ? '/impressum/' : `/${lang}/impressum/`
         {tr('subscribe.desc').split('.')[0]}.
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
-        <a href="#benachrichtigung" class="btn-primary cursor-pointer">
+        <a href={`${homePath}#benachrichtigung`} class="btn-primary cursor-pointer">
           {tr('subscribe.sticky_cta')}
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -52,7 +55,7 @@ const imprintPath = lang === defaultLang ? '/impressum/' : `/${lang}/impressum/`
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
       <!-- Brand -->
       <div class="md:col-span-2">
-        <a href={lang === defaultLang ? '/' : `/${lang}/`} class="flex items-center gap-2 mb-4">
+        <a href={homePath} aria-label="ResortPass Tracker" class="flex items-center gap-2 mb-4">
           <div class="w-9 h-9 rounded-lg bg-accent border-2 border-border flex items-center justify-center">
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
@@ -74,9 +77,10 @@ const imprintPath = lang === defaultLang ? '/impressum/' : `/${lang}/impressum/`
       <div>
         <h4 class="text-sm font-bold mb-3" style="font-family: var(--font-heading);">Links</h4>
         <ul class="space-y-2">
-          <li><a href="#benachrichtigung" class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('subscribe.sticky_cta')}</a></li>
-          <li><a href="#info" class="text-sm text-muted hover:text-text-primary transition cursor-pointer">Info</a></li>
-          <li><a href="#history" class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('history.title')}</a></li>
+          <li><a href={`${homePath}#benachrichtigung`} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('subscribe.sticky_cta')}</a></li>
+          <li><a href={`${homePath}#info`} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">Info</a></li>
+          <li><a href={`${homePath}#history`} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('history.title')}</a></li>
+          <li><a href={`/api/feed.xml?lang=${lang}`} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">RSS</a></li>
         </ul>
       </div>
 
@@ -86,9 +90,11 @@ const imprintPath = lang === defaultLang ? '/impressum/' : `/${lang}/impressum/`
         <ul class="space-y-2">
           <li><a href={imprintPath} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('footer.imprint')}</a></li>
         </ul>
-        <div class="mt-6">
-          <LanguageSwitcher lang={lang} />
-        </div>
+        {showLanguageSwitcher && (
+          <div class="mt-6">
+            <LanguageSwitcher lang={lang} />
+          </div>
+        )}
       </div>
     </div>
 

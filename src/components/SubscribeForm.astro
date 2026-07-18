@@ -86,7 +86,7 @@ const tr = (key: string) => getTranslation(lang, key);
           </button>
 
           <!-- Messages -->
-          <div id="form-message" class="hidden text-sm text-center py-3 px-4 rounded-xl border-2"></div>
+          <div id="form-message" class="hidden text-sm text-center py-3 px-4 rounded-xl border-2" role="status" aria-live="polite"></div>
         </form>
 
         <!-- Privacy note -->
@@ -134,14 +134,12 @@ const tr = (key: string) => getTranslation(lang, key);
     }
 
     try {
-      const phSessionId = (window as any).posthog?.get_session_id?.();
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(phSessionId ? { 'X-PostHog-Session-Id': phSessionId } : {}),
         },
-        body: JSON.stringify({ email, notify_silver: silver, notify_gold: gold }),
+        body: JSON.stringify({ email, notify_silver: silver, notify_gold: gold, lang: formLang }),
       });
 
       const data = await res.json();

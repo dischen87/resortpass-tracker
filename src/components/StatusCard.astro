@@ -11,15 +11,17 @@ const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
 
 const isGold = type === 'gold';
+const shopUrl = 'https://tickets.mackinternational.de/de/resortpass/uebersicht';
+const detailsUrl = isGold
+  ? 'https://www.europapark.de/de/resortpass/europa-park-resortpass-gold'
+  : 'https://www.europapark.de/de/resortpass/europa-park-resortpass-silver';
 
 const config = {
   gold: {
     label: 'ResortPass Gold',
     priceAdult: '495',
     priceChild: '430',
-    priceSpecial: '430',
     includes: tr('status.gold_includes'),
-    shopUrl: 'https://tickets.mackinternational.de/de/ticket/resortpass-gold',
     cardClass: 'card-gold',
     iconBg: 'bg-gold/15',
     iconBorder: 'border-gold/40',
@@ -31,9 +33,7 @@ const config = {
     label: 'ResortPass Silver',
     priceAdult: '325',
     priceChild: '275',
-    priceSpecial: '275',
     includes: tr('status.silver_includes'),
-    shopUrl: 'https://tickets.mackinternational.de/de/ticket/resortpass-silver',
     cardClass: 'card-silver',
     iconBg: 'bg-silver/15',
     iconBorder: 'border-silver/40',
@@ -84,7 +84,7 @@ const c = config[type];
   </div>
 
   <!-- Status: Loading -->
-  <div class="status-loading">
+  <div class="status-loading" role="status">
     <div class="flex items-center gap-3 py-2">
       <span class="relative flex h-3 w-3">
         <span class="absolute inline-flex h-full w-full rounded-full bg-muted/50 animate-pulse"></span>
@@ -95,7 +95,7 @@ const c = config[type];
   </div>
 
   <!-- Status: Unavailable -->
-  <div class="status-unavailable hidden">
+  <div class="status-unavailable hidden" role="status">
     <div class="flex items-center gap-3 py-2">
       <span class="relative flex h-3 w-3">
         <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75"></span>
@@ -106,7 +106,7 @@ const c = config[type];
   </div>
 
   <!-- Status: Available -->
-  <div class="status-available hidden">
+  <div class="status-available hidden" role="status">
     <div class="flex items-center gap-3 py-2">
       <span class="relative flex h-3 w-3">
         <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75"></span>
@@ -115,7 +115,7 @@ const c = config[type];
       <span class="text-lg font-bold text-green-600" style="font-family: var(--font-heading);">{tr('status.available')}</span>
     </div>
     <a
-      href={c.shopUrl}
+      href={shopUrl}
       target="_blank"
       rel="noopener noreferrer"
       class="mt-3 block rounded-xl bg-available py-3.5 text-center font-bold text-white border-2 border-border shadow-[3px_3px_0px_var(--color-border)] hover:shadow-[4px_4px_0px_var(--color-border)] hover:translate-x-[-1px] hover:translate-y-[-1px] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
@@ -125,34 +125,36 @@ const c = config[type];
   </div>
 
   <!-- Status: Error -->
-  <div class="status-error hidden">
+  <div class="status-error hidden" role="status">
     <p class="text-sm text-muted py-2">{tr('status.error')}</p>
   </div>
 
   <!-- Price Table -->
   <div class="mt-6 inner-card overflow-hidden">
     <table class="w-full text-sm">
+      <caption class="sr-only">{c.label} {tr('status.price_caption')}</caption>
       <tbody>
         <tr class="border-b-2 border-border-light">
-          <td class="px-4 py-2.5 text-text-secondary">{tr('status.adults')}</td>
+          <th scope="row" class="px-4 py-2.5 text-left font-normal text-text-secondary">{tr('status.adults')}</th>
           <td class="px-4 py-2.5 text-right font-bold tabular-nums">{c.priceAdult}&thinsp;&euro;</td>
         </tr>
-        <tr class="border-b-2 border-border-light">
-          <td class="px-4 py-2.5 text-text-secondary">{tr('status.children')}</td>
-          <td class="px-4 py-2.5 text-right font-bold tabular-nums">{c.priceChild}&thinsp;&euro;</td>
-        </tr>
         <tr>
-          <td class="px-4 py-2.5 text-text-secondary">{tr('status.special')}</td>
-          <td class="px-4 py-2.5 text-right font-bold tabular-nums">{c.priceSpecial}&thinsp;&euro;</td>
+          <th scope="row" class="px-4 py-2.5 text-left font-normal text-text-secondary">{tr('status.children')}</th>
+          <td class="px-4 py-2.5 text-right font-bold tabular-nums">{c.priceChild}&thinsp;&euro;</td>
         </tr>
       </tbody>
     </table>
   </div>
 
+  <p class="mt-3 text-xs leading-relaxed text-muted">
+    {tr('status.price_note')}
+    <a href={detailsUrl} target="_blank" rel="noopener noreferrer" class="font-bold underline underline-offset-2">{tr('status.official_details')}</a>
+  </p>
+
   <!-- Shop Link -->
   <div class="mt-5 flex items-center justify-between">
     <a
-      href={c.shopUrl}
+      href={shopUrl}
       target="_blank"
       rel="noopener noreferrer"
       class:list={[

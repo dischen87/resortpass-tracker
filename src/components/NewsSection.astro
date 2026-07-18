@@ -7,52 +7,120 @@ interface Props {
 
 const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
-
-const news = [
-  {
-    date: '2026-03-19',
-    titleKey: 'news.incident_2026_03_19_title',
-    textKey: 'news.incident_2026_03_19_text',
-    badgeKey: 'news.incident_2026_03_19_badge',
-    type: 'incident' as const,
-  },
-];
 ---
 
-<section class="py-16 md:py-20" id="news">
+<section class="py-14 md:py-20" id="news" aria-labelledby="news-heading">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider text-accent mb-2">{tr('news.feed_label')}</p>
+          <h2 id="news-heading" class="text-2xl md:text-3xl font-bold mb-2">{tr('news.title')}</h2>
+          <p class="text-text-secondary">{tr('news.desc')}</p>
+        </div>
+        <a
+          href={`/api/feed.xml?lang=${lang}`}
+          class="btn-secondary shrink-0 text-sm"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {tr('news.rss')}
+        </a>
+      </div>
 
-    <div class="text-center mb-10">
-      <h2 class="text-2xl md:text-3xl font-bold mb-3" style="font-family: var(--font-heading);">{tr('news.title')}</h2>
-    </div>
+      <div id="news-feed" class="space-y-4" aria-live="polite" aria-busy="true">
+        <div class="card rounded-2xl p-6 text-sm text-muted">{tr('status.loading')}</div>
+      </div>
 
-    <div class="max-w-2xl mx-auto space-y-6">
-      {news.map((item) => (
-        <article class="card rounded-2xl p-6 relative overflow-hidden">
-          <div class="flex items-start gap-4">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border-2 border-amber-500/30 flex items-center justify-center shrink-0 mt-0.5">
-              <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-3 mb-2 flex-wrap">
-                <time class="text-xs text-muted font-mono" datetime={item.date}>
-                  {new Date(item.date).toLocaleDateString(lang === 'de' ? 'de-CH' : lang, { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                </time>
-                <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-available/15 text-available border border-available/30">
-                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  {tr(item.badgeKey)}
-                </span>
-              </div>
-              <h3 class="text-base font-bold mb-2" style="font-family: var(--font-heading);">{tr(item.titleKey)}</h3>
-              <p class="text-sm text-text-secondary leading-relaxed">{tr(item.textKey)}</p>
-            </div>
-          </div>
-        </article>
-      ))}
+      <details class="mt-6 rounded-2xl border-2 border-border-light bg-surface p-5">
+        <summary class="cursor-pointer font-bold text-sm">{tr('news.incident_2026_03_19_title')} · {tr('news.incident_2026_03_19_badge')}</summary>
+        <p class="mt-3 text-sm text-text-secondary leading-relaxed">{tr('news.incident_2026_03_19_text')}</p>
+      </details>
     </div>
   </div>
 </section>
+
+<script define:vars={{ lang }}>
+  window.__newsLang = lang;
+</script>
+
+<script>
+  import { getTranslation, type Lang } from '../i18n/translations';
+
+  const newsLang = ((window as any).__newsLang || 'de') as Lang;
+  const tr = (key: string) => getTranslation(newsLang, key);
+  const locale = newsLang === 'de' ? 'de-CH' : newsLang === 'fr' ? 'fr-CH' : newsLang === 'it' ? 'it-CH' : 'en-US';
+
+  type NewsItem = {
+    title: string;
+    summary: string;
+    updatedAt: string;
+    status: {
+      silver: { state: 'available' | 'sold_out' | 'unknown' };
+      gold: { state: 'available' | 'sold_out' | 'unknown' };
+    };
+  };
+
+  function stateText(state: 'available' | 'sold_out' | 'unknown') {
+    return state === 'available' ? tr('status.available') : state === 'sold_out' ? tr('status.sold_out') : tr('status.error');
+  }
+
+  function makeItem(item: NewsItem) {
+    const article = document.createElement('article');
+    article.className = 'card rounded-2xl p-5 md:p-6';
+
+    const date = new Date(item.updatedAt);
+    const time = document.createElement('time');
+    time.className = 'text-xs font-mono text-muted';
+    time.dateTime = item.updatedAt;
+    time.textContent = Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString(locale, { dateStyle: 'long' });
+
+    const title = document.createElement('h3');
+    title.className = 'text-lg font-bold mt-2 mb-2';
+    title.textContent = item.title;
+
+    const summary = document.createElement('p');
+    summary.className = 'text-sm text-text-secondary leading-relaxed';
+    summary.textContent = item.summary;
+
+    const states = document.createElement('div');
+    states.className = 'flex flex-wrap gap-2 mt-4';
+    for (const [label, value] of [['Silver', item.status.silver], ['Gold', item.status.gold]] as const) {
+      const badge = document.createElement('span');
+      badge.className = `status-pill status-pill-${value.state}`;
+      badge.textContent = `${label}: ${stateText(value.state)}`;
+      states.append(badge);
+    }
+
+    article.append(time, title, summary, states);
+    return article;
+  }
+
+  async function loadNews() {
+    const container = document.getElementById('news-feed');
+    if (!container) return;
+
+    try {
+      const response = await fetch(`/api/news?lang=${newsLang}`);
+      if (!response.ok) throw new Error('feed');
+      const data = await response.json();
+      container.replaceChildren();
+      const items = (data.items || []).slice(0, 3) as NewsItem[];
+      if (!items.length) {
+        const empty = document.createElement('p');
+        empty.className = 'card rounded-2xl p-6 text-sm text-muted';
+        empty.textContent = tr('news.empty');
+        container.append(empty);
+      } else {
+        for (const item of items) container.append(makeItem(item));
+      }
+    } catch {
+      container.textContent = tr('news.empty');
+      container.className = 'card rounded-2xl p-6 text-sm text-muted';
+    } finally {
+      container.setAttribute('aria-busy', 'false');
+    }
+  }
+
+  loadNews();
+</script>

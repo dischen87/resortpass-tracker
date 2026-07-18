@@ -1,0 +1,249 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from './Navbar.astro';
+import Hero from './Hero.astro';
+import StatusCard from './StatusCard.astro';
+import SubscribeForm from './SubscribeForm.astro';
+import InfoSection from './InfoSection.astro';
+import HistorySection from './HistorySection.astro';
+import NewsSection from './NewsSection.astro';
+import CommunitySection from './CommunitySection.astro';
+import Footer from './Footer.astro';
+import '../styles/global.css';
+import { getTranslation, type Lang } from '../i18n/translations';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const tr = (key: string) => getTranslation(lang, key);
+const siteUrl = 'https://www.resortpass-europapark.ch';
+const homePath = lang === 'de' ? '/' : `/${lang}/`;
+const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home' }[lang];
+---
+
+<Layout lang={lang}>
+  <Navbar lang={lang} />
+
+  <main id="main-content">
+    <Hero lang={lang} />
+
+    <section class="py-10 md:py-16" aria-labelledby="status-heading">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-7">
+          <h2 id="status-heading" class="text-2xl md:text-3xl font-bold">Status</h2>
+          <p class="mt-2 text-sm text-text-secondary">{tr('status.updated_3x')}</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <StatusCard type="silver" lang={lang} />
+          <StatusCard type="gold" lang={lang} />
+        </div>
+
+        <p class="mt-6 text-center text-xs text-muted font-mono" id="last-check" role="status" aria-live="polite">
+          <span id="last-check-text">{tr('status.loading')}</span>
+        </p>
+      </div>
+    </section>
+
+    <SubscribeForm lang={lang} />
+    <InfoSection lang={lang} />
+    <NewsSection lang={lang} />
+    <HistorySection lang={lang} />
+    <CommunitySection lang={lang} />
+    <Footer lang={lang} />
+  </main>
+
+  <div id="sticky-cta" class="fixed bottom-0 left-0 right-0 z-50 pointer-events-none opacity-0 translate-y-full transition-all duration-300" aria-hidden="true" inert>
+    <div class="max-w-6xl mx-auto px-4 pb-4 pt-2">
+      <div class="pointer-events-auto max-w-md mx-auto">
+        <a href="#benachrichtigung" class="btn-primary w-full py-4 rounded-2xl text-base">
+          {tr('subscribe.sticky_cta')}
+        </a>
+      </div>
+    </div>
+    <div class="absolute inset-0 -z-10 bg-gradient-to-t from-bg via-bg/95 to-transparent pointer-events-none"></div>
+  </div>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'ResortPass Tracker',
+    alternateName: 'Europa-Park ResortPass availability tracker',
+    url: siteUrl,
+    inLanguage: ['de', 'fr', 'it', 'en'],
+  })} />
+
+  <script type="application/ld+json" id="schema-webpage" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: tr('meta.title'),
+    url: `${siteUrl}${homePath}`,
+    description: tr('meta.description'),
+    inLanguage: lang,
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'ResortPass Tracker',
+      url: siteUrl,
+    },
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [{
+        '@type': 'ListItem',
+        position: 1,
+        name: breadcrumbName,
+        item: `${siteUrl}${homePath}`,
+      }],
+    },
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'ResortPass Tracker',
+    url: `${siteUrl}${homePath}`,
+    description: tr('meta.description'),
+    applicationCategory: 'UtilitiesApplication',
+    operatingSystem: 'Web',
+    inLanguage: lang,
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'EUR',
+    },
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      [tr('info.what_title'), tr('info.what_text')],
+      [tr('info.why_title'), tr('info.why_text')],
+      [tr('info.how_title'), tr('info.how_text')],
+      [tr('info.tip_title'), tr('info.tip_text')],
+    ].map(([name, text]) => ({
+      '@type': 'Question',
+      name,
+      acceptedAnswer: { '@type': 'Answer', text },
+    })),
+  })} />
+
+  <script define:vars={{ lang }}>
+    window.__statusLang = lang;
+  </script>
+
+  <script>
+    import { getTranslation, type Lang } from '../i18n/translations';
+
+    const statusLang = ((window as any).__statusLang || 'de') as Lang;
+    const tr = (key: string) => getTranslation(statusLang, key);
+    const locale = statusLang === 'de' ? 'de-CH' : statusLang === 'fr' ? 'fr-CH' : statusLang === 'it' ? 'it-CH' : 'en-US';
+
+    type PassStatus = { available?: boolean | null; state?: 'available' | 'sold_out' | 'unknown'; lastCheck?: string | null } | null;
+
+    function stateOf(status: PassStatus): 'available' | 'sold_out' | 'unknown' {
+      if (!status) return 'unknown';
+      if (status.state) return status.state;
+      if (status.available === true) return 'available';
+      if (status.available === false) return 'sold_out';
+      return 'unknown';
+    }
+
+    function parseTimestamp(value?: string | null): Date | null {
+      if (!value) return null;
+      const normalized = value.includes('T') ? value : value.replace(' ', 'T');
+      const date = new Date(/[zZ]|[+-]\d\d:\d\d$/.test(normalized) ? normalized : `${normalized}Z`);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function updateCard(type: 'silver' | 'gold', status: PassStatus) {
+      const card = document.getElementById(`card-${type}`);
+      if (!card) return;
+
+      const state = stateOf(status);
+      card.classList.remove('card-available', 'card-unavailable');
+      card.querySelector('.status-loading')?.classList.add('hidden');
+      card.querySelector('.status-available')?.classList.toggle('hidden', state !== 'available');
+      card.querySelector('.status-unavailable')?.classList.toggle('hidden', state !== 'sold_out');
+      card.querySelector('.status-error')?.classList.toggle('hidden', state !== 'unknown');
+      if (state === 'available') card.classList.add('card-available');
+      if (state === 'sold_out') card.classList.add('card-unavailable');
+
+      const heroValue = document.getElementById(`hero-status-${type}`);
+      if (heroValue) {
+        heroValue.textContent = state === 'available' ? tr('status.available') : state === 'sold_out' ? tr('status.sold_out') : tr('status.error');
+        heroValue.dataset.state = state;
+      }
+    }
+
+    async function loadStatus() {
+      try {
+        const response = await fetch('/api/status', { headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error('status');
+        const data = await response.json();
+        updateCard('silver', data.silver);
+        updateCard('gold', data.gold);
+
+        const lastCheck = parseTimestamp(data.silver?.lastCheck || data.gold?.lastCheck);
+        const text = lastCheck
+          ? `${tr('status.last_check')}: ${lastCheck.toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })} · ${tr('status.updated_3x')}`
+          : tr('status.error');
+        document.getElementById('last-check-text')!.textContent = text;
+        document.getElementById('hero-status-time')!.textContent = text;
+
+        const schemaEl = document.getElementById('schema-webpage');
+        if (schemaEl && lastCheck) {
+          const schema = JSON.parse(schemaEl.textContent || '{}');
+          schema.dateModified = lastCheck.toISOString();
+          schemaEl.textContent = JSON.stringify(schema);
+        }
+      } catch {
+        updateCard('silver', null);
+        updateCard('gold', null);
+        document.getElementById('last-check-text')!.textContent = tr('status.error');
+        document.getElementById('hero-status-time')!.textContent = tr('status.error');
+      }
+    }
+
+    async function loadFanCount() {
+      try {
+        const response = await fetch('/api/subscriber-count');
+        if (!response.ok) return;
+        const data = await response.json();
+        const element = document.getElementById('fan-count');
+        if (element && Number.isFinite(data.count)) element.textContent = data.count.toLocaleString(locale);
+      } catch {}
+    }
+
+    loadStatus();
+    loadFanCount();
+    window.setInterval(loadStatus, 5 * 60 * 1000);
+
+    const stickyCta = document.getElementById('sticky-cta');
+    const subscribeSection = document.getElementById('benachrichtigung');
+    const heroCta = document.getElementById('hero-cta');
+
+    if (stickyCta && subscribeSection && heroCta) {
+      let heroVisible = true;
+      let subscribeVisible = false;
+      const updateSticky = () => {
+        const hide = heroVisible || subscribeVisible;
+        stickyCta.toggleAttribute('inert', hide);
+        stickyCta.setAttribute('aria-hidden', String(hide));
+        stickyCta.classList.toggle('opacity-0', hide);
+        stickyCta.classList.toggle('translate-y-full', hide);
+        stickyCta.classList.toggle('opacity-100', !hide);
+        stickyCta.classList.toggle('translate-y-0', !hide);
+      };
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.target === heroCta) heroVisible = entry.isIntersecting;
+          if (entry.target === subscribeSection) subscribeVisible = entry.isIntersecting;
+        }
+        updateSticky();
+      }, { threshold: 0.1 });
+      observer.observe(heroCta);
+      observer.observe(subscribeSection);
+    }
+  </script>
+</Layout>

@@ -5,7 +5,7 @@
   --color-bg-light: #F0F4FF;
   --color-surface: #FFFFFF;
   --color-surface-light: #F8FAFF;
-  --color-available: #16A34A;
+  --color-available: #15803D;
   --color-unavailable: #DC2626;
   --color-accent: #2563EB;
   --color-accent-light: #3B82F6;
@@ -16,28 +16,20 @@
   --color-silver-light: #475569;
   --color-text-primary: #1B1B3A;
   --color-text-secondary: #4A4A68;
-  --color-muted: #8B8BA8;
+  --color-muted: #67677F;
   --color-border: #1B1B3A;
   --color-border-light: #D4D4E0;
   --color-red: #DC2626;
-  --font-heading: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
+  --font-heading: 'DM Sans', system-ui, -apple-system, sans-serif;
   --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
 }
 
 @font-face {
   font-family: 'DM Sans';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 100 900;
   font-display: swap;
   src: url('/fonts/DMSans-Regular.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'DM Sans';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/DMSans-Bold.woff2') format('woff2');
 }
 
 @font-face {
@@ -45,8 +37,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/JetBrainsMono-Regular.woff2') format('woff2'),
-       url('/fonts/JetBrainsMono-Regular.woff') format('woff');
+  src: url('/fonts/JetBrainsMono-Regular.woff') format('woff');
 }
 
 html {
@@ -58,6 +49,24 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text-primary);
   min-height: 100vh;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border: 2px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  padding: 0.65rem 1rem;
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -156,6 +165,85 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 3px 3px 0px var(--color-border);
 }
 
+.glass-card {
+  background: rgb(255 255 255 / 92%);
+  border: 2px solid var(--color-border-light);
+  border-radius: 1rem;
+}
+
+.hero-status {
+  background: rgb(255 255 255 / 94%);
+  border: 2.5px solid var(--color-border);
+  border-radius: 1rem;
+  box-shadow: 3px 3px 0 var(--color-border);
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.hero-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.3rem 0;
+}
+
+.hero-status-label {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.hero-status-value {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.hero-status-value[data-state="available"] {
+  color: var(--color-available);
+}
+
+.hero-status-value[data-state="sold_out"] {
+  color: var(--color-unavailable);
+}
+
+.hero-status-time {
+  border-top: 2px solid var(--color-border-light);
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  margin-top: 0.4rem;
+  padding-top: 0.55rem;
+  text-align: center;
+}
+
+.status-pill {
+  border: 2px solid var(--color-border-light);
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.65rem;
+}
+
+.status-pill-available {
+  background: #F0FDF4;
+  border-color: #86EFAC;
+  color: var(--color-available);
+}
+
+.status-pill-sold_out {
+  background: #FEF2F2;
+  border-color: #FCA5A5;
+  color: var(--color-unavailable);
+}
+
+.status-pill-unknown {
+  background: var(--color-surface-light);
+  color: var(--color-muted);
+}
+
 /* Subscribe card */
 .subscribe-card {
   background: var(--color-surface);
@@ -236,7 +324,10 @@ input[type="checkbox"] {
 
 /* Focus styles */
 input:focus-visible,
-button:focus-visible {
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: 2.5px solid var(--color-accent);
   outline-offset: 2px;
 }
@@ -244,6 +335,21 @@ button:focus-visible {
 /* Smooth transitions */
 a, button {
   transition: all 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ===== BUTTON SYSTEM ===== */

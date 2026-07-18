@@ -1,0 +1,112 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Footer from './Footer.astro';
+import '../styles/global.css';
+import { getTranslation, type Lang } from '../i18n/translations';
+
+interface Props {
+  lang: Lang;
+  mode: 'confirm' | 'unsubscribe';
+}
+
+const { lang, mode } = Astro.props;
+const tr = (key: string) => getTranslation(lang, key);
+const isConfirm = mode === 'confirm';
+const key = isConfirm ? 'confirm' : 'unsub';
+const homePath = lang === 'de' ? '/' : `/${lang}/`;
+---
+
+<Layout
+  lang={lang}
+  title={`${tr(`${key}.title`)} — ResortPass Tracker`}
+  description={tr(`${key}.success`)}
+  noindex
+>
+  <main id="main-content" class="max-w-2xl mx-auto px-4 py-20 text-center min-h-[60vh]">
+    <div class="glass-card p-8 md:p-10 max-w-md mx-auto animate-fade-in-up">
+      <p class="text-xs font-bold uppercase tracking-wider text-accent mb-3">ResortPass Tracker</p>
+      <h1 class="text-2xl font-bold mb-3">{tr(`${key}.title`)}</h1>
+
+      <p class="text-text-secondary text-sm mb-6 leading-relaxed" id="token-message" role="status" aria-live="polite">
+        {isConfirm ? tr('confirm.processing') : tr('unsub.confirm_prompt')}
+      </p>
+
+      {!isConfirm && (
+        <button type="button" id="unsubscribe-button" class="btn-primary w-full mb-6">
+          {tr('unsub.submit')}
+        </button>
+      )}
+
+      <div id="token-success" class="hidden mb-6 rounded-xl bg-green-50 border-2 border-green-200 p-4">
+        <p class="text-sm text-available">{tr(`${key}.success`)}</p>
+      </div>
+
+      <a href={homePath} class="inline-flex items-center text-sm font-bold text-accent hover:underline">
+        {tr(`${key}.back`)}
+      </a>
+    </div>
+  </main>
+
+  <Footer lang={lang} showLanguageSwitcher={false} />
+
+  <script define:vars={{ lang, mode }}>
+    window.__tokenPage = { lang, mode };
+  </script>
+
+  <script>
+    import { getTranslation, type Lang } from '../i18n/translations';
+
+    const config = (window as any).__tokenPage as { lang: Lang; mode: 'confirm' | 'unsubscribe' };
+    const tr = (key: string) => getTranslation(config.lang, key);
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const message = document.getElementById('token-message')!;
+    const success = document.getElementById('token-success')!;
+    const button = document.getElementById('unsubscribe-button') as HTMLButtonElement | null;
+
+    function showError() {
+      message.textContent = tr(`${config.mode === 'confirm' ? 'confirm' : 'unsub'}.error`);
+      message.classList.add('text-red-600');
+      if (button) button.disabled = false;
+    }
+
+    function showSuccess() {
+      message.textContent = '';
+      success.classList.remove('hidden');
+      button?.remove();
+    }
+
+    async function confirm() {
+      if (!token) return showError();
+      try {
+        const response = await fetch(`/api/confirm?token=${encodeURIComponent(token)}&lang=${config.lang}`);
+        const data = await response.json();
+        if (!response.ok || !data.success) return showError();
+        showSuccess();
+      } catch {
+        showError();
+      }
+    }
+
+    async function unsubscribe() {
+      if (!token || !button) return showError();
+      button.disabled = true;
+      message.textContent = tr('unsub.processing');
+      try {
+        const response = await fetch('/api/unsubscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, lang: config.lang }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) return showError();
+        showSuccess();
+      } catch {
+        showError();
+      }
+    }
+
+    if (config.mode === 'confirm') confirm();
+    else button?.addEventListener('click', unsubscribe);
+  </script>
+</Layout>

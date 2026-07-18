@@ -1,10 +1,6 @@
 services:
   resortpass-api:
-    build:
-      context: .
-      args:
-        PUBLIC_POSTHOG_KEY: ${PUBLIC_POSTHOG_KEY:-}
-        PUBLIC_POSTHOG_HOST: ${PUBLIC_POSTHOG_HOST:-/a}
+    build: .
     container_name: resortpass-api
     restart: always
     deploy:
@@ -43,6 +39,7 @@ services:
     environment:
       - DB_PATH=/app/data/resortpass.db
       - STATUS_JSON_PATH=/app/dist/api/status.json
+      - SYNC_DIST=0
     volumes:
       - ./data:/app/data
       - ./dist:/app/dist
