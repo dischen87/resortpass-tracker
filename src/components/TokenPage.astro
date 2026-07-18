@@ -13,7 +13,7 @@ const { lang, mode } = Astro.props;
 const tr = (key: string) => getTranslation(lang, key);
 const isConfirm = mode === 'confirm';
 const key = isConfirm ? 'confirm' : 'unsub';
-const initialTitleKey = isConfirm ? 'confirm.title' : 'unsub.confirm_title';
+const initialTitleKey = isConfirm ? 'confirm.processing_title' : 'unsub.confirm_title';
 const homePath = lang === 'de' ? '/' : `/${lang}/`;
 ---
 

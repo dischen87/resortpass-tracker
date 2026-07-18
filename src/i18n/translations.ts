@@ -156,6 +156,7 @@ export const t: Record<Lang, Record<string, string>> = {
     'imprint.copyright_text': 'Der Quellcode dieses Projekts ist Open Source.',
 
     // Confirm & Unsubscribe
+    'confirm.processing_title': 'E-Mail best\u00e4tigen',
     'confirm.title': 'E-Mail best\u00e4tigt!',
     'confirm.success': 'Du wirst ab sofort benachrichtigt, sobald der ResortPass wieder verf\u00fcgbar ist.',
     'confirm.error': 'Der Best\u00e4tigungslink ist ung\u00fcltig oder abgelaufen.',
@@ -298,6 +299,7 @@ export const t: Record<Lang, Record<string, string>> = {
     'imprint.legal_text': 'Le droit suisse est applicable. Le for juridique est \u00e0 Zurich, en Suisse.',
     'imprint.copyright_title': 'Droit d\u2019auteur',
     'imprint.copyright_text': 'Le code source de ce projet est open source.',
+    'confirm.processing_title': 'Confirmer l\'e-mail',
     'confirm.title': 'E-mail confirm\u00e9!',
     'confirm.success': 'Vous serez notifi\u00e9 d\u00e8s que le ResortPass sera \u00e0 nouveau disponible.',
     'confirm.error': 'Le lien de confirmation est invalide ou expir\u00e9.',
@@ -440,6 +442,7 @@ export const t: Record<Lang, Record<string, string>> = {
     'imprint.legal_text': 'Si applica il diritto svizzero. Il foro competente \u00e8 Zurigo, Svizzera.',
     'imprint.copyright_title': 'Diritto d\u2019autore',
     'imprint.copyright_text': 'Il codice sorgente di questo progetto \u00e8 open source.',
+    'confirm.processing_title': 'Conferma e-mail',
     'confirm.title': 'E-mail confermata!',
     'confirm.success': 'Sarai avvisato non appena il ResortPass sar\u00e0 di nuovo disponibile.',
     'confirm.error': 'Il link di conferma non \u00e8 valido o \u00e8 scaduto.',
@@ -582,6 +585,7 @@ export const t: Record<Lang, Record<string, string>> = {
     'imprint.legal_text': 'Swiss law applies. The place of jurisdiction is Zurich, Switzerland.',
     'imprint.copyright_title': 'Copyright',
     'imprint.copyright_text': 'This project\u2019s source code is open source.',
+    'confirm.processing_title': 'Confirm email',
     'confirm.title': 'Email confirmed!',
     'confirm.success': 'You will be notified as soon as the ResortPass is available again.',
     'confirm.error': 'The confirmation link is invalid or expired.',
