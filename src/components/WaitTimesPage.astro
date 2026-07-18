@@ -1,0 +1,452 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from './Navbar.astro';
+import Footer from './Footer.astro';
+import { type Lang, getTranslation } from '../i18n/translations';
+import '../styles/global.css';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const tr = (key: string) => getTranslation(lang, key);
+const officialAppUrls: Record<Lang, string> = {
+  de: 'https://www.europapark.de/de/freizeitpark/infos/media-unterhaltung/europa-park-rulantica-app',
+  fr: 'https://www.europapark.de/fr/parc-de-loisirs/infos/medias-et-divertissements/appli-europa-park-rulantica',
+  it: 'https://www.europapark.de/it/parco-divertimenti/info/media-intrattenimento/app-europa-park-rulantica',
+  en: 'https://www.europapark.de/en/theme-park/info/media-entertainment/europa-park-rulantica-app',
+};
+const clientCopy = {
+  updated: tr('wait.updated'),
+  live: tr('wait.live'),
+  stale: tr('wait.stale'),
+  open: tr('wait.open'),
+  closed: tr('wait.closed'),
+  minutes: tr('wait.minutes'),
+  openNow: tr('wait.open_now'),
+  results: tr('wait.results'),
+  noResults: tr('wait.no_results'),
+  unavailableTitle: tr('wait.error_title'),
+  unavailableText: tr('wait.error_text'),
+};
+---
+
+<Layout lang={lang} title={tr('wait.meta_title')} description={tr('wait.meta_description')} ogImage="/og-wartezeiten.png" ogImageAlt={tr('wait.og_alt')}>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: tr('wait.title'),
+    description: tr('wait.meta_description'),
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'ResortPass Tracker',
+      url: 'https://www.resortpass-europapark.ch/',
+    },
+  })} />
+
+  <Navbar lang={lang} />
+
+  <main id="main-content">
+    <section class="relative overflow-hidden border-b-2 border-border-light bg-bg-light">
+      <div class="blob blob-blue w-72 h-72 -top-32 -right-28" aria-hidden="true"></div>
+      <div class="blob blob-white w-80 h-80 -bottom-48 -left-28" aria-hidden="true"></div>
+
+      <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10 md:pt-16 md:pb-14">
+        <div class="max-w-3xl">
+          <div class="inline-flex items-center gap-2 rounded-full border-2 border-accent/30 bg-white px-3 py-1.5 text-xs font-bold text-accent mb-5">
+            <span class="h-2 w-2 rounded-full bg-available" aria-hidden="true"></span>
+            {tr('wait.badge')}
+          </div>
+          <h1 class="text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] mb-5">{tr('wait.title')}</h1>
+          <p class="text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl">{tr('wait.subtitle')}</p>
+        </div>
+
+        <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 text-sm">
+          <div id="live-state" class="inline-flex w-fit items-center gap-2 rounded-full border-2 border-border bg-white px-3 py-1.5 font-bold" aria-live="polite">
+            <span class="h-2.5 w-2.5 rounded-full bg-muted" aria-hidden="true"></span>
+            <span>{tr('wait.loading')}</span>
+          </div>
+          <p class="text-muted">
+            <span id="updated-label">{tr('wait.updated')} —</span>
+            <button id="refresh-wait-times" type="button" class="ml-2 font-bold text-accent hover:underline cursor-pointer">
+              {tr('wait.refresh')}
+            </button>
+          </p>
+        </div>
+        <a href="https://queue-times.com/" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-sm font-bold text-text-secondary hover:text-accent hover:underline">
+          Powered by Queue-Times.com
+        </a>
+      </div>
+    </section>
+
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-1 py-8 md:py-10" aria-labelledby="wait-summary-title">
+      <h2 id="wait-summary-title" class="sr-only">{tr('wait.summary_title')}</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <article class="summary-card">
+          <p class="text-sm font-bold text-muted mb-2">{tr('wait.open')}</p>
+          <p class="flex items-baseline gap-2"><strong id="open-rides" class="text-4xl font-bold">—</strong><span class="text-sm text-text-secondary">{tr('wait.rides')}</span></p>
+        </article>
+        <article class="summary-card">
+          <p class="text-sm font-bold text-muted mb-2">{tr('wait.average')}</p>
+          <p class="flex items-baseline gap-2"><strong id="average-wait" class="text-4xl font-bold">—</strong><span class="text-sm text-text-secondary">{tr('wait.minutes')}</span></p>
+        </article>
+        <article class="summary-card summary-card-accent">
+          <p class="text-sm font-bold text-muted mb-2">{tr('wait.longest')}</p>
+          <p class="flex items-baseline gap-2"><strong id="longest-wait" class="text-4xl font-bold">—</strong><span class="text-sm text-text-secondary">{tr('wait.minutes')}</span></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 md:pb-20" aria-labelledby="ride-list-title">
+      <div id="stale-warning" class="hidden mb-5 rounded-2xl border-2 border-gold bg-amber-50 p-4 text-sm text-text-secondary" role="status">
+        <strong class="text-text-primary">{tr('wait.stale_title')}</strong>
+        <span> {tr('wait.stale_text')}</span>
+      </div>
+
+      <div class="wait-toolbar mb-7">
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto_auto] gap-4 lg:items-end">
+          <label class="block">
+            <span class="block text-sm font-bold mb-2">{tr('wait.search_label')}</span>
+            <input id="ride-search" type="search" autocomplete="off" placeholder={tr('wait.search_placeholder')} class="w-full rounded-xl border-2 border-border-light bg-white px-4 py-3 text-base placeholder:text-muted focus:border-accent" />
+          </label>
+
+          <fieldset>
+            <legend class="text-sm font-bold mb-2">{tr('wait.filter_label')}</legend>
+            <div class="filter-group" id="ride-filters">
+              <button type="button" data-filter="open" aria-pressed="true">{tr('wait.filter_open')}</button>
+              <button type="button" data-filter="quick" aria-pressed="false">{tr('wait.filter_quick')}</button>
+              <button type="button" data-filter="all" aria-pressed="false">{tr('wait.filter_all')}</button>
+            </div>
+          </fieldset>
+
+          <label class="block">
+            <span class="block text-sm font-bold mb-2">{tr('wait.sort_label')}</span>
+            <select id="ride-sort" class="w-full rounded-xl border-2 border-border-light bg-white px-4 py-3 text-base focus:border-accent">
+              <option value="longest">{tr('wait.sort_longest')}</option>
+              <option value="shortest">{tr('wait.sort_shortest')}</option>
+              <option value="name">{tr('wait.sort_name')}</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-5">
+        <div>
+          <h2 id="ride-list-title" class="text-2xl md:text-3xl font-bold">{tr('wait.list_title')}</h2>
+          <p class="text-text-secondary mt-1">{tr('wait.list_desc')}</p>
+        </div>
+        <p id="result-count" class="text-sm font-bold text-muted" aria-live="polite"></p>
+      </div>
+
+      <div id="wait-loading" class="space-y-3" aria-label={tr('wait.loading')}>
+        {[1, 2, 3, 4, 5].map(() => (
+          <div class="wait-skeleton" aria-hidden="true">
+            <div class="space-y-3 flex-1">
+              <div class="h-3 w-24 rounded bg-border-light"></div>
+              <div class="h-5 w-2/3 rounded bg-border-light"></div>
+            </div>
+            <div class="h-14 w-20 rounded-xl bg-border-light"></div>
+          </div>
+        ))}
+      </div>
+
+      <div id="wait-error" class="hidden card p-8 md:p-10 text-center" role="alert">
+        <h3 class="text-xl font-bold mb-2">{tr('wait.error_title')}</h3>
+        <p class="text-text-secondary mb-5">{tr('wait.error_text')}</p>
+        <button id="retry-wait-times" type="button" class="btn-primary">{tr('wait.retry')}</button>
+      </div>
+
+      <div id="wait-empty" class="hidden glass-card p-8 text-center text-text-secondary">{tr('wait.no_results')}</div>
+      <ul id="ride-list" class="hidden space-y-3" aria-busy="true"></ul>
+
+      <template id="ride-template">
+        <li class="wait-ride-card">
+          <div class="min-w-0">
+            <p class="ride-land text-xs font-bold uppercase tracking-wide text-muted"></p>
+            <h3 class="ride-name text-lg font-bold mt-1 leading-tight"></h3>
+            <p class="ride-status text-sm text-text-secondary mt-1"></p>
+          </div>
+          <div class="wait-badge" data-level="closed">
+            <strong class="ride-wait text-xl leading-none"></strong>
+            <span class="ride-unit text-xs font-bold mt-1"></span>
+          </div>
+        </li>
+      </template>
+
+      <noscript><p class="glass-card p-5 text-text-secondary">{tr('wait.javascript')}</p></noscript>
+
+      <div class="mt-8 glass-card p-5 md:p-6 text-sm text-text-secondary leading-relaxed">
+        <p>{tr('wait.source_note')}</p>
+        <p class="mt-2">
+          <a href="https://queue-times.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">Powered by Queue-Times.com</a>
+          <span aria-hidden="true"> · </span>
+          <a href={officialAppUrls[lang]} target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">{tr('wait.official_app')}</a>
+        </p>
+      </div>
+    </section>
+
+    <section class="border-y-2 border-border-light bg-surface-light py-14 md:py-18">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl md:text-3xl font-bold mb-7">{tr('wait.explainer_title')}</h2>
+        <div class="grid md:grid-cols-2 gap-5">
+          <article class="glass-card p-6">
+            <h3 class="text-lg font-bold mb-2">{tr('wait.explainer_live_title')}</h3>
+            <p class="text-text-secondary leading-relaxed">{tr('wait.explainer_live_text')}</p>
+          </article>
+          <article class="glass-card p-6">
+            <h3 class="text-lg font-bold mb-2">{tr('wait.explainer_use_title')}</h3>
+            <p class="text-text-secondary leading-relaxed">{tr('wait.explainer_use_text')}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer lang={lang} />
+
+  <script define:vars={{ lang, clientCopy }}>
+    const localeByLanguage = { de: 'de-CH', fr: 'fr-CH', it: 'it-CH', en: 'en-GB' };
+    const locale = localeByLanguage[lang] || 'de-CH';
+    const regionCodes = {
+      Austria: 'AT', Croatia: 'HR', France: 'FR', Germany: 'DE', Greece: 'GR',
+      Iceland: 'IS', Ireland: 'IE', Italy: 'IT', Luxembourg: 'LU', Netherlands: 'NL',
+      Portugal: 'PT', Russia: 'RU', Spain: 'ES', Switzerland: 'CH',
+    };
+    const specialLands = {
+      de: { England: 'England', 'Minimoys Kingdom': 'Königreich der Minimoys', Scandinavia: 'Skandinavien' },
+      fr: { England: 'Angleterre', 'Minimoys Kingdom': 'Royaume des Minimoys', Scandinavia: 'Scandinavie' },
+      it: { England: 'Inghilterra', 'Minimoys Kingdom': 'Regno dei Minimei', Scandinavia: 'Scandinavia' },
+      en: { England: 'England', 'Minimoys Kingdom': 'Minimoys Kingdom', Scandinavia: 'Scandinavia' },
+    };
+    const regionNames = typeof Intl.DisplayNames === 'function' ? new Intl.DisplayNames([locale], { type: 'region' }) : null;
+    const timeFormat = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' });
+    const dateTimeFormat = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+    const list = document.querySelector('#ride-list');
+    const template = document.querySelector('#ride-template');
+    const loading = document.querySelector('#wait-loading');
+    const errorBox = document.querySelector('#wait-error');
+    const empty = document.querySelector('#wait-empty');
+    const search = document.querySelector('#ride-search');
+    const sort = document.querySelector('#ride-sort');
+    const filterButtons = [...document.querySelectorAll('#ride-filters button')];
+    const resultCount = document.querySelector('#result-count');
+    const liveState = document.querySelector('#live-state');
+    const updatedLabel = document.querySelector('#updated-label');
+    const staleWarning = document.querySelector('#stale-warning');
+    const refreshButtons = [document.querySelector('#refresh-wait-times'), document.querySelector('#retry-wait-times')];
+    let rides = [];
+    let activeFilter = 'open';
+
+    function localizedLand(name) {
+      if (specialLands[lang]?.[name]) return specialLands[lang][name];
+      return regionCodes[name] && regionNames ? (regionNames.of(regionCodes[name]) || name) : name;
+    }
+
+    function waitLevel(ride) {
+      if (!ride.isOpen) return 'closed';
+      if (ride.waitTime === 0) return 'unknown';
+      if (ride.waitTime <= 15) return 'low';
+      if (ride.waitTime <= 30) return 'medium';
+      return 'high';
+    }
+
+    function render() {
+      const query = search.value.trim().toLocaleLowerCase(locale);
+      const filtered = rides.filter((ride) => {
+        const matchesQuery = `${ride.name} ${localizedLand(ride.land)}`.toLocaleLowerCase(locale).includes(query);
+        const matchesFilter = activeFilter === 'all'
+          || (activeFilter === 'open' && ride.isOpen)
+          || (activeFilter === 'quick' && ride.isOpen && ride.waitTime > 0 && ride.waitTime <= 15);
+        return matchesQuery && matchesFilter;
+      });
+
+      filtered.sort((a, b) => {
+        if (sort.value === 'name') return a.name.localeCompare(b.name, locale);
+        if (a.isOpen !== b.isOpen) return a.isOpen ? -1 : 1;
+        if (sort.value === 'shortest') {
+          const aWait = a.waitTime > 0 ? a.waitTime : Number.POSITIVE_INFINITY;
+          const bWait = b.waitTime > 0 ? b.waitTime : Number.POSITIVE_INFINITY;
+          return aWait - bWait || a.name.localeCompare(b.name, locale);
+        }
+        return b.waitTime - a.waitTime || a.name.localeCompare(b.name, locale);
+      });
+
+      list.replaceChildren();
+      for (const ride of filtered) {
+        const card = template.content.firstElementChild.cloneNode(true);
+        card.querySelector('.ride-land').textContent = localizedLand(ride.land);
+        card.querySelector('.ride-name').textContent = ride.name;
+        card.querySelector('.ride-status').textContent = ride.isOpen ? clientCopy.openNow : clientCopy.closed;
+        const badge = card.querySelector('.wait-badge');
+        badge.dataset.level = waitLevel(ride);
+        card.querySelector('.ride-wait').textContent = ride.isOpen && ride.waitTime > 0 ? String(ride.waitTime) : (ride.isOpen ? clientCopy.openNow : clientCopy.closed);
+        card.querySelector('.ride-unit').textContent = ride.isOpen && ride.waitTime > 0 ? clientCopy.minutes : '';
+        list.append(card);
+      }
+
+      resultCount.textContent = clientCopy.results.replace('{count}', String(filtered.length));
+      empty.classList.toggle('hidden', filtered.length > 0);
+      list.classList.toggle('hidden', filtered.length === 0);
+      list.setAttribute('aria-busy', 'false');
+    }
+
+    function updateLiveState(data) {
+      const stateText = data.stale ? clientCopy.stale : clientCopy.live;
+      const updatedAt = new Date(data.updatedAt);
+      const today = new Date();
+      const sameDay = updatedAt.getFullYear() === today.getFullYear()
+        && updatedAt.getMonth() === today.getMonth()
+        && updatedAt.getDate() === today.getDate();
+      liveState.dataset.state = data.stale ? 'stale' : 'live';
+      liveState.querySelector('span:last-child').textContent = stateText;
+      updatedLabel.textContent = `${clientCopy.updated} ${sameDay ? timeFormat.format(updatedAt) : dateTimeFormat.format(updatedAt)}`;
+      staleWarning.classList.toggle('hidden', !data.stale);
+    }
+
+    async function loadWaitTimes() {
+      refreshButtons.forEach((button) => { if (button) button.disabled = true; });
+      try {
+        const response = await fetch('/api/wait-times', { cache: 'no-cache', headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!Array.isArray(data.rides)) throw new Error('Invalid response');
+
+        rides = data.rides;
+        document.querySelector('#open-rides').textContent = String(data.summary.openRides);
+        document.querySelector('#average-wait').textContent = String(data.summary.averageWait);
+        document.querySelector('#longest-wait').textContent = String(data.summary.longestWait);
+        if (data.summary.openRides === 0) activeFilter = 'all';
+        filterButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.filter === activeFilter)));
+        updateLiveState(data);
+        loading.classList.add('hidden');
+        errorBox.classList.add('hidden');
+        render();
+      } catch {
+        loading.classList.add('hidden');
+        if (rides.length > 0) {
+          errorBox.classList.add('hidden');
+          staleWarning.classList.remove('hidden');
+          liveState.dataset.state = 'stale';
+          liveState.querySelector('span:last-child').textContent = clientCopy.stale;
+        } else {
+          list.classList.add('hidden');
+          empty.classList.add('hidden');
+          errorBox.classList.remove('hidden');
+          liveState.dataset.state = 'error';
+          liveState.querySelector('span:last-child').textContent = clientCopy.unavailableTitle;
+        }
+      } finally {
+        refreshButtons.forEach((button) => { if (button) button.disabled = false; });
+      }
+    }
+
+    search.addEventListener('input', render);
+    sort.addEventListener('change', render);
+    filterButtons.forEach((button) => button.addEventListener('click', () => {
+      activeFilter = button.dataset.filter;
+      filterButtons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+      render();
+    }));
+    refreshButtons.forEach((button) => button?.addEventListener('click', loadWaitTimes));
+
+    loadWaitTimes();
+    window.setInterval(loadWaitTimes, 5 * 60 * 1000);
+  </script>
+</Layout>
+
+<style is:global>
+  .summary-card {
+    background: var(--color-surface);
+    border: 2.5px solid var(--color-border);
+    border-radius: 1rem;
+    box-shadow: 3px 3px 0 var(--color-border);
+    padding: 1.25rem;
+  }
+
+  .summary-card-accent {
+    border-color: var(--color-accent);
+    box-shadow: 3px 3px 0 var(--color-accent);
+  }
+
+  .wait-toolbar {
+    position: sticky;
+    top: 0.5rem;
+    z-index: 20;
+    background: rgb(255 255 255 / 96%);
+    border: 2.5px solid var(--color-border);
+    border-radius: 1rem;
+    box-shadow: 3px 3px 0 var(--color-border);
+    padding: 1rem;
+    backdrop-filter: blur(10px);
+  }
+
+  .filter-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 2px solid var(--color-border-light);
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+  .filter-group button {
+    background: white;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 700;
+    padding: 0.75rem 0.9rem;
+    white-space: nowrap;
+  }
+
+  .filter-group button + button { border-left: 2px solid var(--color-border-light); }
+  .filter-group button[aria-pressed="true"] { background: var(--color-accent); color: white; }
+
+  .wait-ride-card,
+  .wait-skeleton {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--color-surface);
+    border: 2px solid var(--color-border-light);
+    border-radius: 1rem;
+    padding: 1rem 1rem 1rem 1.15rem;
+  }
+
+  .wait-ride-card { transition: border-color 0.2s ease, transform 0.2s ease; }
+  .wait-ride-card:hover { border-color: var(--color-border); transform: translateY(-1px); }
+  .wait-skeleton { min-height: 5.75rem; animation: wait-pulse 1.5s ease-in-out infinite; }
+
+  .wait-badge {
+    align-items: center;
+    border: 2px solid;
+    border-radius: 0.85rem;
+    display: flex;
+    flex: 0 0 5rem;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 4.25rem;
+    padding: 0.5rem;
+    text-align: center;
+  }
+
+  .wait-badge[data-level="low"] { background: #f0fdf4; border-color: #86efac; color: var(--color-available); }
+  .wait-badge[data-level="medium"] { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+  .wait-badge[data-level="high"] { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
+  .wait-badge[data-level="unknown"] { background: #eff6ff; border-color: #93c5fd; color: var(--color-accent-dark); }
+  .wait-badge[data-level="closed"] { background: var(--color-surface-light); border-color: var(--color-border-light); color: var(--color-muted); }
+
+  #live-state[data-state="live"] span:first-child { background: var(--color-available); }
+  #live-state[data-state="stale"] span:first-child { background: var(--color-gold); }
+  #live-state[data-state="error"] span:first-child { background: var(--color-unavailable); }
+
+  @keyframes wait-pulse { 50% { opacity: 0.45; } }
+
+  @media (max-width: 640px) {
+    .wait-toolbar { position: static; }
+    .filter-group button { padding-inline: 0.6rem; }
+    .wait-ride-card { padding-left: 1rem; }
+  }
+</style>

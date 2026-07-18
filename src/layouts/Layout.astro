@@ -7,6 +7,8 @@ interface Props {
   canonical?: string;
   lang?: Lang;
   noindex?: boolean;
+  ogImage?: string;
+  ogImageAlt?: string;
 }
 
 const lang = Astro.props.lang || defaultLang;
@@ -14,6 +16,8 @@ const tr = (key: string) => getTranslation(lang, key);
 
 const title = Astro.props.title || tr('meta.title');
 const description = Astro.props.description || tr('meta.description');
+const ogImage = Astro.props.ogImage || '/og-image.png';
+const ogImageAlt = Astro.props.ogImageAlt || tr('meta.og_alt');
 const siteUrl = "https://www.resortpass-europapark.ch";
 const rawPath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
 const currentUrl = Astro.props.canonical || `${siteUrl}${rawPath}`;
@@ -24,6 +28,12 @@ const localeMap: Record<Lang, string> = {
   fr: 'fr_CH',
   it: 'it_CH',
   en: 'en_US',
+};
+const hreflangMap: Record<Lang, string> = {
+  de: 'de-CH',
+  fr: 'fr-CH',
+  it: 'it-CH',
+  en: 'en-US',
 };
 
 function getPathForLang(targetLang: Lang): string {
@@ -52,7 +62,7 @@ function getPathForLang(targetLang: Lang): string {
 
   <!-- hreflang for all languages -->
   {!noindex && languages.map((l) => (
-    <link rel="alternate" hreflang={l} href={`${siteUrl}${getPathForLang(l)}`} />
+    <link rel="alternate" hreflang={hreflangMap[l]} href={`${siteUrl}${getPathForLang(l)}`} />
   ))}
   {!noindex && <link rel="alternate" hreflang="x-default" href={`${siteUrl}${getPathForLang(defaultLang)}`} />}
   <link rel="alternate" type="application/rss+xml" title="ResortPass availability feed" href={`/api/feed.xml?lang=${lang}`} />
@@ -62,10 +72,10 @@ function getPathForLang(targetLang: Lang): string {
   <meta property="og:url" content={currentUrl} />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
-  <meta property="og:image" content={`${siteUrl}/og-image.png`} />
+  <meta property="og:image" content={`${siteUrl}${ogImage}`} />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content={tr('meta.og_alt')} />
+  <meta property="og:image:alt" content={ogImageAlt} />
   <meta property="og:site_name" content="ResortPass Tracker" />
   <meta property="og:locale" content={localeMap[lang]} />
   {languages.filter(l => l !== lang).map(l => (
@@ -76,7 +86,7 @@ function getPathForLang(targetLang: Lang): string {
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
-  <meta name="twitter:image" content={`${siteUrl}/og-image.png`} />
+  <meta name="twitter:image" content={`${siteUrl}${ogImage}`} />
 
   <!-- Theme Color -->
   <meta name="theme-color" content="#FFFFFF" />

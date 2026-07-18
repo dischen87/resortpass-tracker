@@ -13,6 +13,7 @@ const tr = (key: string) => getTranslation(lang, key);
 
 const imprintPath = lang === defaultLang ? '/impressum/' : `/${lang}/impressum/`;
 const homePath = lang === defaultLang ? '/' : `/${lang}/`;
+const waitTimesPath = `${homePath}wartezeiten/`;
 ---
 
 <!-- CTA Section -->
@@ -77,6 +78,7 @@ const homePath = lang === defaultLang ? '/' : `/${lang}/`;
       <div>
         <h4 class="text-sm font-bold mb-3" style="font-family: var(--font-heading);">Links</h4>
         <ul class="space-y-2">
+          <li><a href={waitTimesPath} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('nav.wait_times')}</a></li>
           <li><a href={`${homePath}#benachrichtigung`} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('subscribe.sticky_cta')}</a></li>
           <li><a href={`${homePath}#info`} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">Info</a></li>
           <li><a href={`${homePath}#history`} class="text-sm text-muted hover:text-text-primary transition cursor-pointer">{tr('history.title')}</a></li>

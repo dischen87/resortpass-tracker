@@ -13,6 +13,7 @@ Der Europa-Park ResortPass ist derzeit ausverkauft; ein neuer Verkaufstermin ist
 ## Features
 
 - **15-Minuten-Verfügbarkeitscheck** — Silver & Gold, mit zweiter Bestätigung vor einem Alert
+- **Live-Wartezeiten** — Europa-Park-Attraktionen, serverseitig alle fünf Minuten aktualisiert
 - **E-Mail-Benachrichtigung** — Double Opt-In, sofortiger Alarm bei Verfügbarkeit
 - **Verlauf und Feed** — reale Prüfungen, tägliche Zusammenfassungen und RSS
 - **Mehrsprachig** — Deutsch, Englisch, Französisch, Italienisch
@@ -26,7 +27,7 @@ Der Europa-Park ResortPass ist derzeit ausverkauft; ein neuer Verkaufstermin ist
 
 | Komponente | Technologie |
 |-----------|-------------|
-| Website | Astro 5 + Tailwind CSS v4 |
+| Website | Astro 6 + Tailwind CSS v4 |
 | Runtime | Bun |
 | Scraper | Bun Script mit `fetch()` + HTML-Parsing |
 | Datenbank | SQLite (via `bun:sqlite`) |
@@ -45,6 +46,7 @@ resortpass-tracker/
 │   ├── layouts/Layout.astro
 │   ├── pages/
 │   │   ├── index.astro           # Hauptseite (DE)
+│   │   ├── wartezeiten.astro     # Live-Wartezeiten (DE)
 │   │   ├── {en,fr,it}/            # Lokalisierte Seiten
 │   │   ├── impressum.astro       # Impressum + Datenschutz
 │   │   ├── confirm.astro         # E-Mail-Bestätigung
@@ -52,6 +54,7 @@ resortpass-tracker/
 │   │   └── 404.astro
 │   ├── components/
 │   │   ├── HomePage.astro        # Gemeinsame lokalisierte Startseite
+│   │   ├── WaitTimesPage.astro   # Gemeinsame Live-Wartezeiten-Seite
 │   │   ├── TokenPage.astro       # Bestätigung und Abmeldung
 │   │   ├── CommunityFormPage.astro
 │   │   ├── StatusCard.astro
@@ -64,6 +67,7 @@ resortpass-tracker/
 │   ├── index.ts                  # API Server
 │   ├── db.ts                     # SQLite Setup & Queries
 │   ├── email.ts                  # E-Mail Versand
+│   ├── wait-times.ts             # Wartezeiten-API, Cache und Normalisierung
 │   └── checker.ts                # Scraper/Checker Script
 ├── emails/                       # E-Mail Templates (HTML)
 │   ├── confirm.html
@@ -173,6 +177,7 @@ sudo systemctl enable --now resortpass-checker.timer
 | Methode | Pfad | Beschreibung |
 |---------|------|-------------|
 | `GET` | `/api/status` | Aktueller Verfügbarkeitsstatus |
+| `GET` | `/api/wait-times` | Aktuelle Europa-Park-Wartezeiten (5-Minuten-Cache) |
 | `GET` | `/api/health` | Health Check |
 | `GET` | `/api/news?lang=de` | Tägliche, lokalisierte Statusberichte |
 | `GET` | `/api/feed.xml?lang=de` | RSS-Feed |
@@ -196,6 +201,8 @@ sudo systemctl enable --now resortpass-checker.timer
 | ResortPass Silver | `https://tickets.mackinternational.de/de/ticket/resortpass-silver` |
 | ResortPass Gold | `https://tickets.mackinternational.de/de/ticket/resortpass-gold` |
 | Übersicht | `https://tickets.mackinternational.de/de/resortpass/uebersicht` |
+
+Die Live-Wartezeiten werden über die dokumentierte Queue-Times-API geladen. Die geforderte Attribution „Powered by Queue-Times.com“ wird auf jeder Wartezeiten-Seite angezeigt.
 
 ---
 

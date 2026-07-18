@@ -21,6 +21,7 @@ import {
 } from './db';
 import { localizedSiteUrl, sendConfirmationEmail, sendUnsubscribeConfirmation } from './email';
 import { buildRss, formatDailyDigest, normalizeFeedLanguage } from './feed';
+import { getWaitTimes, getWaitTimesCacheHealth, startWaitTimesPoller } from './wait-times';
 
 const app = new Hono();
 const SITE_URL = process.env.SITE_URL || 'https://www.resortpass-europapark.ch';
@@ -142,6 +143,7 @@ setInterval(() => {
 
 // Initialize DB on start
 getDb();
+startWaitTimesPoller();
 
 // Health check
 app.get('/api/health', (c) => {
@@ -160,6 +162,7 @@ app.get('/api/health', (c) => {
       ageMinutes: knownAges.length ? Math.max(...knownAges) : null,
       passes,
     },
+    waitTimes: getWaitTimesCacheHealth(),
   };
   return c.json(body, fresh ? 200 : 503);
 });
@@ -184,6 +187,19 @@ app.get('/api/status', (c) => {
     silver: response(status.silver),
     gold: response(status.gold),
   });
+});
+
+// Live Europa-Park attraction wait times, cached for the provider's five-minute update cycle.
+app.get('/api/wait-times', async (c) => {
+  try {
+    const waitTimes = await getWaitTimes();
+    c.header('Cache-Control', 'public, max-age=60, s-maxage=300');
+    return c.json(waitTimes);
+  } catch (error) {
+    console.error('Wait-times error:', error);
+    c.header('Cache-Control', 'no-store');
+    return c.json({ error: 'Live wait times are temporarily unavailable.' }, 503);
+  }
 });
 
 // Get history stats (aggregate statistics)

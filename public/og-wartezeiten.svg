@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f8faff"/>
+  <rect width="1200" height="8" fill="#2563eb"/>
+  <circle cx="1040" cy="120" r="230" fill="#dbeafe" opacity="0.8"/>
+  <circle cx="1110" cy="560" r="170" fill="#fef3c7" opacity="0.65"/>
+
+  <g transform="translate(78 78)">
+    <rect x="0" y="0" width="70" height="70" rx="16" fill="#2563eb" stroke="#1b1b3a" stroke-width="4"/>
+    <path d="M19 22h32v8a7 7 0 0 0 0 14v8H19v-8a7 7 0 0 0 0-14z" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M35 22v30" stroke="#fff" stroke-width="3" stroke-dasharray="4 5"/>
+  </g>
+
+  <g transform="translate(78 188)" font-family="Arial, Helvetica, sans-serif">
+    <text x="0" y="0" fill="#1b1b3a" font-size="66" font-weight="700">Europa-Park</text>
+    <text x="0" y="78" fill="#2563eb" font-size="66" font-weight="700">LIVE WAIT TIMES</text>
+    <text x="0" y="132" fill="#4a4a68" font-size="24">Wartezeiten · Temps d’attente · Tempi di attesa · Wait times</text>
+  </g>
+
+  <g transform="translate(78 370)" font-family="Arial, Helvetica, sans-serif">
+    <rect x="0" y="0" width="318" height="112" rx="20" fill="#fff" stroke="#1b1b3a" stroke-width="3"/>
+    <circle cx="36" cy="36" r="10" fill="#15803d"/>
+    <text x="58" y="45" fill="#1b1b3a" font-size="24" font-weight="700">LIVE DATA</text>
+    <text x="24" y="82" fill="#67677f" font-size="20">EVERY 5 MIN</text>
+
+    <rect x="338" y="0" width="318" height="112" rx="20" fill="#fff" stroke="#1b1b3a" stroke-width="3"/>
+    <path d="M368 27a15 15 0 1 0 0 30 15 15 0 0 0 0-30m11 26 13 13" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+    <text x="408" y="45" fill="#1b1b3a" font-size="24" font-weight="700">SEARCH &amp; FILTER</text>
+    <text x="362" y="82" fill="#67677f" font-size="20">FIND RIDES FAST</text>
+
+    <rect x="676" y="0" width="318" height="112" rx="20" fill="#fff" stroke="#2563eb" stroke-width="3"/>
+    <text x="704" y="45" fill="#2563eb" font-size="24" font-weight="700">DE · FR · IT · EN</text>
+    <text x="700" y="82" fill="#67677f" font-size="20">FOR EUROPA-PARK FANS</text>
+  </g>
+
+  <line x1="78" y1="540" x2="1122" y2="540" stroke="#d4d4e0" stroke-width="2"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">
+    <text x="78" y="586" fill="#4a4a68">resortpass-europapark.ch/wartezeiten</text>
+    <text x="1122" y="586" text-anchor="end" fill="#2563eb">COMMUNITY PROJECT</text>
+  </g>
+</svg>
