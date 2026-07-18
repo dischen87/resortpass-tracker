@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
 import {
   addSubscriber,
   confirmSubscriber,
@@ -24,6 +25,11 @@ import { buildRss, formatDailyDigest, normalizeFeedLanguage } from './feed';
 const app = new Hono();
 const SITE_URL = process.env.SITE_URL || 'https://www.resortpass-europapark.ch';
 const CHECKER_FRESH_MINUTES = 45;
+
+app.use('/api/*', bodyLimit({
+  maxSize: 64 * 1024,
+  onError: (c) => c.json({ error: 'Request body too large.' }, 413),
+}));
 
 function statusFreshness(value: { available: boolean; lastCheck: string } | null) {
   if (!value?.lastCheck) return { lastCheck: null, ageMinutes: null, fresh: false };
@@ -387,13 +393,14 @@ app.get('/api/community/pending', (c) => {
 });
 
 app.post('/api/community/moderate', async (c) => {
+  if (!ADMIN_TOKEN || c.req.header('authorization') !== `Bearer ${ADMIN_TOKEN}`) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
   try {
     const body = await c.req.json();
     const { id, action } = body;
 
-    if (!ADMIN_TOKEN || c.req.header('authorization') !== `Bearer ${ADMIN_TOKEN}`) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
     if (!id || !['approve', 'reject'].includes(action)) {
       return c.json({ error: 'Ungültige Anfrage.' }, 400);
     }

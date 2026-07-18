@@ -27,7 +27,6 @@ const config = {
     iconBorder: 'border-gold/40',
     iconColor: 'text-gold',
     labelColor: 'text-gold-light',
-    badgeClass: 'bg-gold/10 text-gold-light border-2 border-gold/30',
   },
   silver: {
     label: 'ResortPass Silver',
@@ -39,7 +38,6 @@ const config = {
     iconBorder: 'border-silver/40',
     iconColor: 'text-silver',
     labelColor: 'text-silver-light',
-    badgeClass: 'bg-silver/10 text-silver-light border-2 border-silver/30',
   },
 };
 
@@ -75,12 +73,6 @@ const c = config[type];
         <p class="text-xs text-muted mt-0.5">{c.includes}</p>
       </div>
     </div>
-    <span class:list={[
-      'text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider',
-      c.badgeClass,
-    ]}>
-      {isGold ? 'PREMIUM' : 'CLASSIC'}
-    </span>
   </div>
 
   <!-- Status: Loading -->

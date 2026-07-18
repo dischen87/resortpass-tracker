@@ -167,63 +167,71 @@ const tr = (key: string) => getTranslation(lang, key);
         sincEl.textContent = `${tr('history.tracking_since')} ${formatted}`;
       }
 
-      if (recentRes.ok) {
-        const checks = await recentRes.json();
-        const tbody = document.getElementById('recent-checks-body');
-        if (!tbody || !checks.length) return;
+      const tbody = document.getElementById('recent-checks-body');
+      if (!tbody) return;
 
-        const grouped: Record<string, { silver?: boolean; gold?: boolean }> = {};
-        for (const check of checks) {
-          const key = check.checked_at;
-          if (!grouped[key]) grouped[key] = {};
-          if (check.pass_type === 'silver') grouped[key].silver = !!check.available;
-          if (check.pass_type === 'gold') grouped[key].gold = !!check.available;
-        }
-
-        const timestamps = Object.keys(grouped).sort().reverse();
-        const merged: { time: string; silver?: boolean; gold?: boolean }[] = [];
-
-        for (const ts of timestamps) {
-          const existing = merged.find((m) => Math.abs(new Date(m.time + 'Z').getTime() - new Date(ts + 'Z').getTime()) < 5000);
-          if (existing) {
-            if (grouped[ts].silver !== undefined) existing.silver = grouped[ts].silver;
-            if (grouped[ts].gold !== undefined) existing.gold = grouped[ts].gold;
-          } else {
-            merged.push({ time: ts, ...grouped[ts] });
-          }
-        }
-
-        const locale = histLang === 'de' ? 'de-CH' : histLang === 'fr' ? 'fr-CH' : histLang === 'it' ? 'it-CH' : 'en-US';
-        const PAGE_SIZE = 20;
-        let currentPage = 0;
-        const totalPages = Math.ceil(merged.length / PAGE_SIZE);
-
-        function renderPage() {
-          const start = currentPage * PAGE_SIZE;
-          const pageItems = merged.slice(start, start + PAGE_SIZE);
-          tbody!.innerHTML = pageItems.map((row) => {
-            const date = new Date(row.time + 'Z');
-            const timeStr = date.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-            const silverHtml = row.silver !== undefined ? statusBadge(row.silver, SHOP) : '<span class="text-muted text-xs">—</span>';
-            const goldHtml = row.gold !== undefined ? statusBadge(row.gold, SHOP) : '<span class="text-muted text-xs">—</span>';
-            return `<tr class="border-t-2 border-border-light"><td class="px-4 py-3 font-mono text-xs text-text-secondary whitespace-nowrap">${timeStr}</td><td class="px-4 py-3 text-center">${silverHtml}</td><td class="px-4 py-3 text-center">${goldHtml}</td></tr>`;
-          }).join('');
-
-          const prevBtn = document.getElementById('prev-page') as HTMLButtonElement;
-          const nextBtn = document.getElementById('next-page') as HTMLButtonElement;
-          const pageInfo = document.getElementById('page-info');
-          if (prevBtn) prevBtn.disabled = currentPage === 0;
-          if (nextBtn) nextBtn.disabled = currentPage >= totalPages - 1;
-          if (pageInfo) pageInfo.textContent = tr('history.page_info').replace('{page}', String(currentPage + 1)).replace('{total}', String(totalPages));
-        }
-
-        if (totalPages > 1) {
-          document.getElementById('pagination-controls')?.classList.remove('hidden');
-          document.getElementById('prev-page')?.addEventListener('click', () => { if (currentPage > 0) { currentPage--; renderPage(); } });
-          document.getElementById('next-page')?.addEventListener('click', () => { if (currentPage < totalPages - 1) { currentPage++; renderPage(); } });
-        }
-        renderPage();
+      if (!recentRes.ok) {
+        tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-muted text-xs">${tr('history.no_data')}</td></tr>`;
+        return;
       }
+
+      const checks = await recentRes.json();
+      if (!checks.length) {
+        tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-muted text-xs">${tr('history.no_data')}</td></tr>`;
+        return;
+      }
+
+      const grouped: Record<string, { silver?: boolean; gold?: boolean }> = {};
+      for (const check of checks) {
+        const key = check.checked_at;
+        if (!grouped[key]) grouped[key] = {};
+        if (check.pass_type === 'silver') grouped[key].silver = !!check.available;
+        if (check.pass_type === 'gold') grouped[key].gold = !!check.available;
+      }
+
+      const timestamps = Object.keys(grouped).sort().reverse();
+      const merged: { time: string; silver?: boolean; gold?: boolean }[] = [];
+
+      for (const ts of timestamps) {
+        const existing = merged.find((m) => Math.abs(new Date(m.time + 'Z').getTime() - new Date(ts + 'Z').getTime()) < 5000);
+        if (existing) {
+          if (grouped[ts].silver !== undefined) existing.silver = grouped[ts].silver;
+          if (grouped[ts].gold !== undefined) existing.gold = grouped[ts].gold;
+        } else {
+          merged.push({ time: ts, ...grouped[ts] });
+        }
+      }
+
+      const locale = histLang === 'de' ? 'de-CH' : histLang === 'fr' ? 'fr-CH' : histLang === 'it' ? 'it-CH' : 'en-US';
+      const PAGE_SIZE = 20;
+      let currentPage = 0;
+      const totalPages = Math.ceil(merged.length / PAGE_SIZE);
+
+      function renderPage() {
+        const start = currentPage * PAGE_SIZE;
+        const pageItems = merged.slice(start, start + PAGE_SIZE);
+        tbody.innerHTML = pageItems.map((row) => {
+          const date = new Date(row.time + 'Z');
+          const timeStr = date.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+          const silverHtml = row.silver !== undefined ? statusBadge(row.silver, SHOP) : '<span class="text-muted text-xs">—</span>';
+          const goldHtml = row.gold !== undefined ? statusBadge(row.gold, SHOP) : '<span class="text-muted text-xs">—</span>';
+          return `<tr class="border-t-2 border-border-light"><td class="px-4 py-3 font-mono text-xs text-text-secondary whitespace-nowrap">${timeStr}</td><td class="px-4 py-3 text-center">${silverHtml}</td><td class="px-4 py-3 text-center">${goldHtml}</td></tr>`;
+        }).join('');
+
+        const prevBtn = document.getElementById('prev-page') as HTMLButtonElement;
+        const nextBtn = document.getElementById('next-page') as HTMLButtonElement;
+        const pageInfo = document.getElementById('page-info');
+        if (prevBtn) prevBtn.disabled = currentPage === 0;
+        if (nextBtn) nextBtn.disabled = currentPage >= totalPages - 1;
+        if (pageInfo) pageInfo.textContent = tr('history.page_info').replace('{page}', String(currentPage + 1)).replace('{total}', String(totalPages));
+      }
+
+      if (totalPages > 1) {
+        document.getElementById('pagination-controls')?.classList.remove('hidden');
+        document.getElementById('prev-page')?.addEventListener('click', () => { if (currentPage > 0) { currentPage--; renderPage(); } });
+        document.getElementById('next-page')?.addEventListener('click', () => { if (currentPage < totalPages - 1) { currentPage++; renderPage(); } });
+      }
+      renderPage();
     } catch {
       loadingEl?.classList.add('hidden');
       emptyEl?.classList.remove('hidden');

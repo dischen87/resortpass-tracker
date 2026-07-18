@@ -13,19 +13,20 @@ const { lang, mode } = Astro.props;
 const tr = (key: string) => getTranslation(lang, key);
 const isConfirm = mode === 'confirm';
 const key = isConfirm ? 'confirm' : 'unsub';
+const initialTitleKey = isConfirm ? 'confirm.title' : 'unsub.confirm_title';
 const homePath = lang === 'de' ? '/' : `/${lang}/`;
 ---
 
 <Layout
   lang={lang}
-  title={`${tr(`${key}.title`)} — ResortPass Tracker`}
-  description={tr(`${key}.success`)}
+  title={`${tr(initialTitleKey)} — ResortPass Tracker`}
+  description={isConfirm ? tr('confirm.success') : tr('unsub.confirm_prompt')}
   noindex
 >
   <main id="main-content" class="max-w-2xl mx-auto px-4 py-20 text-center min-h-[60vh]">
     <div class="glass-card p-8 md:p-10 max-w-md mx-auto animate-fade-in-up">
       <p class="text-xs font-bold uppercase tracking-wider text-accent mb-3">ResortPass Tracker</p>
-      <h1 class="text-2xl font-bold mb-3">{tr(`${key}.title`)}</h1>
+      <h1 id="token-title" class="text-2xl font-bold mb-3">{tr(initialTitleKey)}</h1>
 
       <p class="text-text-secondary text-sm mb-6 leading-relaxed" id="token-message" role="status" aria-live="polite">
         {isConfirm ? tr('confirm.processing') : tr('unsub.confirm_prompt')}
@@ -62,6 +63,7 @@ const homePath = lang === 'de' ? '/' : `/${lang}/`;
     const token = params.get('token');
     const message = document.getElementById('token-message')!;
     const success = document.getElementById('token-success')!;
+    const title = document.getElementById('token-title')!;
     const button = document.getElementById('unsubscribe-button') as HTMLButtonElement | null;
 
     function showError() {
@@ -71,6 +73,7 @@ const homePath = lang === 'de' ? '/' : `/${lang}/`;
     }
 
     function showSuccess() {
+      title.textContent = tr(`${config.mode === 'confirm' ? 'confirm' : 'unsub'}.title`);
       message.textContent = '';
       success.classList.remove('hidden');
       button?.remove();

@@ -45,22 +45,19 @@ resortpass-tracker/
 │   ├── layouts/Layout.astro
 │   ├── pages/
 │   │   ├── index.astro           # Hauptseite (DE)
-│   │   ├── en/index.astro        # Englisch
-│   │   ├── fr/index.astro        # Französisch
-│   │   ├── it/index.astro        # Italienisch
-│   │   ├── impressum.astro       # Impressum
-│   │   ├── confirm.astro         # E-Mail bestätigt
-│   │   ├── unsubscribe.astro     # Abgemeldet
-│   │   ├── 404.astro
-│   │   └── sitemap.xml.ts
+│   │   ├── {en,fr,it}/            # Lokalisierte Seiten
+│   │   ├── impressum.astro       # Impressum + Datenschutz
+│   │   ├── confirm.astro         # E-Mail-Bestätigung
+│   │   ├── unsubscribe.astro     # Abmeldebestätigung
+│   │   └── 404.astro
 │   ├── components/
-│   │   ├── StatusCard.astro      # Verfügbarkeitskarte
-│   │   ├── SubscribeForm.astro   # E-Mail-Formular
-│   │   ├── HistorySection.astro  # Verlaufsstatistiken
-│   │   ├── Hero.astro
-│   │   ├── InfoSection.astro
-│   │   ├── LanguageSwitcher.astro
-│   │   └── Footer.astro
+│   │   ├── HomePage.astro        # Gemeinsame lokalisierte Startseite
+│   │   ├── TokenPage.astro       # Bestätigung und Abmeldung
+│   │   ├── CommunityFormPage.astro
+│   │   ├── StatusCard.astro
+│   │   ├── SubscribeForm.astro
+│   │   ├── NewsSection.astro
+│   │   └── HistorySection.astro
 │   ├── i18n/translations.ts
 │   └── styles/global.css
 ├── server/                       # Backend (Bun + Hono)

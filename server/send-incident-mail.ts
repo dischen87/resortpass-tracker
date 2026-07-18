@@ -14,8 +14,7 @@ const FROM_NAME = process.env.FROM_NAME || 'ResortPass Tracker';
 const transportConfig: any = {
   host: SMTP_HOST,
   port: SMTP_PORT,
-  secure: false,
-  tls: { rejectUnauthorized: false },
+  secure: SMTP_PORT === 465,
 };
 
 if (SMTP_USER && SMTP_PASS) {
