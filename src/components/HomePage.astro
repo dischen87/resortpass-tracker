@@ -29,18 +29,15 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
   <main id="main-content">
     <Hero lang={lang} />
 
-    <section class="py-10 md:py-16" aria-labelledby="status-heading">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-7">
-          <h2 id="status-heading" class="text-2xl md:text-3xl font-bold">Status</h2>
-          <p class="mt-2 text-sm text-text-secondary">{tr('status.updated_3x')}</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+    <section id="status" class="py-10 md:py-16" aria-labelledby="status-heading">
+      <div class="section-shell">
+        <h2 id="status-heading" class="sr-only">Status</h2>
+        <div class="mx-auto grid max-w-[55rem] grid-cols-1 gap-7 md:grid-cols-2">
           <StatusCard type="silver" lang={lang} />
           <StatusCard type="gold" lang={lang} />
         </div>
 
-        <p class="mt-6 text-center text-xs text-muted font-mono" id="last-check" role="status" aria-live="polite">
+        <p class="mt-7 text-center font-mono text-xs text-muted" id="last-check" role="status" aria-live="polite">
           <span id="last-check-text">{tr('status.loading')}</span>
         </p>
       </div>
@@ -56,14 +53,14 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
   <Footer lang={lang} />
 
   <div id="sticky-cta" class="fixed bottom-0 left-0 right-0 z-50 pointer-events-none opacity-0 translate-y-full transition-all duration-300" aria-hidden="true" inert>
-    <div class="max-w-6xl mx-auto px-4 pb-4 pt-2">
+    <div class="section-shell pb-4 pt-2">
       <div class="pointer-events-auto max-w-md mx-auto">
-        <a href="#benachrichtigung" class="btn-primary w-full py-4 rounded-2xl text-base">
+        <a href="#benachrichtigung" class="btn-primary w-full py-4 text-base">
           {tr('subscribe.sticky_cta')}
         </a>
       </div>
     </div>
-    <div class="absolute inset-0 -z-10 bg-gradient-to-t from-bg via-bg/95 to-transparent pointer-events-none"></div>
+    <div class="absolute inset-0 -z-10 bg-bg/95 pointer-events-none backdrop-blur-sm"></div>
   </div>
 
   <script type="application/ld+json" set:html={JSON.stringify({
@@ -172,7 +169,7 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
 
       const heroValue = document.getElementById(`hero-status-${type}`);
       if (heroValue) {
-        heroValue.textContent = state === 'available' ? tr('status.available') : state === 'sold_out' ? tr('status.sold_out') : tr('status.error');
+        heroValue.textContent = state === 'available' ? tr('status.available') : state === 'sold_out' ? tr('status.sold_out') : tr('status.unknown_short');
         heroValue.dataset.state = state;
       }
     }

@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
+import icon from 'astro-icon';
 
 const siteUrl = 'https://www.resortpass-europapark.ch';
 const crowdCalendarUrls = {
@@ -18,6 +19,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   integrations: [
+    icon(),
     sitemap({
       i18n: {
         defaultLocale: 'de',

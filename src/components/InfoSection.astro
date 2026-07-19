@@ -1,4 +1,5 @@
 ---
+import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
 
 interface Props {
@@ -9,34 +10,34 @@ const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
 ---
 
-<section class="py-14 md:py-20 bg-bg-light/60" id="info" aria-labelledby="info-heading">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+<section class="py-16 md:py-20" id="info" aria-labelledby="info-heading">
+  <div class="section-shell">
     <div class="text-center mb-9 md:mb-12">
-      <h2 id="info-heading" class="text-2xl md:text-3xl font-bold mb-3">{tr('info.section_title')}</h2>
+      <h2 id="info-heading" class="section-heading mb-3">{tr('info.section_title')}</h2>
       <p class="text-text-secondary max-w-2xl mx-auto">{tr('info.section_desc')}</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-      <article class="card rounded-2xl p-6">
-        <p class="text-xs font-bold uppercase tracking-wider text-accent mb-3">01</p>
+      <article class="card rounded-2xl p-6 shadow-[4px_4px_0_#C4B5FD]">
+        <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent mb-3">01</p>
         <h3 class="text-lg font-bold mb-3">{tr('info.what_title')}</h3>
         <p class="text-sm text-text-secondary leading-relaxed">{tr('info.what_text')}</p>
       </article>
 
-      <article class="card rounded-2xl p-6">
-        <p class="text-xs font-bold uppercase tracking-wider text-accent mb-3">02</p>
+      <article class="card rounded-2xl p-6 shadow-[4px_4px_0_#FDE68A]">
+        <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent mb-3">02</p>
         <h3 class="text-lg font-bold mb-3">{tr('info.why_title')}</h3>
         <p class="text-sm text-text-secondary leading-relaxed">{tr('info.why_text')}</p>
       </article>
 
-      <article class="card rounded-2xl p-6">
-        <p class="text-xs font-bold uppercase tracking-wider text-accent mb-3">03</p>
+      <article class="card rounded-2xl p-6 shadow-[4px_4px_0_#F9A8D4]">
+        <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent mb-3">03</p>
         <h3 class="text-lg font-bold mb-3">{tr('info.how_title')}</h3>
         <p class="text-sm text-text-secondary leading-relaxed">{tr('info.how_text')}</p>
       </article>
     </div>
 
-    <article class="card rounded-2xl p-6 md:p-8 mb-8 border-accent" style="box-shadow: 4px 4px 0 var(--color-accent);">
+    <article class="card rounded-2xl p-6 md:p-8 mb-8 border-accent shadow-[5px_5px_0_var(--color-accent)]">
       <p class="text-xs font-bold uppercase tracking-wider text-accent mb-2">{tr('info.answer_label')}</p>
       <h3 class="text-xl md:text-2xl font-bold mb-3">{tr('info.tip_title')}</h3>
       <p class="text-text-secondary leading-relaxed">{tr('info.tip_text')}</p>
@@ -62,7 +63,10 @@ const tr = (key: string) => getTranslation(lang, key);
 
     <p class="mt-5 text-center text-xs text-muted">
       {tr('info.source_note')}
-      <a href="https://www.europapark.de/de/resortpass/faq" target="_blank" rel="noopener noreferrer" class="font-bold underline underline-offset-2">{tr('status.official_details')}</a>
+      <a href="https://www.europapark.de/de/resortpass/faq" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-bold text-accent underline decoration-2 underline-offset-2">
+        {tr('status.official_details')}
+        <Icon name="tabler:external-link" class="h-3.5 w-3.5" aria-hidden="true" />
+      </a>
     </p>
   </div>
 </section>

@@ -1,4 +1,5 @@
 ---
+import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
 
 interface Props {
@@ -7,69 +8,72 @@ interface Props {
 
 const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
+const titleLines: Record<Lang, [string, string]> = {
+  de: ['Wann gibt es wieder', 'Europa-Park Jahreskarten?'],
+  fr: ['Quand le ResortPass', 'Europa-Park sera-t-il à nouveau disponible ?'],
+  it: ['Quando sarà di nuovo disponibile', 'il ResortPass Europa-Park?'],
+  en: ['When will Europa-Park', 'annual passes be available again?'],
+};
+const [titleLead, titleHighlight] = titleLines[lang];
+const answerLabel = { de: 'Antwort', fr: 'Réponse', it: 'Risposta', en: 'Answer' }[lang];
+const howLabel = { de: "So funktioniert's", fr: 'Comment ça marche', it: 'Come funziona', en: 'How it works' }[lang];
 ---
 
 <section class="relative overflow-hidden">
-  <!-- Background blobs -->
-  <div class="blob blob-blue w-[350px] h-[350px]" style="top: -80px; right: -60px;"></div>
-  <div class="blob blob-white w-[400px] h-[400px]" style="top: 60px; left: -100px;"></div>
-  <div class="blob blob-gold w-[280px] h-[280px]" style="bottom: -40px; right: 20%;"></div>
-  <div class="blob blob-blue w-[200px] h-[200px]" style="bottom: 20px; left: 10%;"></div>
+  <Icon name="tabler:confetti" class="absolute left-[5%] top-20 h-7 w-7 rotate-[-18deg] text-pink opacity-80" aria-hidden="true" />
+  <Icon name="tabler:sparkles" class="absolute right-[7%] top-44 h-8 w-8 text-yellow" aria-hidden="true" />
 
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-7 pb-10 md:pt-16 md:pb-20 relative z-10">
-
-    <div class="max-w-2xl mx-auto text-center lg:max-w-3xl">
-      <!-- Badge -->
-      <div class="mb-4 md:mb-6 animate-fade-in-up">
+  <div class="section-shell relative z-10 pb-14 pt-8 text-center md:pb-20 md:pt-16">
+    <div class="mx-auto max-w-[56.25rem]">
+      <div class="mb-6 animate-fade-in-up">
         <span class="badge">
-          <span class="badge-dot"></span>
+          <Icon name="tabler:rollercoaster" class="h-4 w-4 text-pink" aria-hidden="true" />
           {tr('hero.badge')}
         </span>
       </div>
 
-      <!-- Main heading -->
-      <h1 class="text-[2.15rem] md:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.08] mb-4 md:mb-6 animate-fade-in-up-delay-1" style="font-family: var(--font-heading);">
-        {tr('hero.title')}
+      <h1 class="mb-6 text-[2.15rem] font-extrabold leading-[1.02] tracking-[-0.015em] md:text-5xl lg:text-[3.65rem] animate-fade-in-up-delay-1">
+        <span class="block">{titleLead}</span>
+        <span class="highlight-swipe">{titleHighlight}</span>
       </h1>
 
-      <!-- Subtitle -->
-      <p class="text-text-secondary text-base md:text-lg leading-relaxed mb-5 md:mb-8 max-w-xl mx-auto animate-fade-in-up-delay-2">
-        {tr('hero.subtitle')}
-      </p>
-
-      <!-- The answer visitors came for, visible before the mobile fold -->
-      <div class="hero-status max-w-xl mx-auto mb-5 md:mb-7 animate-fade-in-up-delay-2" role="status" aria-live="polite" aria-atomic="true">
-        <div class="hero-status-row">
-          <span class="hero-status-label">ResortPass Silver</span>
-          <span class="hero-status-value" id="hero-status-silver">{tr('status.loading')}</span>
+      <div class="hero-status mx-auto mb-7 max-w-2xl animate-fade-in-up-delay-2" role="status" aria-live="polite" aria-atomic="true">
+        <p class="mb-2 font-mono text-[0.65rem] uppercase tracking-[0.14em] text-muted">
+          {answerLabel} · <span id="hero-status-time">{tr('status.updated_3x')}</span>
+        </p>
+        <p class="mb-3 text-left text-[0.98rem] leading-relaxed text-text-secondary md:text-[1.05rem]">
+          {tr('hero.subtitle')}
+        </p>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="hero-status-row rounded-full border-2 border-pink bg-pink/10 px-3">
+            <span class="hero-status-label">Silver</span>
+            <span class="hero-status-value" id="hero-status-silver">{tr('status.loading')}</span>
+          </div>
+          <div class="hero-status-row rounded-full border-2 border-pink bg-pink/10 px-3">
+            <span class="hero-status-label">Gold</span>
+            <span class="hero-status-value" id="hero-status-gold">{tr('status.loading')}</span>
+          </div>
         </div>
-        <div class="hero-status-row">
-          <span class="hero-status-label">ResortPass Gold</span>
-          <span class="hero-status-value" id="hero-status-gold">{tr('status.loading')}</span>
-        </div>
-        <p class="hero-status-time" id="hero-status-time">{tr('status.updated_3x')}</p>
       </div>
 
-      <!-- CTA buttons -->
-      <div id="hero-cta" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 mb-6 md:mb-9 animate-fade-in-up-delay-3">
-        <a href="#benachrichtigung" class="btn-primary cursor-pointer">
+      <div id="hero-cta" class="mb-5 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center animate-fade-in-up-delay-3">
+        <a href="#benachrichtigung" class="btn-primary min-h-14 px-8">
+          <Icon name="tabler:bell-ringing" class="h-5 w-5" aria-hidden="true" />
           {tr('subscribe.sticky_cta')}
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-          </svg>
         </a>
-        <a href="#info" class="btn-secondary cursor-pointer">
-          Info
+        <a href="#info" class="btn-secondary min-h-14 px-7">
+          <Icon name="tabler:info-circle" class="h-5 w-5" aria-hidden="true" />
+          {howLabel}
         </a>
       </div>
 
-      <!-- Stats bar -->
-      <div class="flex items-center justify-center animate-fade-in-up-delay-3">
-        <div>
-          <p class="text-2xl md:text-3xl font-bold" style="font-family: var(--font-heading);" id="fan-count">---</p>
-          <p class="text-sm text-muted">{tr('subscribe.waiting_fans')}</p>
-        </div>
-      </div>
+      <p class="text-sm text-muted animate-fade-in-up-delay-3">
+        <strong class="text-text-primary"><span id="fan-count">---</span> {tr('subscribe.waiting_fans')}</strong>
+        <span aria-hidden="true"> · </span>
+        <span>{tr('subscribe.privacy').split('.')[0]}</span>
+      </p>
     </div>
   </div>
+
+  <div class="h-14 md:h-20" aria-hidden="true"></div>
 </section>

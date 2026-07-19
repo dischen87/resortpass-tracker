@@ -1,0 +1,101 @@
+---
+import { Icon } from 'astro-icon/components';
+import Layout from '../layouts/Layout.astro';
+import Navbar from './Navbar.astro';
+import Footer from './Footer.astro';
+import '../styles/global.css';
+import { getTranslation, type Lang } from '../i18n/translations';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const tr = (key: string) => getTranslation(lang, key);
+const homePath = lang === 'de' ? '/' : `/${lang}/`;
+const imprintPath = lang === 'de' ? '/impressum/' : `/${lang}/impressum/`;
+const homeName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home' }[lang];
+const cards = [
+  { icon: 'tabler:user', title: tr('imprint.info_title'), shadow: '#C4B5FD', kind: 'contact' },
+  { icon: 'tabler:alert-triangle', title: tr('imprint.disclaimer_title'), shadow: '#FDE68A', kind: 'disclaimer' },
+  { icon: 'tabler:lock', title: tr('imprint.privacy_title'), shadow: '#F9A8D4', kind: 'privacy' },
+  { icon: 'tabler:copyright', title: tr('imprint.copyright_title'), shadow: '#C4B5FD', kind: 'copyright' },
+  { icon: 'tabler:scale', title: tr('imprint.legal_title'), shadow: '#FDE68A', kind: 'legal' },
+] as const;
+---
+
+<Layout lang={lang} title={`${tr('imprint.title')} — ResortPass Tracker`} description={tr('imprint.title')}>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: homeName, item: `https://www.resortpass-europapark.ch${homePath}` },
+      { '@type': 'ListItem', position: 2, name: tr('imprint.title'), item: `https://www.resortpass-europapark.ch${imprintPath}` },
+    ],
+  })} />
+
+  <Navbar lang={lang} />
+  <main id="main-content" class="mx-auto max-w-3xl px-4 py-12 md:py-16">
+    <a href={homePath} class="mb-8 inline-flex min-h-11 items-center gap-1.5 rounded-lg py-2 text-sm font-bold text-accent hover:underline">
+      <Icon name="tabler:arrow-left" class="h-4 w-4" aria-hidden="true" />
+      {tr('imprint.back')}
+    </a>
+
+    <h1 class="section-heading mb-10 md:text-4xl">{tr('imprint.title')}</h1>
+
+    <div class="space-y-7">
+      {cards.map((card) => (
+        <section class="glass-card p-6 md:p-7" style={`box-shadow: 5px 5px 0 ${card.shadow}`}>
+          <h2 class="mb-4 flex items-start gap-2.5 text-xl font-extrabold">
+            <Icon name={card.icon} class="mt-0.5 h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
+            {card.title}
+          </h2>
+
+          {card.kind === 'contact' && (
+            <div class="space-y-3 text-sm leading-relaxed text-text-secondary">
+              <p>Mathias Graf<br />Seestrasse 21<br />8703 Erlenbach<br />Schweiz</p>
+              <p><span class="text-muted">{tr('imprint.contact')}:</span><br /><a href="mailto:kontakt@resortpass-europapark.ch" class="font-bold text-accent hover:underline">kontakt@resortpass-europapark.ch</a></p>
+            </div>
+          )}
+
+          {card.kind === 'disclaimer' && (
+            <div class="space-y-3 text-sm leading-relaxed text-text-secondary">
+              <p>{tr('imprint.disclaimer_text')}</p>
+              <p>{tr('imprint.disclaimer_text2')}</p>
+            </div>
+          )}
+
+          {card.kind === 'privacy' && (
+            <div class="space-y-6">
+              <div>
+                <h3 class="mb-2 text-base font-extrabold">{tr('imprint.data_collected_title')}</h3>
+                <p class="mb-2 text-sm text-text-secondary">{tr('imprint.data_collected_text')}</p>
+                <ul class="ml-5 list-disc space-y-1 text-sm text-text-secondary">
+                  <li>{tr('imprint.data_email')}</li>
+                  <li>{tr('imprint.data_preference')}</li>
+                  <li>{tr('imprint.data_timestamp')}</li>
+                </ul>
+              </div>
+              {[
+                ['imprint.data_purpose_title', 'imprint.data_purpose_text'],
+                ['imprint.tracking_title', 'imprint.tracking_text'],
+                ['imprint.history_title', 'imprint.history_text'],
+                ['imprint.deletion_title', 'imprint.deletion_text'],
+                ['imprint.hosting_title', 'imprint.hosting_text'],
+              ].map(([titleKey, textKey]) => (
+                <div>
+                  <h3 class="mb-2 text-base font-extrabold">{tr(titleKey)}</h3>
+                  <p class="text-sm leading-relaxed text-text-secondary">{tr(textKey)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {card.kind === 'copyright' && <p class="text-sm leading-relaxed text-text-secondary">{tr('imprint.copyright_text')}</p>}
+          {card.kind === 'legal' && <p class="text-sm leading-relaxed text-text-secondary">{tr('imprint.legal_text')}</p>}
+        </section>
+      ))}
+    </div>
+  </main>
+  <Footer lang={lang} />
+</Layout>

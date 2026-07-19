@@ -1,17 +1,20 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Footer from '../components/Footer.astro';
+import { Icon } from 'astro-icon/components';
+import Navbar from '../components/Navbar.astro';
 import '../styles/global.css';
 
 const lang = 'de' as const;
 ---
 
 <Layout lang={lang} title="404 — Seite nicht gefunden" description="Die gesuchte Seite wurde nicht gefunden." noindex>
-  <main id="main-content" class="max-w-2xl mx-auto px-4 py-20 text-center">
-    <div class="glass-card rounded-2xl p-8 md:p-12 max-w-md mx-auto animate-fade-in-up">
+  <Navbar lang={lang} />
+  <main id="main-content" class="max-w-2xl mx-auto px-4 py-16 text-center md:py-20">
+    <div class="glass-card rounded-2xl p-8 md:p-12 max-w-md mx-auto shadow-[5px_5px_0_#F9A8D4] animate-fade-in-up">
 
       <!-- 404 Number -->
-      <div class="text-7xl font-bold text-accent/20 font-mono mb-4">404</div>
+      <Icon name="tabler:route-off" class="mx-auto mb-4 h-14 w-14 text-pink" aria-hidden="true" />
+      <div class="mb-2 font-mono text-xs font-bold uppercase tracking-[0.2em] text-accent">404</div>
 
       <h1 class="text-2xl font-bold mb-3">Seite nicht gefunden</h1>
 
@@ -22,12 +25,11 @@ const lang = 'de' as const;
 
       <a
         href="/"
-        class="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-bold text-white transition hover:bg-accent-light hover:scale-[1.01] active:scale-[0.99]"
+        class="btn-primary"
       >
         <span>Zur Startseite</span>
+        <Icon name="tabler:arrow-right" class="h-4 w-4" aria-hidden="true" />
       </a>
     </div>
   </main>
-
-  <Footer lang={lang} showLanguageSwitcher={false} />
 </Layout>

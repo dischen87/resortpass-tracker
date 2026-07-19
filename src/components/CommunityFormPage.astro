@@ -19,24 +19,24 @@ const homePath = lang === 'de' ? '/' : `/${lang}/`;
   <main id="main-content" class="min-h-[70vh] py-14 md:py-20">
     <div class="max-w-xl mx-auto px-4 sm:px-6">
       <div class="text-center mb-8">
-        <p class="text-xs font-bold uppercase tracking-wider text-accent mb-2">Community</p>
-        <h1 class="text-2xl md:text-3xl font-bold mb-3">{tr('community.form_title')}</h1>
+        <p class="section-kicker mb-2">Community</p>
+        <h1 class="section-heading mb-3">{tr('community.form_title')}</h1>
         <p class="text-text-secondary">{tr('community.form_desc')}</p>
       </div>
 
-      <div class="card rounded-2xl p-6 md:p-8">
+      <div class="card rounded-2xl p-6 shadow-[5px_5px_0_#C4B5FD] md:p-8">
         <form id="community-form" class="space-y-5">
           <div>
             <label for="author_name" class="block text-sm font-bold mb-1.5">{tr('community.name_label')}</label>
-            <input type="text" id="author_name" name="author_name" required maxlength="50" autocomplete="name" placeholder={tr('community.name_placeholder')} class="w-full px-4 py-3 rounded-xl bg-bg border-2 border-border text-text-primary placeholder:text-muted focus:border-accent focus:outline-none text-sm" />
+            <input type="text" id="author_name" name="author_name" required maxlength="50" autocomplete="name" placeholder={tr('community.name_placeholder')} class="min-h-12 w-full rounded-xl border-[3px] border-border bg-bg px-4 py-3 text-sm text-text-primary placeholder:text-muted focus:border-accent focus:outline-none" />
           </div>
           <div>
             <label for="community-title" class="block text-sm font-bold mb-1.5">{tr('community.title_label')}</label>
-            <input type="text" id="community-title" name="title" required minlength="3" maxlength="100" placeholder={tr('community.title_placeholder')} class="w-full px-4 py-3 rounded-xl bg-bg border-2 border-border text-text-primary placeholder:text-muted focus:border-accent focus:outline-none text-sm" />
+            <input type="text" id="community-title" name="title" required minlength="3" maxlength="100" placeholder={tr('community.title_placeholder')} class="min-h-12 w-full rounded-xl border-[3px] border-border bg-bg px-4 py-3 text-sm text-text-primary placeholder:text-muted focus:border-accent focus:outline-none" />
           </div>
           <div>
             <label for="community-body" class="block text-sm font-bold mb-1.5">{tr('community.body_label')}</label>
-            <textarea id="community-body" name="body" required minlength="10" rows="5" maxlength="2000" placeholder={tr('community.body_placeholder')} class="w-full px-4 py-3 rounded-xl bg-bg border-2 border-border text-text-primary placeholder:text-muted focus:border-accent focus:outline-none text-sm resize-y"></textarea>
+            <textarea id="community-body" name="body" required minlength="10" rows="5" maxlength="2000" placeholder={tr('community.body_placeholder')} class="w-full resize-y rounded-xl border-[3px] border-border bg-bg px-4 py-3 text-sm text-text-primary placeholder:text-muted focus:border-accent focus:outline-none"></textarea>
             <p class="text-xs text-muted mt-1"><span id="char-count">0</span>/2000</p>
           </div>
           <button type="submit" id="submit-btn" class="btn-primary w-full" data-label={tr('community.submit')} data-submitting={tr('community.submitting')}>

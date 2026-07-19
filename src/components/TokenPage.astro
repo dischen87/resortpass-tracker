@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Footer from './Footer.astro';
+import { Icon } from 'astro-icon/components';
+import Navbar from './Navbar.astro';
 import '../styles/global.css';
 import { getTranslation, type Lang } from '../i18n/translations';
 
@@ -23,9 +24,11 @@ const homePath = lang === 'de' ? '/' : `/${lang}/`;
   description={isConfirm ? tr('confirm.success') : tr('unsub.confirm_prompt')}
   noindex
 >
-  <main id="main-content" class="max-w-2xl mx-auto px-4 py-20 text-center min-h-[60vh]">
-    <div class="glass-card p-8 md:p-10 max-w-md mx-auto animate-fade-in-up">
-      <p class="text-xs font-bold uppercase tracking-wider text-accent mb-3">ResortPass Tracker</p>
+  <Navbar lang={lang} />
+  <main id="main-content" class="mx-auto min-h-[70vh] max-w-2xl px-4 py-14 text-center md:py-20">
+    <div class="glass-card mx-auto max-w-md p-8 shadow-[5px_5px_0_#C4B5FD] animate-fade-in-up md:p-10">
+      <img src="/favicon.svg" alt="" width="56" height="56" class="mx-auto mb-5 h-14 w-14" />
+      <p class="section-kicker mb-3">ResortPass Tracker</p>
       <h1 id="token-title" class="text-2xl font-bold mb-3">{tr(initialTitleKey)}</h1>
 
       <p class="text-text-secondary text-sm mb-6 leading-relaxed" id="token-message" role="status" aria-live="polite">
@@ -39,7 +42,7 @@ const homePath = lang === 'de' ? '/' : `/${lang}/`;
       )}
 
       <div id="token-success" class="hidden mb-6 rounded-xl bg-green-50 border-2 border-green-200 p-4">
-        <p class="text-sm text-available">{tr(`${key}.success`)}</p>
+        <p class="flex items-start justify-center gap-2 text-sm text-available"><Icon name="tabler:circle-check" class="h-5 w-5 shrink-0" aria-hidden="true" />{tr(`${key}.success`)}</p>
       </div>
 
       <a href={homePath} class="inline-flex items-center text-sm font-bold text-accent hover:underline">
@@ -47,8 +50,6 @@ const homePath = lang === 'de' ? '/' : `/${lang}/`;
       </a>
     </div>
   </main>
-
-  <Footer lang={lang} showLanguageSwitcher={false} />
 
   <script define:vars={{ lang, mode }}>
     window.__tokenPage = { lang, mode };
