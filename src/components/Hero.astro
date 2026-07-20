@@ -1,6 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components';
-import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+import { type Lang, defaultLang, crowdCalendarPaths, getTranslation } from '../i18n/translations';
 
 interface Props {
   lang?: Lang;
@@ -17,6 +17,15 @@ const titleLines: Record<Lang, [string, string]> = {
 const [titleLead, titleHighlight] = titleLines[lang];
 const answerLabel = { de: 'Antwort', fr: 'Réponse', it: 'Risposta', en: 'Answer' }[lang];
 const howLabel = { de: "So funktioniert's", fr: 'Comment ça marche', it: 'Come funziona', en: 'How it works' }[lang];
+const exploreLabel = { de: 'Mehr entdecken', fr: 'À découvrir', it: 'Scopri di più', en: 'Explore' }[lang];
+
+const homePath = lang === defaultLang ? '/' : `/${lang}/`;
+const features = [
+  { href: `${homePath}wartezeiten/`, icon: 'tabler:clock-hour-4', label: tr('nav.wait_times'), tint: 'accent', live: true },
+  { href: crowdCalendarPaths[lang], icon: 'tabler:calendar-stats', label: tr('nav.crowd_forecast'), tint: 'gold', live: true },
+  { href: `${homePath}#history`, icon: 'tabler:chart-dots-3', label: tr('nav.history_short'), tint: 'pink', live: false },
+  { href: `${homePath}#community`, icon: 'tabler:messages', label: 'Community', tint: 'accent', live: false },
+];
 ---
 
 <section class="relative overflow-hidden">
@@ -72,11 +81,21 @@ const howLabel = { de: "So funktioniert's", fr: 'Comment ça marche', it: 'Come 
         </a>
       </div>
 
-      <p class="text-sm text-muted animate-fade-in-up-delay-3">
-        <strong class="text-text-primary"><span id="fan-count" data-countup>---</span> {tr('subscribe.waiting_fans')}</strong>
-        <span aria-hidden="true"> · </span>
-        <span>{tr('subscribe.privacy').split('.')[0]}</span>
-      </p>
+      <div class="hero-live animate-fade-in-up-delay-3">
+        <span class="hero-live-badge"><span class="hero-live-dot" aria-hidden="true"></span>Live</span>
+        <span class="hero-live-number" id="fan-count" data-countup>800</span>
+        <span class="hero-live-label">{tr('subscribe.waiting_fans')} <span class="text-muted">· {tr('subscribe.privacy').split('.')[0]}</span></span>
+      </div>
+
+      <nav class="hero-features animate-fade-in-up-delay-4" aria-label={exploreLabel}>
+        {features.map((feature) => (
+          <a href={feature.href} class:list={['hero-feature', `hero-feature-${feature.tint}`]}>
+            <Icon name={feature.icon} class="hero-feature-icon h-4 w-4" aria-hidden="true" />
+            <span>{feature.label}</span>
+            {feature.live && <span class="hero-feature-live" aria-hidden="true"></span>}
+          </a>
+        ))}
+      </nav>
     </div>
   </div>
 
