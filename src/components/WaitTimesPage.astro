@@ -94,12 +94,14 @@ const clientCopy = {
 
       <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10 md:pt-16 md:pb-14">
         <div class="max-w-3xl">
-          <div class="inline-flex items-center gap-2 rounded-full border-2 border-accent/30 bg-white px-3 py-1.5 text-xs font-bold text-accent mb-5">
-            <span class="h-2 w-2 rounded-full bg-available" aria-hidden="true"></span>
-            {tr('wait.badge')}
+          <div class="mb-5 animate-fade-in-up">
+            <span class="badge">
+              <span class="h-2.5 w-2.5 rounded-full bg-available" aria-hidden="true"></span>
+              {tr('wait.badge')}
+            </span>
           </div>
-          <h1 class="text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] mb-5">{tr('wait.title')}</h1>
-          <p class="text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl">{tr('wait.subtitle')}</p>
+          <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5 animate-fade-in-up-delay-1">{tr('wait.title')}</h1>
+          <p class="text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl animate-fade-in-up-delay-2">{tr('wait.subtitle')}</p>
         </div>
 
         <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 text-sm">
@@ -151,7 +153,7 @@ const clientCopy = {
         <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto_auto] gap-4 lg:items-end">
           <label class="block">
             <span class="block text-sm font-bold mb-2">{tr('wait.search_label')}</span>
-            <input id="ride-search" type="search" autocomplete="off" placeholder={tr('wait.search_placeholder')} class="w-full rounded-xl border-2 border-border-light bg-white px-4 py-3 text-base placeholder:text-muted focus:border-accent" />
+            <input id="ride-search" type="search" autocomplete="off" placeholder={tr('wait.search_placeholder')} class="w-full rounded-xl border-[3px] border-border bg-bg px-4 py-3 text-base placeholder:text-muted focus:border-accent focus:outline-none" />
           </label>
 
           <fieldset>
@@ -165,7 +167,7 @@ const clientCopy = {
 
           <label class="block">
             <span class="block text-sm font-bold mb-2">{tr('wait.sort_label')}</span>
-            <select id="ride-sort" class="w-full rounded-xl border-2 border-border-light bg-white px-4 py-3 text-base focus:border-accent">
+            <select id="ride-sort" class="w-full rounded-xl border-[3px] border-border bg-bg px-4 py-3 text-base focus:border-accent focus:outline-none">
               <option value="longest">{tr('wait.sort_longest')}</option>
               <option value="shortest">{tr('wait.sort_shortest')}</option>
               <option value="name">{tr('wait.sort_name')}</option>
@@ -429,10 +431,16 @@ const clientCopy = {
 <style is:global>
   .summary-card {
     background: var(--color-surface);
-    border: 2.5px solid var(--color-border);
+    border: 3px solid var(--color-border);
     border-radius: 1rem;
-    box-shadow: 3px 3px 0 var(--color-border);
+    box-shadow: 3px 3px 0 var(--shadow-violet);
     padding: 1.25rem;
+    transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+  }
+
+  .summary-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 6px 6px 0 var(--shadow-violet);
   }
 
   .summary-card-accent {
@@ -440,12 +448,16 @@ const clientCopy = {
     box-shadow: 3px 3px 0 var(--color-accent);
   }
 
+  .summary-card-accent:hover {
+    box-shadow: 6px 6px 0 var(--color-accent);
+  }
+
   .wait-toolbar {
     position: sticky;
     top: 0.5rem;
     z-index: 20;
     background: rgb(255 255 255 / 96%);
-    border: 2.5px solid var(--color-border);
+    border: 3px solid var(--color-border);
     border-radius: 1rem;
     box-shadow: 3px 3px 0 var(--color-border);
     padding: 1rem;
@@ -480,14 +492,15 @@ const clientCopy = {
     justify-content: space-between;
     gap: 1rem;
     background: var(--color-surface);
-    border: 2px solid var(--color-border-light);
+    border: 3px solid var(--color-border);
     border-radius: 1rem;
+    box-shadow: 3px 3px 0 var(--color-border-light);
     padding: 1rem 1rem 1rem 1.15rem;
   }
 
-  .wait-ride-card { transition: border-color 0.2s ease, transform 0.2s ease; }
-  .wait-ride-card:hover { border-color: var(--color-border); transform: translateY(-1px); }
-  .wait-skeleton { min-height: 5.75rem; animation: wait-pulse 1.5s ease-in-out infinite; }
+  .wait-ride-card { transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+  .wait-ride-card:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--shadow-violet); }
+  .wait-skeleton { min-height: 5.75rem; border-color: var(--color-border-light); box-shadow: none; animation: wait-pulse 1.5s ease-in-out infinite; }
 
   .wait-badge {
     align-items: center;
@@ -500,6 +513,14 @@ const clientCopy = {
     min-height: 4.25rem;
     padding: 0.5rem;
     text-align: center;
+  }
+
+  /* Non-numeric badge labels (Offen / Geschlossen) must not overflow the fixed box */
+  .wait-badge[data-level="closed"] .ride-wait,
+  .wait-badge[data-level="unknown"] .ride-wait {
+    font-size: 0.72rem;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
   }
 
   .wait-badge[data-level="low"] { background: #f0fdf4; border-color: #86efac; color: var(--color-available); }

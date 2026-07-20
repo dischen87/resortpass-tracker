@@ -18,33 +18,33 @@ const tr = (key: string) => getTranslation(lang, key);
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-      <article class="card rounded-2xl p-6 shadow-[4px_4px_0_#C4B5FD]">
+      <article class="card reveal p-6" style="--card-shadow:#C4B5FD;--i:0">
         <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent mb-3">01</p>
         <h3 class="text-lg font-bold mb-3">{tr('info.what_title')}</h3>
         <p class="text-sm text-text-secondary leading-relaxed">{tr('info.what_text')}</p>
       </article>
 
-      <article class="card rounded-2xl p-6 shadow-[4px_4px_0_#FDE68A]">
+      <article class="card reveal p-6" style="--card-shadow:#FDE68A;--i:1">
         <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent mb-3">02</p>
         <h3 class="text-lg font-bold mb-3">{tr('info.why_title')}</h3>
         <p class="text-sm text-text-secondary leading-relaxed">{tr('info.why_text')}</p>
       </article>
 
-      <article class="card rounded-2xl p-6 shadow-[4px_4px_0_#F9A8D4]">
+      <article class="card reveal p-6" style="--card-shadow:#F9A8D4;--i:2">
         <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent mb-3">03</p>
         <h3 class="text-lg font-bold mb-3">{tr('info.how_title')}</h3>
         <p class="text-sm text-text-secondary leading-relaxed">{tr('info.how_text')}</p>
       </article>
     </div>
 
-    <article class="card rounded-2xl p-6 md:p-8 mb-8 border-accent shadow-[5px_5px_0_var(--color-accent)]">
+    <article class="card reveal p-6 md:p-8 mb-8 border-accent" style="--card-shadow:var(--color-accent)">
       <p class="text-xs font-bold uppercase tracking-wider text-accent mb-2">{tr('info.answer_label')}</p>
       <h3 class="text-xl md:text-2xl font-bold mb-3">{tr('info.tip_title')}</h3>
       <p class="text-text-secondary leading-relaxed">{tr('info.tip_text')}</p>
     </article>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-      <article class="card card-silver rounded-2xl p-6">
+      <article class="card card-silver reveal p-6" style="--i:0">
         <div class="flex items-baseline justify-between gap-4 mb-3">
           <h3 class="text-lg font-bold text-silver-light">{tr('info.silver_title')}</h3>
           <span class="text-sm font-mono font-bold">325 / 275&nbsp;&euro;</span>
@@ -52,7 +52,7 @@ const tr = (key: string) => getTranslation(lang, key);
         <p class="text-sm text-text-secondary leading-relaxed">{tr('info.silver_desc')}</p>
       </article>
 
-      <article class="card card-gold rounded-2xl p-6">
+      <article class="card card-gold reveal p-6" style="--i:1">
         <div class="flex items-baseline justify-between gap-4 mb-3">
           <h3 class="text-lg font-bold text-gold-light">{tr('info.gold_title')}</h3>
           <span class="text-sm font-mono font-bold">495 / 430&nbsp;&euro;</span>

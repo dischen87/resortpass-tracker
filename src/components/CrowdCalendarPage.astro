@@ -110,11 +110,14 @@ const clientCopy = {
 
       <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12 md:pt-16 md:pb-16">
         <div class="max-w-3xl">
-          <p class="inline-flex items-center rounded-full border-2 border-accent/30 bg-white px-3 py-1.5 text-xs font-bold text-accent mb-5">
-            {tr('crowd.badge')}
-          </p>
-          <h1 class="text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] mb-5">{tr('crowd.title')}</h1>
-          <p class="text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl">{tr('crowd.subtitle')}</p>
+          <div class="mb-5 animate-fade-in-up">
+            <span class="badge">
+              <span class="badge-dot" aria-hidden="true"></span>
+              {tr('crowd.badge')}
+            </span>
+          </div>
+          <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5 animate-fade-in-up-delay-1">{tr('crowd.title')}</h1>
+          <p class="text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl animate-fade-in-up-delay-2">{tr('crowd.subtitle')}</p>
         </div>
 
         <div class="mt-7 flex flex-col sm:flex-row gap-3">
@@ -513,12 +516,14 @@ const clientCopy = {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.75rem 1rem;
     height: 100%;
-    transition: border-color 0.2s ease, transform 0.2s ease;
+    border: 3px solid var(--color-border);
+    box-shadow: 3px 3px 0 var(--color-border-light);
+    transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
   }
 
   .crowd-day-card:hover {
-    border-color: var(--color-border);
-    transform: translateY(-1px);
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--shadow-violet);
   }
 
   .day-index {

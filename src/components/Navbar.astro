@@ -35,7 +35,7 @@ const navItems = [
           <span class="brand-wordmark truncate">resortpass<span>tracker</span></span>
         </a>
 
-        <div class="hidden items-center gap-0.5 lg:flex">
+        <div class="hidden items-center gap-0.5 xl:flex">
           {navItems.map((item) => (
             <a
               href={item.href}
@@ -56,13 +56,13 @@ const navItems = [
               <LanguageSwitcher lang={lang} paths={isCrowdCalendarPage ? crowdCalendarPaths : undefined} />
             </div>
           )}
-          <a href={`${homePath}#benachrichtigung`} class="hidden min-h-11 items-center gap-1.5 rounded-full border-[3px] border-border bg-yellow px-5 py-2 font-heading text-sm font-extrabold text-text-primary shadow-[3px_3px_0_var(--color-border)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-border)] lg:inline-flex">
-            <Icon name="tabler:bell-ringing" class="h-4 w-4" aria-hidden="true" />
+          <a href={`${homePath}#benachrichtigung`} class="hidden min-h-11 items-center gap-1.5 rounded-full border-[3px] border-border bg-yellow px-5 py-2 font-heading text-sm font-extrabold text-text-primary shadow-[3px_3px_0_var(--color-border)] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-border)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none xl:inline-flex">
+            <Icon name="tabler:bell-ringing" class="icon-bell h-4 w-4" aria-hidden="true" />
             {tr('nav.alert')}
           </a>
           <a
             href={`${homePath}#benachrichtigung`}
-            class="flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-border bg-yellow text-text-primary shadow-[3px_3px_0_var(--color-border)] lg:hidden"
+            class="flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-border bg-yellow text-text-primary shadow-[3px_3px_0_var(--color-border)] transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-none xl:hidden"
             aria-label={tr('subscribe.sticky_cta')}
           >
             <Icon name="tabler:bell-ringing" class="h-5 w-5" aria-hidden="true" />
@@ -70,7 +70,7 @@ const navItems = [
           <button
             id="mobile-menu-toggle"
             type="button"
-            class="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border-[3px] border-border bg-white text-text-primary lg:hidden"
+            class="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border-[3px] border-border bg-white text-text-primary xl:hidden"
             aria-controls="mobile-menu"
             aria-expanded="false"
             aria-label={menuLabel}

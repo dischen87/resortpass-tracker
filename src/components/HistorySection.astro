@@ -22,7 +22,7 @@ const tr = (key: string) => getTranslation(lang, key);
         <p class="text-text-secondary max-w-lg mx-auto">{tr('history.desc')}</p>
       </div>
 
-      <div class="card rounded-2xl p-4 sm:p-6 md:p-8 shadow-[5px_5px_0_#C4B5FD]" id="history-container" aria-live="polite">
+      <div class="card reveal p-4 sm:p-6 md:p-8" style="--card-shadow:#C4B5FD" id="history-container" aria-live="polite">
         <!-- Loading state -->
         <div id="history-loading" class="text-center py-6 px-4 sm:px-0">
           <div class="inline-flex items-center gap-2 text-sm text-muted">
@@ -67,7 +67,7 @@ const tr = (key: string) => getTranslation(lang, key);
 
           <div class="mb-6 text-center text-xs text-muted font-mono px-4 sm:px-0" id="tracking-since"></div>
 
-          <h3 class="text-sm font-bold mb-3 px-4 sm:px-0" style="font-family: var(--font-heading);">{tr('history.recent_title')}</h3>
+          <h3 class="text-sm font-bold mb-3 px-4 sm:px-0 font-heading">{tr('history.recent_title')}</h3>
           <div class="overflow-hidden rounded-xl border-2 border-border-light sm:rounded-xl">
             <table class="w-full text-sm">
               <caption class="sr-only">{tr('history.recent_title')}</caption>
@@ -86,12 +86,12 @@ const tr = (key: string) => getTranslation(lang, key);
             </table>
           </div>
 
-          <div id="pagination-controls" class="hidden flex items-center justify-between mt-4 px-4 sm:px-0">
-            <button id="prev-page" class="px-3 py-1.5 text-xs font-bold rounded-lg border-2 border-border bg-surface text-muted hover:text-text-primary hover:shadow-[2px_2px_0px_var(--color-border)] transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+          <div id="pagination-controls" class="hidden flex items-center justify-between gap-3 mt-4 px-4 sm:px-0">
+            <button id="prev-page" class="inline-flex min-h-11 items-center rounded-xl border-2 border-border bg-surface px-4 py-2.5 text-sm font-bold text-muted transition hover:text-text-primary hover:shadow-[2px_2px_0_var(--color-accent)] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer" disabled>
               &larr; {tr('history.prev')}
             </button>
             <span id="page-info" class="text-xs text-muted font-mono"></span>
-            <button id="next-page" class="px-3 py-1.5 text-xs font-bold rounded-lg border-2 border-border bg-surface text-muted hover:text-text-primary hover:shadow-[2px_2px_0px_var(--color-border)] transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+            <button id="next-page" class="inline-flex min-h-11 items-center rounded-xl border-2 border-border bg-surface px-4 py-2.5 text-sm font-bold text-muted transition hover:text-text-primary hover:shadow-[2px_2px_0_var(--color-accent)] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer" disabled>
               {tr('history.next')} &rarr;
             </button>
           </div>
@@ -200,12 +200,13 @@ const tr = (key: string) => getTranslation(lang, key);
       function renderPage() {
         const start = currentPage * PAGE_SIZE;
         const pageItems = merged.slice(start, start + PAGE_SIZE);
-        tbody.innerHTML = pageItems.map((row) => {
+        tbody.innerHTML = pageItems.map((row, idx) => {
           const date = new Date(row.time + 'Z');
           const timeStr = date.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
           const silverHtml = row.silver !== undefined ? statusBadge(row.silver, SHOP) : '<span class="text-muted text-xs">—</span>';
           const goldHtml = row.gold !== undefined ? statusBadge(row.gold, SHOP) : '<span class="text-muted text-xs">—</span>';
-          return `<tr class="border-t-2 border-border-light"><td class="px-4 py-3 font-mono text-xs text-text-secondary whitespace-nowrap">${timeStr}</td><td class="px-4 py-3 text-center">${silverHtml}</td><td class="px-4 py-3 text-center">${goldHtml}</td></tr>`;
+          const zebra = idx % 2 ? 'bg-surface-light' : '';
+          return `<tr class="border-t-2 border-border-light ${zebra} transition-colors hover:bg-bg-light"><td class="px-4 py-3 font-mono text-xs text-text-secondary whitespace-nowrap">${timeStr}</td><td class="px-4 py-3 text-center">${silverHtml}</td><td class="px-4 py-3 text-center">${goldHtml}</td></tr>`;
         }).join('');
 
         const prevBtn = document.getElementById('prev-page') as HTMLButtonElement;

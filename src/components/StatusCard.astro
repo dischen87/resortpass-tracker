@@ -24,7 +24,8 @@ const tier = isGold ? 'Premium' : 'Classic';
 
 <article
   id={`card-${type}`}
-  class:list={['card rounded-3xl p-6 transition-all duration-300 md:p-7', isGold ? 'card-gold' : 'card-silver']}
+  class:list={['card reveal p-6 md:p-7', isGold ? 'card-gold' : 'card-silver']}
+  style={`--i:${isGold ? 1 : 0}`}
   data-pass-type={type}
   aria-labelledby={`${type}-title`}
 >
@@ -41,20 +42,14 @@ const tier = isGold ? 'Premium' : 'Classic';
 
   <div class="status-loading" role="status">
     <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-bg-light px-4 py-3">
-      <span class="relative flex h-3 w-3 shrink-0">
-        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-muted/50"></span>
-        <span class="relative inline-flex h-3 w-3 rounded-full bg-muted"></span>
-      </span>
+      <span class="dot-breathe h-3 w-3 shrink-0 rounded-full bg-muted"></span>
       <span class="text-sm font-bold text-muted">{tr('status.loading')}</span>
     </div>
   </div>
 
   <div class="status-unavailable hidden" role="status">
     <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-pink/10 px-4 py-3 text-unavailable">
-      <span class="relative flex h-3 w-3 shrink-0">
-        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-pink opacity-70"></span>
-        <span class="relative inline-flex h-3 w-3 rounded-full bg-pink"></span>
-      </span>
+      <span class="h-3 w-3 shrink-0 rounded-full bg-pink"></span>
       <span class="font-heading text-lg font-extrabold">{tr('status.sold_out')}</span>
     </div>
   </div>
@@ -62,7 +57,7 @@ const tier = isGold ? 'Premium' : 'Classic';
   <div class="status-available hidden" role="status">
     <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-available">
       <span class="relative flex h-3 w-3 shrink-0">
-        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-70"></span>
+        <span class="ping-brand absolute inline-flex h-full w-full rounded-full bg-green-500"></span>
         <span class="relative inline-flex h-3 w-3 rounded-full bg-available"></span>
       </span>
       <span class="font-heading text-lg font-extrabold">{tr('status.available')}</span>
@@ -71,6 +66,13 @@ const tier = isGold ? 'Premium' : 'Classic';
       {tr('status.buy_now')}
       <Icon name="tabler:arrow-right" class="h-4 w-4" aria-hidden="true" />
     </a>
+  </div>
+
+  <div class="status-checking hidden" role="status">
+    <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-bg-light px-4 py-3 text-muted">
+      <Icon name="tabler:hourglass-high" class="h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
+      <p class="text-sm font-bold leading-snug">{tr('status.checking')}</p>
+    </div>
   </div>
 
   <div class="status-error hidden" role="status">

@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import { Icon } from 'astro-icon/components';
 import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
 import '../styles/global.css';
 
 const lang = 'de' as const;
@@ -9,27 +10,54 @@ const lang = 'de' as const;
 
 <Layout lang={lang} title="404 — Seite nicht gefunden" description="Die gesuchte Seite wurde nicht gefunden." noindex>
   <Navbar lang={lang} />
-  <main id="main-content" class="max-w-2xl mx-auto px-4 py-16 text-center md:py-20">
-    <div class="glass-card rounded-2xl p-8 md:p-12 max-w-md mx-auto shadow-[5px_5px_0_#F9A8D4] animate-fade-in-up">
+  <main id="main-content" class="relative overflow-hidden">
+    <div class="blob blob-blue w-72 h-72 -top-20 -right-24" aria-hidden="true"></div>
+    <div class="blob blob-gold w-72 h-72 -bottom-24 -left-24" aria-hidden="true"></div>
+    <span class="deco deco--pink-circle" style="top:6rem" aria-hidden="true"></span>
+    <span class="deco deco--yellow-square" style="top:8rem" aria-hidden="true"></span>
 
-      <!-- 404 Number -->
-      <Icon name="tabler:route-off" class="mx-auto mb-4 h-14 w-14 text-pink" aria-hidden="true" />
-      <div class="mb-2 font-mono text-xs font-bold uppercase tracking-[0.2em] text-accent">404</div>
+    <div class="section-shell relative z-10 py-16 text-center md:py-24">
+      <div class="mx-auto max-w-md">
+        <p class="mb-2 font-mono text-sm font-bold uppercase tracking-[0.25em] text-accent animate-fade-in-up">Error</p>
+        <p class="mb-4 text-7xl font-extrabold leading-none text-accent md:text-8xl animate-fade-in-up-delay-1" data-nf="code">404</p>
+        <div class="striped-rule mx-auto mb-8 max-w-[10rem] rounded-full animate-fade-in-up-delay-1" aria-hidden="true"></div>
 
-      <h1 class="text-2xl font-bold mb-3">Seite nicht gefunden</h1>
-
-      <p class="text-text-secondary text-sm mb-8 leading-relaxed">
-        Diese Seite existiert leider nicht — aber der Europa-Park schon!
-        Vielleicht suchst du unseren ResortPass Tracker?
-      </p>
-
-      <a
-        href="/"
-        class="btn-primary"
-      >
-        <span>Zur Startseite</span>
-        <Icon name="tabler:arrow-right" class="h-4 w-4" aria-hidden="true" />
-      </a>
+        <div class="glass-card p-8 shadow-[5px_5px_0_var(--shadow-pink)] animate-fade-in-up-delay-2" style="box-shadow:5px 5px 0 var(--shadow-pink)">
+          <Icon name="tabler:rollercoaster" class="mx-auto mb-4 h-12 w-12 text-pink" aria-hidden="true" />
+          <h1 class="mb-3 text-2xl font-extrabold" data-nf="title">Seite nicht gefunden</h1>
+          <p class="mb-7 text-sm leading-relaxed text-text-secondary" data-nf="body">
+            Diese Seite existiert leider nicht — aber der Europa-Park schon!
+            Vielleicht suchst du unseren ResortPass Tracker?
+          </p>
+          <a href="/" class="btn-primary" data-nf="cta-link">
+            <span data-nf="cta">Zur Startseite</span>
+            <Icon name="tabler:arrow-right" class="h-4 w-4" aria-hidden="true" />
+          </a>
+        </div>
+      </div>
     </div>
   </main>
+  <Footer lang={lang} showLanguageSwitcher={false} />
+
+  <script is:inline>
+    (() => {
+      const strings = {
+        de: { title: 'Seite nicht gefunden', body: 'Diese Seite existiert leider nicht — aber der Europa-Park schon! Vielleicht suchst du unseren ResortPass Tracker?', cta: 'Zur Startseite', home: '/' },
+        fr: { title: 'Page introuvable', body: "Cette page n'existe pas — mais Europa-Park, oui ! Tu cherches peut-être notre ResortPass Tracker ?", cta: "Retour à l'accueil", home: '/fr/' },
+        it: { title: 'Pagina non trovata', body: 'Questa pagina non esiste — ma Europa-Park sì! Forse cerchi il nostro ResortPass Tracker?', cta: 'Torna alla home', home: '/it/' },
+        en: { title: 'Page not found', body: "This page doesn't exist — but Europa-Park does! Maybe you're looking for our ResortPass Tracker?", cta: 'Back to home', home: '/en/' },
+      };
+      const seg = location.pathname.split('/').filter(Boolean)[0];
+      const lang = ['fr', 'it', 'en'].includes(seg) ? seg : 'de';
+      if (lang === 'de') return;
+      const s = strings[lang];
+      document.documentElement.lang = lang;
+      const set = (name, val) => { const el = document.querySelector(`[data-nf="${name}"]`); if (el) el.textContent = val; };
+      set('title', s.title);
+      set('body', s.body);
+      set('cta', s.cta);
+      const link = document.querySelector('[data-nf="cta-link"]');
+      if (link) link.setAttribute('href', s.home);
+    })();
+  </script>
 </Layout>

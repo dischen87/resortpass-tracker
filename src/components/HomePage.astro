@@ -29,7 +29,7 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
   <main id="main-content">
     <Hero lang={lang} />
 
-    <section id="status" class="py-10 md:py-16" aria-labelledby="status-heading">
+    <section id="status" class="pt-6 pb-10 md:pt-8 md:pb-16" aria-labelledby="status-heading">
       <div class="section-shell">
         <h2 id="status-heading" class="sr-only">Status</h2>
         <div class="mx-auto grid max-w-[55rem] grid-cols-1 gap-7 md:grid-cols-2">
@@ -52,7 +52,7 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
 
   <Footer lang={lang} />
 
-  <div id="sticky-cta" class="fixed bottom-0 left-0 right-0 z-50 pointer-events-none opacity-0 translate-y-full transition-all duration-300" aria-hidden="true" inert>
+  <div id="sticky-cta" class="fixed bottom-0 left-0 right-0 z-50 pointer-events-none opacity-0 translate-y-full transition-[opacity,transform] duration-300 md:hidden" aria-hidden="true" inert>
     <div class="section-shell pb-4 pt-2">
       <div class="pointer-events-auto max-w-md mx-auto">
         <a href="#benachrichtigung" class="btn-primary w-full py-4 text-base">
@@ -154,23 +154,40 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
       return Number.isNaN(date.getTime()) ? null : date;
     }
 
-    function updateCard(type: 'silver' | 'gold', status: PassStatus) {
+    const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function updateCard(type: 'silver' | 'gold', status: PassStatus, didFetchFail = false) {
       const card = document.getElementById(`card-${type}`);
       if (!card) return;
 
-      const state = stateOf(status);
+      const state = didFetchFail ? 'error' : stateOf(status);
+      const visibleBlock = state === 'available' ? 'available'
+        : state === 'sold_out' ? 'unavailable'
+        : state === 'error' ? 'error'
+        : 'checking';
+
       card.classList.remove('card-available', 'card-unavailable');
-      card.querySelector('.status-loading')?.classList.add('hidden');
-      card.querySelector('.status-available')?.classList.toggle('hidden', state !== 'available');
-      card.querySelector('.status-unavailable')?.classList.toggle('hidden', state !== 'sold_out');
-      card.querySelector('.status-error')?.classList.toggle('hidden', state !== 'unknown');
+      for (const block of ['loading', 'available', 'unavailable', 'checking', 'error']) {
+        card.querySelector(`.status-${block}`)?.classList.toggle('hidden', block !== visibleBlock);
+      }
       if (state === 'available') card.classList.add('card-available');
       if (state === 'sold_out') card.classList.add('card-unavailable');
 
+      const pill = document.getElementById(`hero-pill-${type}`);
       const heroValue = document.getElementById(`hero-status-${type}`);
-      if (heroValue) {
-        heroValue.textContent = state === 'available' ? tr('status.available') : state === 'sold_out' ? tr('status.sold_out') : tr('status.unknown_short');
-        heroValue.dataset.state = state;
+      if (pill && heroValue) {
+        const pillState = state === 'available' ? 'available' : state === 'sold_out' ? 'sold_out' : 'unknown';
+        const text = state === 'available' ? tr('status.available')
+          : state === 'sold_out' ? tr('status.sold_out')
+          : state === 'error' ? tr('status.unknown_short')
+          : tr('status.checking');
+        const apply = () => { heroValue.textContent = text; pill.dataset.state = pillState; };
+        if (prefersReduce || heroValue.textContent === text) {
+          apply();
+        } else {
+          heroValue.style.opacity = '0';
+          window.setTimeout(() => { apply(); heroValue.style.opacity = '1'; }, 200);
+        }
       }
     }
 
@@ -185,7 +202,7 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
         const lastCheck = parseTimestamp(data.silver?.lastCheck || data.gold?.lastCheck);
         const text = lastCheck
           ? `${tr('status.last_check')}: ${lastCheck.toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })} · ${tr('status.updated_3x')}`
-          : tr('status.error');
+          : tr('status.updated_3x');
         document.getElementById('last-check-text')!.textContent = text;
         document.getElementById('hero-status-time')!.textContent = text;
 
@@ -196,11 +213,24 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
           schemaEl.textContent = JSON.stringify(schema);
         }
       } catch {
-        updateCard('silver', null);
-        updateCard('gold', null);
+        updateCard('silver', null, true);
+        updateCard('gold', null, true);
         document.getElementById('last-check-text')!.textContent = tr('status.error');
         document.getElementById('hero-status-time')!.textContent = tr('status.error');
       }
+    }
+
+    function countUp(el: HTMLElement, to: number, format: (n: number) => string) {
+      if (prefersReduce) { el.textContent = format(to); return; }
+      const duration = 1000;
+      const start = performance.now();
+      const step = (now: number) => {
+        const p = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = format(Math.round(to * eased));
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
     }
 
     async function loadFanCount() {
@@ -209,8 +239,30 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
         if (!response.ok) return;
         const data = await response.json();
         const element = document.getElementById('fan-count');
-        if (element && Number.isFinite(data.count)) element.textContent = data.count.toLocaleString(locale);
+        if (element && Number.isFinite(data.count)) countUp(element, data.count, (n) => n.toLocaleString(locale));
       } catch {}
+    }
+
+    // Shared scroll-reveal — reveal-once, then unobserve.
+    // Safety net: if IntersectionObserver never ticks (dead/unsupported), reveal everything
+    // so content is never permanently stuck at opacity:0.
+    const revealEls = document.querySelectorAll<HTMLElement>('.reveal');
+    const revealAll = () => revealEls.forEach((el) => el.classList.add('is-in'));
+    if (prefersReduce || !('IntersectionObserver' in window)) {
+      revealAll();
+    } else {
+      let ioAlive = false;
+      const revealObserver = new IntersectionObserver((entries, obs) => {
+        ioAlive = true;
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-in');
+            obs.unobserve(entry.target);
+          }
+        }
+      }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
+      revealEls.forEach((el) => revealObserver.observe(el));
+      window.setTimeout(() => { if (!ioAlive) revealAll(); }, 1500);
     }
 
     loadStatus();

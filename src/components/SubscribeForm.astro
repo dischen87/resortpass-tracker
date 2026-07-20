@@ -20,7 +20,7 @@ const benefits: Record<Lang, string[]> = {
 <section class="border-y-[3px] border-border bg-white py-16 md:py-20" id="benachrichtigung">
   <div class="section-shell">
     <div class="mx-auto grid max-w-4xl items-start gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-x-14 lg:gap-y-6">
-      <div class="lg:col-start-1 lg:row-start-1">
+      <div class="lg:col-start-1 lg:row-start-1 reveal">
         <p class="section-kicker mb-3 inline-flex items-center gap-2">
           <Icon name="tabler:bell-ringing" class="h-5 w-5" aria-hidden="true" />
           {kicker}
@@ -29,10 +29,10 @@ const benefits: Record<Lang, string[]> = {
         <p class="max-w-xl text-text-secondary leading-relaxed">{tr('subscribe.desc')}</p>
       </div>
 
-      <div class="subscribe-card p-5 sm:p-7 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+      <div class="subscribe-card p-5 sm:p-7 lg:col-start-2 lg:row-span-2 lg:row-start-1 reveal">
         <form id="subscribe-form" class="space-y-5">
           <div>
-            <label for="email" class="mb-2 block text-sm font-bold text-text-primary">E-Mail</label>
+            <label for="email" class="mb-2 block text-sm font-bold text-text-primary">{tr('subscribe.email_label')}</label>
             <input
               type="email"
               id="email"
@@ -46,7 +46,7 @@ const benefits: Record<Lang, string[]> = {
 
           <fieldset class="space-y-3">
             <legend class="text-sm text-text-secondary mb-2 font-bold">{tr('subscribe.notify_for')}</legend>
-            <label class="group flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border-2 border-border-light bg-bg-light px-3 py-2 hover:border-accent">
+            <label class="pass-option group flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border-2 border-border-light bg-bg-light px-3 py-2">
               <input
                 type="checkbox"
                 name="silver"
@@ -59,7 +59,7 @@ const benefits: Record<Lang, string[]> = {
                 <span>ResortPass Silver · 275 €+</span>
               </span>
             </label>
-            <label class="group flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border-2 border-border-light bg-amber-50 px-3 py-2 hover:border-gold">
+            <label class="pass-option pass-option-gold group flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border-2 border-border-light bg-amber-50 px-3 py-2">
               <input
                 type="checkbox"
                 name="gold"
@@ -76,13 +76,21 @@ const benefits: Record<Lang, string[]> = {
 
           <button
             type="submit"
-            class="btn-primary w-full cursor-pointer py-4 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+            class="btn-primary w-full cursor-pointer py-4 disabled:cursor-wait disabled:opacity-70"
           >
-            {tr('subscribe.submit')}
+            <span class="btn-label inline-flex items-center gap-2">{tr('subscribe.submit')}</span>
           </button>
 
-          <div id="form-message" class="hidden rounded-xl border-2 px-4 py-3 text-center text-sm" role="status" aria-live="polite"></div>
+          <div id="form-message" class="form-message hidden items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-center text-sm font-bold" role="status" aria-live="polite"></div>
         </form>
+
+        <div id="subscribe-success" class="subscribe-success hidden text-center" tabindex="-1">
+          <span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-available">
+            <Icon name="tabler:check" class="h-8 w-8" aria-hidden="true" />
+          </span>
+          <h3 class="section-heading mb-2 text-xl">{tr('subscribe.success_title')}</h3>
+          <p class="mx-auto max-w-sm text-sm leading-relaxed text-text-secondary">{tr('subscribe.success')}</p>
+        </div>
 
         <p class="mt-5 flex items-start justify-center gap-1.5 text-center text-xs leading-relaxed text-muted">
           <Icon name="tabler:lock" class="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -90,7 +98,7 @@ const benefits: Record<Lang, string[]> = {
         </p>
       </div>
 
-      <ul class="space-y-3 lg:col-start-1 lg:row-start-2">
+      <ul class="space-y-3 lg:col-start-1 lg:row-start-2 reveal">
         {benefits[lang].map((benefit) => (
           <li class="flex items-start gap-3 text-sm font-bold text-text-secondary">
             <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-100 text-available">
@@ -113,15 +121,94 @@ const benefits: Record<Lang, string[]> = {
 
   const formLang = (window as any).__subscribeFormLang as Lang || 'de';
   const tr = (key: string) => getTranslation(formLang, key);
+  const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const form = document.getElementById('subscribe-form') as HTMLFormElement;
   const msgEl = document.getElementById('form-message') as HTMLDivElement;
+  const successPanel = document.getElementById('subscribe-success') as HTMLDivElement;
+
+  function setButtonLoading(btn: HTMLButtonElement, loading: boolean) {
+    const label = btn.querySelector('.btn-label') as HTMLElement;
+    if (loading) {
+      btn.disabled = true;
+      btn.setAttribute('aria-busy', 'true');
+      label.innerHTML = `<span class="spinner" aria-hidden="true"></span>${tr('subscribe.sending')}`;
+    } else {
+      btn.disabled = false;
+      btn.removeAttribute('aria-busy');
+      label.textContent = tr('subscribe.submit');
+    }
+  }
+
+  function showMessage(text: string, isError: boolean) {
+    msgEl.textContent = text;
+    msgEl.dataset.variant = isError ? 'error' : 'success';
+    msgEl.setAttribute('role', isError ? 'alert' : 'status');
+    msgEl.setAttribute('aria-live', isError ? 'assertive' : 'polite');
+    msgEl.classList.remove('hidden');
+    msgEl.classList.add('flex');
+    // restart the enter/shake animation
+    msgEl.style.animation = 'none';
+    void msgEl.offsetWidth;
+    msgEl.style.animation = '';
+  }
+
+  function confettiBurst() {
+    if (prefersReduce) return;
+    const colors = ['#7C3AED', '#EC4899', '#FACC15'];
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9999';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d')!;
+    const rect = successPanel.getBoundingClientRect();
+    const ox = rect.left + rect.width / 2;
+    const oy = rect.top + rect.height / 2;
+    const parts = Array.from({ length: 90 }, () => ({
+      x: ox, y: oy,
+      vx: (Math.random() - 0.5) * 14,
+      vy: Math.random() * -13 - 4,
+      size: Math.random() * 6 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * Math.PI,
+      vr: (Math.random() - 0.5) * 0.35,
+      life: 1,
+    }));
+    let frame = 0;
+    const tick = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const p of parts) {
+        p.vy += 0.32;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vr;
+        p.life -= 0.011;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.globalAlpha = Math.max(p.life, 0);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        ctx.restore();
+      }
+      frame++;
+      if (frame < 150) requestAnimationFrame(tick);
+      else canvas.remove();
+    };
+    requestAnimationFrame(tick);
+  }
+
+  function showSuccess() {
+    form.classList.add('hidden');
+    successPanel.classList.remove('hidden');
+    successPanel.focus();
+    confettiBurst();
+  }
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-    btn.disabled = true;
-    btn.textContent = tr('subscribe.sending');
     msgEl.classList.add('hidden');
 
     const formData = new FormData(form);
@@ -131,43 +218,29 @@ const benefits: Record<Lang, string[]> = {
 
     if (!silver && !gold) {
       showMessage(tr('subscribe.select_one'), true);
-      btn.disabled = false;
-      btn.textContent = tr('subscribe.submit');
       return;
     }
+
+    setButtonLoading(btn, true);
 
     try {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, notify_silver: silver, notify_gold: gold, lang: formLang }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        showMessage(tr('subscribe.success'), false);
-        form.reset();
-      } else {
-        showMessage(data.error || tr('subscribe.error'), true);
+        showSuccess();
+        return;
       }
+      showMessage(data.error || tr('subscribe.error'), true);
     } catch {
       showMessage(tr('subscribe.error'), true);
     }
 
-    btn.disabled = false;
-    btn.textContent = tr('subscribe.submit');
+    setButtonLoading(btn, false);
   });
-
-  function showMessage(text: string, isError: boolean) {
-    msgEl.textContent = text;
-    msgEl.classList.remove('hidden', 'text-green-600', 'text-red-600', 'bg-green-500/10', 'bg-red-500/10', 'border-green-500/30', 'border-red-500/30');
-    msgEl.classList.add(
-      isError ? 'text-red-600' : 'text-green-600',
-      isError ? 'bg-red-500/10' : 'bg-green-500/10',
-      isError ? 'border-red-500/30' : 'border-green-500/30',
-    );
-  }
 </script>

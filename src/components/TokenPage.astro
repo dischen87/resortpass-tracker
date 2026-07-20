@@ -31,8 +31,9 @@ const homePath = lang === 'de' ? '/' : `/${lang}/`;
       <p class="section-kicker mb-3">ResortPass Tracker</p>
       <h1 id="token-title" class="text-2xl font-bold mb-3">{tr(initialTitleKey)}</h1>
 
-      <p class="text-text-secondary text-sm mb-6 leading-relaxed" id="token-message" role="status" aria-live="polite">
-        {isConfirm ? tr('confirm.processing') : tr('unsub.confirm_prompt')}
+      <p class="flex items-center justify-center gap-2 text-text-secondary text-sm mb-6 leading-relaxed" id="token-message" role="status" aria-live="polite">
+        {isConfirm && <span class="spinner shrink-0 text-accent" aria-hidden="true"></span>}
+        <span id="token-message-text">{isConfirm ? tr('confirm.processing') : tr('unsub.confirm_prompt')}</span>
       </p>
 
       {!isConfirm && (
@@ -63,19 +64,29 @@ const homePath = lang === 'de' ? '/' : `/${lang}/`;
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     const message = document.getElementById('token-message')!;
+    const messageText = document.getElementById('token-message-text')!;
     const success = document.getElementById('token-success')!;
     const title = document.getElementById('token-title')!;
     const button = document.getElementById('unsubscribe-button') as HTMLButtonElement | null;
 
+    function stopSpinner() {
+      message.querySelector('.spinner')?.remove();
+    }
+
     function showError() {
-      message.textContent = tr(`${config.mode === 'confirm' ? 'confirm' : 'unsub'}.error`);
-      message.classList.add('text-red-600');
-      if (button) button.disabled = false;
+      stopSpinner();
+      messageText.textContent = tr(`${config.mode === 'confirm' ? 'confirm' : 'unsub'}.error`);
+      message.classList.add('text-unavailable', 'font-bold');
+      if (button) {
+        button.disabled = false;
+        button.textContent = tr('unsub.submit');
+      }
     }
 
     function showSuccess() {
+      stopSpinner();
       title.textContent = tr(`${config.mode === 'confirm' ? 'confirm' : 'unsub'}.title`);
-      message.textContent = '';
+      messageText.textContent = '';
       success.classList.remove('hidden');
       button?.remove();
     }
@@ -95,7 +106,8 @@ const homePath = lang === 'de' ? '/' : `/${lang}/`;
     async function unsubscribe() {
       if (!token || !button) return showError();
       button.disabled = true;
-      message.textContent = tr('unsub.processing');
+      button.innerHTML = '<span class="spinner" aria-hidden="true"></span>';
+      messageText.textContent = tr('unsub.processing');
       try {
         const response = await fetch('/api/unsubscribe', {
           method: 'POST',

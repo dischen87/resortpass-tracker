@@ -20,10 +20,13 @@ const howLabel = { de: "So funktioniert's", fr: 'Comment ça marche', it: 'Come 
 ---
 
 <section class="relative overflow-hidden">
-  <Icon name="tabler:confetti" class="absolute left-[5%] top-20 h-7 w-7 rotate-[-18deg] text-pink opacity-80" aria-hidden="true" />
-  <Icon name="tabler:sparkles" class="absolute right-[7%] top-44 h-8 w-8 text-yellow" aria-hidden="true" />
+  <!-- Floating decorative marks -->
+  <span class="deco deco--pink-circle" aria-hidden="true"></span>
+  <span class="deco deco--purple-dot" aria-hidden="true"></span>
+  <span class="deco deco--yellow-square" aria-hidden="true"></span>
+  <span class="deco deco--purple-square" aria-hidden="true"></span>
 
-  <div class="section-shell relative z-10 pb-14 pt-8 text-center md:pb-20 md:pt-16">
+  <div class="section-shell relative z-10 pb-8 pt-8 text-center md:pb-10 md:pt-16">
     <div class="mx-auto max-w-[56.25rem]">
       <div class="mb-6 animate-fade-in-up">
         <span class="badge">
@@ -37,28 +40,30 @@ const howLabel = { de: "So funktioniert's", fr: 'Comment ça marche', it: 'Come 
         <span class="highlight-swipe">{titleHighlight}</span>
       </h1>
 
-      <div class="hero-status mx-auto mb-7 max-w-2xl animate-fade-in-up-delay-2" role="status" aria-live="polite" aria-atomic="true">
+      <div class="hero-status mx-auto mb-7 max-w-2xl animate-fade-in-up-delay-2">
         <p class="mb-2 font-mono text-[0.65rem] uppercase tracking-[0.14em] text-muted">
           {answerLabel} · <span id="hero-status-time">{tr('status.updated_3x')}</span>
         </p>
         <p class="mb-3 text-left text-[0.98rem] leading-relaxed text-text-secondary md:text-[1.05rem]">
           {tr('hero.subtitle')}
         </p>
-        <div class="grid grid-cols-2 gap-2">
-          <div class="hero-status-row rounded-full border-2 border-pink bg-pink/10 px-3">
+        <div class="grid grid-cols-2 gap-2" role="status" aria-live="polite">
+          <span class="hero-pill" id="hero-pill-silver" data-state="unknown">
+            <span class="dot" aria-hidden="true"></span>
             <span class="hero-status-label">Silver</span>
-            <span class="hero-status-value" id="hero-status-silver">{tr('status.loading')}</span>
-          </div>
-          <div class="hero-status-row rounded-full border-2 border-pink bg-pink/10 px-3">
+            <span class="hero-status-value" id="hero-status-silver">{tr('status.checking')}</span>
+          </span>
+          <span class="hero-pill" id="hero-pill-gold" data-state="unknown">
+            <span class="dot" aria-hidden="true"></span>
             <span class="hero-status-label">Gold</span>
-            <span class="hero-status-value" id="hero-status-gold">{tr('status.loading')}</span>
-          </div>
+            <span class="hero-status-value" id="hero-status-gold">{tr('status.checking')}</span>
+          </span>
         </div>
       </div>
 
       <div id="hero-cta" class="mb-5 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center animate-fade-in-up-delay-3">
         <a href="#benachrichtigung" class="btn-primary min-h-14 px-8">
-          <Icon name="tabler:bell-ringing" class="h-5 w-5" aria-hidden="true" />
+          <Icon name="tabler:bell-ringing" class="icon-bell h-5 w-5" aria-hidden="true" />
           {tr('subscribe.sticky_cta')}
         </a>
         <a href="#info" class="btn-secondary min-h-14 px-7">
@@ -68,12 +73,31 @@ const howLabel = { de: "So funktioniert's", fr: 'Comment ça marche', it: 'Come 
       </div>
 
       <p class="text-sm text-muted animate-fade-in-up-delay-3">
-        <strong class="text-text-primary"><span id="fan-count">---</span> {tr('subscribe.waiting_fans')}</strong>
+        <strong class="text-text-primary"><span id="fan-count" data-countup>---</span> {tr('subscribe.waiting_fans')}</strong>
         <span aria-hidden="true"> · </span>
         <span>{tr('subscribe.privacy').split('.')[0]}</span>
       </p>
     </div>
   </div>
 
-  <div class="h-14 md:h-20" aria-hidden="true"></div>
+  <!-- Signature dotted rollercoaster track with a little train riding the crest -->
+  <svg class="coaster" viewBox="0 0 1440 150" width="100%" preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false">
+    <path id="coaster-track" class="coaster-track" d="M0,120 C200,120 300,58 520,66 C760,74 820,134 1040,106 C1240,82 1320,66 1440,74" />
+    <g class="coaster-cars">
+      <circle class="car-anim" r="11" fill="#FACC15" stroke="#EC4899" stroke-width="3">
+        <animateMotion dur="16s" repeatCount="indefinite" rotate="auto" calcMode="linear"><mpath href="#coaster-track" /></animateMotion>
+      </circle>
+      <circle class="car-anim" r="13" fill="#EC4899" stroke="#2E1065" stroke-width="3">
+        <animateMotion dur="16s" begin="-1.05s" repeatCount="indefinite" rotate="auto" calcMode="linear"><mpath href="#coaster-track" /></animateMotion>
+      </circle>
+      <circle class="car-anim" r="9" fill="#F9A8D4" stroke="#2E1065" stroke-width="2.5">
+        <animateMotion dur="16s" begin="-1.95s" repeatCount="indefinite" rotate="auto" calcMode="linear"><mpath href="#coaster-track" /></animateMotion>
+      </circle>
+    </g>
+    <g class="coaster-cars-static">
+      <circle r="11" fill="#FACC15" stroke="#EC4899" stroke-width="3" cx="1204" cy="92" />
+      <circle r="13" fill="#EC4899" stroke="#2E1065" stroke-width="3" cx="1272" cy="80" />
+      <circle r="9" fill="#F9A8D4" stroke="#2E1065" stroke-width="2.5" cx="1332" cy="73" />
+    </g>
+  </svg>
 </section>

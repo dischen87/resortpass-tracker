@@ -10,9 +10,9 @@ const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
 ---
 
-<section class="py-14 md:py-20" id="news" aria-labelledby="news-heading">
+<section class="py-16 md:py-20" id="news" aria-labelledby="news-heading">
   <div class="section-shell">
-    <div class="max-w-3xl mx-auto">
+    <div class="max-w-3xl mx-auto reveal">
       <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
         <div>
           <p class="section-kicker mb-2">{tr('news.feed_label')}</p>
@@ -67,9 +67,17 @@ const tr = (key: string) => getTranslation(lang, key);
     return state === 'available' ? tr('status.available') : state === 'sold_out' ? tr('status.sold_out') : tr('status.error');
   }
 
-  function makeItem(item: NewsItem) {
+  const cardShadows = ['#C4B5FD', '#FDE68A', '#F9A8D4'];
+  const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function makeItem(item: NewsItem, index: number) {
     const article = document.createElement('article');
-    article.className = 'card rounded-2xl p-5 md:p-6';
+    article.className = 'card p-5 md:p-6';
+    article.style.setProperty('--card-shadow', cardShadows[index % cardShadows.length]);
+    if (!prefersReduce) {
+      article.style.animation = 'fade-in-up var(--dur-4) var(--ease-out) both';
+      article.style.animationDelay = `${index * 70}ms`;
+    }
 
     const date = new Date(item.updatedAt);
     const time = document.createElement('time');
@@ -114,7 +122,7 @@ const tr = (key: string) => getTranslation(lang, key);
         empty.textContent = tr('news.empty');
         container.append(empty);
       } else {
-        for (const item of items) container.append(makeItem(item));
+        items.forEach((item, index) => container.append(makeItem(item, index)));
       }
     } catch {
       container.textContent = tr('news.empty');
