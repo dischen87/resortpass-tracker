@@ -352,16 +352,19 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--color-muted);
 }
 
+/* Label + value inherit the pill's state colour (crimson / green / muted) */
 .hero-status-label {
-  color: var(--color-text-secondary);
   font-size: 0.8125rem;
   font-weight: 700;
 }
 
+.hero-status-label::after {
+  content: ':';
+}
+
 .hero-status-value {
-  color: var(--color-text-primary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 800;
   transition: opacity var(--dur-3) var(--ease-out);
 }
 
@@ -378,10 +381,11 @@ h1, h2, h3, h4, h5, h6 {
 .hero-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  max-width: 100%;
   border: 2px solid var(--color-border-light);
   border-radius: 999px;
-  padding: 0.4rem 0.8rem;
+  padding: 0.4rem 0.85rem;
   font-size: 0.8125rem;
   font-weight: 700;
   transition: background-color var(--dur-3) var(--ease-out), border-color var(--dur-3) var(--ease-out), color var(--dur-3) var(--ease-out);
