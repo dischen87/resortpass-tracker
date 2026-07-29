@@ -11,7 +11,8 @@
     "check": "bun run server/checker.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
-    "verify:static": "bun scripts/verify-static-build.ts"
+    "verify:static": "bun scripts/verify-static-build.ts",
+    "verify:seo": "bun scripts/verify-seo-build.ts"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

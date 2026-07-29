@@ -12,29 +12,14 @@ interface Props {
 const lang = Astro.props.lang || defaultLang;
 const showLanguageSwitcher = Astro.props.showLanguageSwitcher ?? true;
 const tr = (key: string) => getTranslation(lang, key);
-const imprintPath = lang === defaultLang ? '/impressum/' : `/${lang}/impressum/`;
-const homePath = lang === defaultLang ? '/' : `/${lang}/`;
-const waitTimesPath = `${homePath}wartezeiten/`;
+const imprintPath = getRoutePath('imprint', lang)!;
+const homePath = getRoutePath('home', lang)!;
+const waitTimesPath = getRoutePath('waitTimes', lang)!;
 const crowdCalendarPath = crowdCalendarPaths[lang];
 const isCrowdCalendarPage = Object.values(crowdCalendarPaths).includes(Astro.url.pathname as (typeof crowdCalendarPaths)[Lang]);
-const ctaTitle = {
-  de: 'Verpass den nächsten Verkaufsstart nicht',
-  fr: 'Ne manquez pas la prochaine mise en vente',
-  it: 'Non perdere la prossima vendita',
-  en: 'Do not miss the next sale',
-}[lang];
-const planningLabel = {
-  de: 'Europa-Park planen',
-  fr: 'Planifier Europa-Park',
-  it: 'Pianificare Europa-Park',
-  en: 'Plan Europa-Park',
-}[lang];
-const passGuideLabel = {
-  de: 'ResortPass-Guide',
-  fr: 'Guide ResortPass',
-  it: 'Guida ResortPass',
-  en: 'ResortPass guide',
-}[lang];
+const ctaTitle = tr('footer.cta_title');
+const planningLabel = tr('nav.plan_visit');
+const passGuideLabel = tr('nav.resortpass_guide');
 ---
 
 <section class="py-16 md:py-20" aria-label={tr('subscribe.title')}>

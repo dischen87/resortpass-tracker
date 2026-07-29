@@ -72,7 +72,7 @@ const tr = (key: string) => getTranslation(lang, key);
             <table class="w-full text-sm">
               <caption class="sr-only">{tr('history.recent_title')}</caption>
               <thead>
-                <tr class="bg-bg text-left text-xs text-muted uppercase tracking-wider border-b-2 border-border-light">
+                <tr class="bg-bg text-start text-xs text-muted uppercase tracking-wider border-b-2 border-border-light">
                   <th scope="col" class="px-4 py-3">{tr('history.time')}</th>
                   <th scope="col" class="px-4 py-3 text-center">Silver</th>
                   <th scope="col" class="px-4 py-3 text-center">Gold</th>
@@ -107,6 +107,7 @@ const tr = (key: string) => getTranslation(lang, key);
 
 <script>
   import { getTranslation, type Lang } from '../i18n/translations';
+  import { getLocaleDefinition } from '../i18n/locales';
 
   const histLang = (window as any).__historyLang as Lang || 'de';
   const tr = (key: string) => getTranslation(histLang, key);
@@ -153,7 +154,7 @@ const tr = (key: string) => getTranslation(lang, key);
       const trackingSince = data.silver?.trackingSince || data.gold?.trackingSince;
       if (sincEl && trackingSince) {
         const date = new Date(trackingSince + 'Z');
-        const formatted = date.toLocaleDateString(histLang === 'de' ? 'de-CH' : histLang, { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const formatted = date.toLocaleDateString(getLocaleDefinition(histLang).bcp47, { day: '2-digit', month: '2-digit', year: 'numeric' });
         sincEl.textContent = `${tr('history.tracking_since')} ${formatted}`;
       }
 
@@ -192,7 +193,7 @@ const tr = (key: string) => getTranslation(lang, key);
         }
       }
 
-      const locale = histLang === 'de' ? 'de-CH' : histLang === 'fr' ? 'fr-CH' : histLang === 'it' ? 'it-CH' : 'en-US';
+      const locale = getLocaleDefinition(histLang).bcp47;
       const PAGE_SIZE = 20;
       let currentPage = 0;
       const totalPages = Math.ceil(merged.length / PAGE_SIZE);

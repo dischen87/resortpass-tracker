@@ -4,6 +4,7 @@ import { Icon } from 'astro-icon/components';
 import Navbar from './Navbar.astro';
 import '../styles/global.css';
 import { getTranslation, type Lang } from '../i18n/translations';
+import { getRoutePath } from '../i18n/routes';
 
 interface Props {
   lang: Lang;
@@ -15,11 +16,12 @@ const tr = (key: string) => getTranslation(lang, key);
 const isConfirm = mode === 'confirm';
 const key = isConfirm ? 'confirm' : 'unsub';
 const initialTitleKey = isConfirm ? 'confirm.processing_title' : 'unsub.confirm_title';
-const homePath = lang === 'de' ? '/' : `/${lang}/`;
+const homePath = getRoutePath('home', lang)!;
 ---
 
 <Layout
   lang={lang}
+  routeKey={isConfirm ? 'confirm' : 'unsubscribe'}
   title={`${tr(initialTitleKey)} — ResortPass Tracker`}
   description={isConfirm ? tr('confirm.success') : tr('unsub.confirm_prompt')}
   noindex

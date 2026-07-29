@@ -48,10 +48,11 @@ const tr = (key: string) => getTranslation(lang, key);
 
 <script>
   import { getTranslation, type Lang } from '../i18n/translations';
+  import { getLocaleDefinition } from '../i18n/locales';
 
   const newsLang = ((window as any).__newsLang || 'de') as Lang;
   const tr = (key: string) => getTranslation(newsLang, key);
-  const locale = newsLang === 'de' ? 'de-CH' : newsLang === 'fr' ? 'fr-CH' : newsLang === 'it' ? 'it-CH' : 'en-US';
+  const locale = getLocaleDefinition(newsLang).bcp47;
 
   type NewsItem = {
     title: string;

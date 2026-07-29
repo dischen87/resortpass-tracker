@@ -2,7 +2,11 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from './Navbar.astro';
 import Footer from './Footer.astro';
+import ResponsiveIllustration from './ResponsiveIllustration.astro';
+import BrandSafeText from './BrandSafeText.astro';
 import { crowdCalendarPaths, type Lang, getTranslation } from '../i18n/translations';
+import { getRoutePath } from '../i18n/routes';
+import { getLocaleDefinition } from '../i18n/locales';
 import '../styles/global.css';
 
 interface Props {
@@ -14,20 +18,17 @@ const tr = (key: string) => getTranslation(lang, key);
 const pageTitle = tr('crowd.meta_title').replace('{year}', String(new Date().getFullYear()));
 const siteUrl = 'https://www.resortpass-europapark.ch';
 const pagePath = crowdCalendarPaths[lang];
-const homePath = lang === 'de' ? '/' : `/${lang}/`;
-const waitTimesPath = lang === 'de' ? '/wartezeiten/' : `/${lang}/wartezeiten/`;
-const officialHoursUrls: Record<Lang, string> = {
+const homePath = getRoutePath('home', lang)!;
+const waitTimesPath = getRoutePath('waitTimes', lang)!;
+const officialHoursUrls: Partial<Record<Lang, string>> = {
   de: 'https://www.europapark.de/de/freizeitpark/infos/planen-sie-ihren-besuch/europa-park-oeffnungszeiten-saisons',
   fr: 'https://www.europapark.de/fr/parc-de-loisirs/infos/planifiez-votre-sejour/les-saisons-les-horaires-douverture-deuropa-park',
   it: 'https://www.europapark.de/it/parco-divertimenti/info/pianifica-la-tua-visita/orari-di-apertura-stagioni-delleuropa-park',
   en: 'https://www.europapark.de/en/theme-park/info/plan-your-visit/europa-park-opening-hours-seasons',
 };
-const breadcrumbNames: Record<Lang, [string, string]> = {
-  de: ['Startseite', 'Besucherprognose'],
-  fr: ['Accueil', 'Prévision d’affluence'],
-  it: ['Home', 'Previsione affluenza'],
-  en: ['Home', 'Crowd calendar'],
-};
+const officialHoursUrl = officialHoursUrls[lang] || officialHoursUrls.en!;
+const localeTag = getLocaleDefinition(lang).bcp47;
+const breadcrumbNames: [string, string] = [tr('nav.home'), tr('nav.crowd_forecast')];
 const faqItems = [
   [tr('crowd.faq_source_q'), tr('crowd.faq_source_a')],
   [tr('crowd.faq_accuracy_q'), tr('crowd.faq_accuracy_a')],
@@ -61,9 +62,10 @@ const clientCopy = {
 
 <Layout
   lang={lang}
+  routeKey="crowdCalendar"
   title={pageTitle}
   description={tr('crowd.meta_description')}
-  ogImage="/og-besucherprognose.png"
+  ogImage="/og-besucherprognose-v3.png"
   ogImageAlt={tr('crowd.og_alt')}
   alternatePaths={crowdCalendarPaths}
 >
@@ -76,7 +78,15 @@ const clientCopy = {
         url: `${siteUrl}${pagePath}`,
         name: pageTitle,
         description: tr('crowd.meta_description'),
-        inLanguage: lang,
+        inLanguage: localeTag,
+        primaryImageOfPage: {
+          '@type': 'ImageObject',
+          contentUrl: `${siteUrl}/og-besucherprognose-v3.png`,
+          width: 1200,
+          height: 630,
+          caption: tr('crowd.og_alt'),
+          representativeOfPage: true,
+        },
         about: { '@type': 'AmusementPark', name: 'Europa-Park' },
         isPartOf: { '@type': 'WebSite', name: 'ResortPass Tracker', url: siteUrl },
         breadcrumb: { '@id': `${siteUrl}${pagePath}#breadcrumb` },
@@ -85,8 +95,8 @@ const clientCopy = {
         '@type': 'BreadcrumbList',
         '@id': `${siteUrl}${pagePath}#breadcrumb`,
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: breadcrumbNames[lang][0], item: `${siteUrl}${homePath}` },
-          { '@type': 'ListItem', position: 2, name: breadcrumbNames[lang][1], item: `${siteUrl}${pagePath}` },
+          { '@type': 'ListItem', position: 1, name: breadcrumbNames[0], item: `${siteUrl}${homePath}` },
+          { '@type': 'ListItem', position: 2, name: breadcrumbNames[1], item: `${siteUrl}${pagePath}` },
         ],
       },
       {
@@ -109,37 +119,48 @@ const clientCopy = {
       <div class="blob blob-gold w-72 h-72 -bottom-44 -left-28" aria-hidden="true"></div>
 
       <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12 md:pt-16 md:pb-16">
-        <div class="max-w-3xl">
-          <div class="mb-5 animate-fade-in-up">
-            <span class="badge">
-              <span class="badge-dot" aria-hidden="true"></span>
-              {tr('crowd.badge')}
-            </span>
-          </div>
-          <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5 animate-fade-in-up-delay-1">{tr('crowd.title')}</h1>
-          <p class="text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl animate-fade-in-up-delay-2">{tr('crowd.subtitle')}</p>
-        </div>
+        <div class="grid items-center gap-9 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,0.78fr)] lg:gap-12">
+          <div>
+            <div class="max-w-3xl">
+              <div class="mb-5 animate-fade-in-up">
+                <span class="badge">
+                  <span class="badge-dot" aria-hidden="true"></span>
+                  {tr('crowd.badge')}
+                </span>
+              </div>
+              <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5 animate-fade-in-up-delay-1"><BrandSafeText text={tr('crowd.title')} /></h1>
+              <p class="text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl animate-fade-in-up-delay-2">{tr('crowd.subtitle')}</p>
+            </div>
 
-        <div class="mt-7 flex flex-col sm:flex-row gap-3">
-          <a href={waitTimesPath} class="btn-primary">{tr('crowd.live_waits')}</a>
-          <a href="#crowd-calendar" class="btn-secondary">{tr('crowd.to_calendar')}</a>
-        </div>
+            <div class="mt-7 flex flex-col sm:flex-row gap-3">
+              <a href={waitTimesPath} class="btn-primary">{tr('crowd.live_waits')}</a>
+              <a href="#crowd-calendar" class="btn-secondary">{tr('crowd.to_calendar')}</a>
+            </div>
 
-        <div class="mt-7 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 text-sm">
-          <div id="crowd-live-state" class="inline-flex w-fit items-center gap-2 rounded-full border-2 border-border bg-white px-3 py-1.5 font-bold" aria-live="polite">
-            <span class="h-2.5 w-2.5 rounded-full bg-muted" aria-hidden="true"></span>
-            <span>{tr('crowd.loading')}</span>
+            <div class="mt-7 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 text-sm">
+              <div id="crowd-live-state" class="inline-flex w-fit items-center gap-2 rounded-full border-2 border-border bg-white px-3 py-1.5 font-bold" aria-live="polite">
+                <span class="h-2.5 w-2.5 rounded-full bg-muted" aria-hidden="true"></span>
+                <span>{tr('crowd.loading')}</span>
+              </div>
+              <p class="text-muted">
+                <span id="crowd-updated">{tr('crowd.updated')} —</span>
+                <button id="refresh-crowd-calendar" type="button" class="ms-2 font-bold text-accent hover:underline cursor-pointer">
+                  {tr('crowd.refresh')}
+                </button>
+              </p>
+            </div>
+            <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-sm font-bold text-text-secondary hover:text-accent hover:underline">
+              Powered by ParkQueueTimes.com
+            </a>
           </div>
-          <p class="text-muted">
-            <span id="crowd-updated">{tr('crowd.updated')} —</span>
-            <button id="refresh-crowd-calendar" type="button" class="ml-2 font-bold text-accent hover:underline cursor-pointer">
-              {tr('crowd.refresh')}
-            </button>
-          </p>
+          <ResponsiveIllustration
+            baseName="europa-park-crowd-forecast-illustration"
+            alt={tr('crowd.og_alt')}
+            class="w-full"
+            eager={true}
+            sizes="(max-width: 1023px) calc(100vw - 2rem), 28rem"
+          />
         </div>
-        <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-sm font-bold text-text-secondary hover:text-accent hover:underline">
-          Powered by ParkQueueTimes.com
-        </a>
       </div>
     </section>
 
@@ -215,7 +236,7 @@ const clientCopy = {
           <p>{tr('crowd.source_note')}</p>
           <p class="mt-2 flex flex-wrap gap-x-3 gap-y-1">
             <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">Powered by ParkQueueTimes.com</a>
-            <a href={officialHoursUrls[lang]} target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">{tr('crowd.official_hours')}</a>
+            <a href={officialHoursUrl} target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">{tr('crowd.official_hours')}</a>
           </p>
         </div>
       </section>
@@ -273,9 +294,8 @@ const clientCopy = {
 
   <Footer lang={lang} />
 
-  <script define:vars={{ lang, clientCopy }}>
-    const localeByLanguage = { de: 'de-CH', fr: 'fr-CH', it: 'it-CH', en: 'en-GB' };
-    const locale = localeByLanguage[lang] || 'de-CH';
+  <script define:vars={{ lang, localeTag, clientCopy }}>
+    const locale = localeTag;
     const shortDate = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
     const cardDate = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
     const weekday = new Intl.DateTimeFormat(locale, { weekday: 'long' });

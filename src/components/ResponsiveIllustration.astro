@@ -1,0 +1,62 @@
+---
+interface Props {
+  baseName:
+    | 'resortpass-status-illustration'
+    | 'europa-park-wait-times-illustration'
+    | 'europa-park-crowd-forecast-illustration'
+    | 'europa-park-trip-planning-illustration';
+  alt: string;
+  class?: string;
+  eager?: boolean;
+  sizes?: string;
+}
+
+const {
+  baseName,
+  alt,
+  class: className,
+  eager = false,
+  sizes = '(max-width: 767px) calc(100vw - 2rem), 44rem',
+} = Astro.props;
+---
+
+<figure class:list={['responsive-illustration', className]}>
+  <img
+    src={`/images/${baseName}-1200.webp`}
+    srcset={[
+      `/images/${baseName}-480.webp 480w`,
+      `/images/${baseName}-800.webp 800w`,
+      `/images/${baseName}-1200.webp 1200w`,
+    ].join(', ')}
+    {sizes}
+    {alt}
+    width="1200"
+    height="630"
+    loading={eager ? 'eager' : 'lazy'}
+    fetchpriority={eager ? 'high' : 'low'}
+    decoding="async"
+  />
+</figure>
+
+<style>
+  .responsive-illustration {
+    overflow: hidden;
+    border: 2px solid color-mix(in srgb, var(--color-border) 82%, white);
+    border-radius: 1.25rem;
+    background: white;
+    box-shadow: 5px 5px 0 var(--color-pink);
+  }
+
+  .responsive-illustration img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  @media (max-width: 30rem) {
+    .responsive-illustration {
+      border-radius: 1rem;
+      box-shadow: 3px 3px 0 var(--color-pink);
+    }
+  }
+</style>

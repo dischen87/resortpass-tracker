@@ -244,13 +244,10 @@ function escapeXml(value: string): string {
 
 export function buildRss(lang: FeedLanguage, items: NewsDigest[], siteUrl: string): string {
   const baseUrl = siteUrl.replace(/\/+$/, '');
-  const hasLocalizedTrackerHome = ['de', 'fr', 'it', 'en'].includes(lang);
-  const landingPath = hasLocalizedTrackerHome
-    ? (lang === 'de' ? '/' : `/${lang}/`)
-    : getRoutePath('resortPassGuide', lang as LocaleCode);
+  const landingPath = getRoutePath('home', lang as LocaleCode);
   if (!landingPath) throw new Error(`Missing RSS landing page for locale "${lang}"`);
   const homeUrl = `${baseUrl}${landingPath}`;
-  const itemUrl = hasLocalizedTrackerHome ? `${homeUrl}#history` : homeUrl;
+  const itemUrl = `${homeUrl}#history`;
   const feedUrl = `${baseUrl}/api/feed.xml?lang=${lang}`;
   const copy = feedCopy[lang];
   const lastBuildDate = items[0]?.updatedAt;

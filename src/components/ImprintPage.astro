@@ -5,6 +5,7 @@ import Navbar from './Navbar.astro';
 import Footer from './Footer.astro';
 import '../styles/global.css';
 import { getTranslation, type Lang } from '../i18n/translations';
+import { getRoutePath } from '../i18n/routes';
 
 interface Props {
   lang: Lang;
@@ -12,9 +13,15 @@ interface Props {
 
 const { lang } = Astro.props;
 const tr = (key: string) => getTranslation(lang, key);
-const homePath = lang === 'de' ? '/' : `/${lang}/`;
-const imprintPath = lang === 'de' ? '/impressum/' : `/${lang}/impressum/`;
-const homeName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home' }[lang];
+const homePath = getRoutePath('home', lang)!;
+const imprintPath = getRoutePath('imprint', lang)!;
+const homeName = tr('nav.home');
+const meta = {
+  title: tr('imprint.meta_title'),
+  description: tr('imprint.meta_description'),
+};
+const canonical = `https://www.resortpass-europapark.ch${imprintPath}`;
+const breadcrumbId = `${canonical}#breadcrumb`;
 const cards = [
   { icon: 'tabler:user', title: tr('imprint.info_title'), shadow: '#C4B5FD', kind: 'contact' },
   { icon: 'tabler:alert-triangle', title: tr('imprint.disclaimer_title'), shadow: '#FDE68A', kind: 'disclaimer' },
@@ -24,20 +31,39 @@ const cards = [
 ] as const;
 ---
 
-<Layout lang={lang} title={`${tr('imprint.title')} — ResortPass Tracker`} description={tr('imprint.title')}>
+<Layout lang={lang} routeKey="imprint" title={meta.title} description={meta.description}>
   <script type="application/ld+json" set:html={JSON.stringify({
     '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: homeName, item: `https://www.resortpass-europapark.ch${homePath}` },
-      { '@type': 'ListItem', position: 2, name: tr('imprint.title'), item: `https://www.resortpass-europapark.ch${imprintPath}` },
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': `${canonical}#webpage`,
+        url: canonical,
+        name: meta.title,
+        description: meta.description,
+        inLanguage: lang,
+        isPartOf: {
+          '@type': 'WebSite',
+          name: 'ResortPass Tracker',
+          url: 'https://www.resortpass-europapark.ch',
+        },
+        breadcrumb: { '@id': breadcrumbId },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': breadcrumbId,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: homeName, item: `https://www.resortpass-europapark.ch${homePath}` },
+          { '@type': 'ListItem', position: 2, name: tr('imprint.title'), item: canonical },
+        ],
+      },
     ],
   })} />
 
   <Navbar lang={lang} />
   <main id="main-content" class="mx-auto max-w-3xl px-4 py-12 md:py-16">
     <a href={homePath} class="mb-8 inline-flex min-h-11 items-center gap-1.5 rounded-lg py-2 text-sm font-bold text-accent hover:underline">
-      <Icon name="tabler:arrow-left" class="h-4 w-4" aria-hidden="true" />
+      <Icon name="tabler:arrow-left" class="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
       {tr('imprint.back')}
     </a>
 
@@ -70,7 +96,7 @@ const cards = [
               <div>
                 <h3 class="mb-2 text-base font-extrabold">{tr('imprint.data_collected_title')}</h3>
                 <p class="mb-2 text-sm text-text-secondary">{tr('imprint.data_collected_text')}</p>
-                <ul class="ml-5 list-disc space-y-1 text-sm text-text-secondary">
+                <ul class="ms-5 list-disc space-y-1 text-sm text-text-secondary">
                   <li>{tr('imprint.data_email')}</li>
                   <li>{tr('imprint.data_preference')}</li>
                   <li>{tr('imprint.data_timestamp')}</li>

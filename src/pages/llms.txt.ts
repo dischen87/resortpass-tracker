@@ -1,6 +1,7 @@
 import { planningPacks } from '../content/planning';
 import { getLocaleDefinition, localeCodes } from '../i18n/locales';
 import { getRoutePath, guideRouteKeys } from '../i18n/routes';
+import { getTranslation } from '../i18n/translations';
 
 export const prerender = true;
 
@@ -16,18 +17,29 @@ export function GET() {
     '',
     '## Live canonical services',
     '',
-    `- [ResortPass availability and alerts — German](${siteUrl}/)`,
-    `- [ResortPass availability and alerts — French](${siteUrl}/fr/)`,
-    `- [ResortPass availability and alerts — Italian](${siteUrl}/it/)`,
-    `- [ResortPass availability and alerts — English](${siteUrl}/en/)`,
-    `- [Europa-Park live wait times](${siteUrl}/wartezeiten/)`,
-    `- [Europa-Park crowd forecast](${siteUrl}/besucherprognose/)`,
+  ];
+
+  for (const locale of localeCodes) {
+    const definition = getLocaleDefinition(locale);
+    const tr = (key: string) => getTranslation(locale, key);
+    lines.push(`### ${definition.nativeName} (${definition.bcp47})`, '');
+    lines.push(
+      `- [${tr('meta.title')}](${siteUrl}${getRoutePath('home', locale)})`,
+      `- [${tr('wait.meta_title')}](${siteUrl}${getRoutePath('waitTimes', locale)})`,
+      `- [${tr('crowd.meta_title')}](${siteUrl}${getRoutePath('crowdCalendar', locale)})`,
+      '',
+    );
+  }
+
+  lines.push(
+    '## Machine-readable endpoints',
+    '',
     `- [Machine-readable ResortPass status](${siteUrl}/api/status)`,
     `- [Full facts and provenance file](${siteUrl}/llms-full.txt)`,
     '',
     '## Planning pages by language',
     '',
-  ];
+  );
 
   for (const locale of localeCodes) {
     const pack = planningPacks[locale];

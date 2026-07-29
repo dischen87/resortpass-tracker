@@ -148,11 +148,12 @@ bun run test
 bun run typecheck
 bun run build
 bun run verify:static
+bun run verify:seo
 ```
 
-Die vollständige Benachrichtigungsoberfläche ist weiterhin auf Deutsch, Englisch, Französisch und Italienisch verfügbar. Die 13 zusätzlichen Sprachen veröffentlichen bewusst zuerst die vollständigen Planungsratgeber und Werkzeuge; dadurch führen E-Mail-Aktionen nie auf noch nicht vorhandene lokalisierte Konto-Seiten.
+Alle Kernseiten, Planungsratgeber, Formulare, E-Mail-Aktionen und Navigationsziele sind in den 17 veröffentlichten Sprachen verfügbar: Deutsch, Französisch, Italienisch, Englisch, Niederländisch, Spanisch, Schwedisch, Rumänisch, Tschechisch, Polnisch, Türkisch, Dänisch, Griechisch, Portugiesisch, Norwegisch (Bokmål), Hebräisch und Ungarisch.
 
-Fakten mit Ablaufdatum liegen zentral mit Quelle, Prüfdatum und nächstem Review-Termin. Die eingesetzten Europa-Park- und Rulantica-Bilder stammen aus Wikimedia Commons; Autor, Lizenz und Lizenzlink werden direkt am Bild sowie als strukturierte Daten ausgegeben.
+Fakten mit Ablaufdatum liegen zentral mit Quelle, Prüfdatum und nächstem Review-Termin. Das redaktionell eingesetzte Europa-Park-Panorama stammt aus Wikimedia Commons; Autor, Lizenz, Bearbeitung und Lizenzlink werden direkt am Bild sowie als strukturierte Daten ausgegeben. Ein geprüftes Rulantica-Motiv wird wegen erkennbarer Badegäste und Minderjähriger bewusst nicht als redaktionelles Leitbild verwendet.
 
 ---
 

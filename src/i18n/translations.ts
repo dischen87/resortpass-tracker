@@ -2,18 +2,26 @@ import {
   defaultLocale,
   getLocaleDefinition,
   getLocaleFromPathname,
+  localeCodes,
   type LocaleCode,
 } from './locales';
 import { getRequiredRoutePaths } from './routes';
+import { csCoreTranslations } from './core-locales/cs';
+import { daCoreTranslations } from './core-locales/da';
+import { elCoreTranslations } from './core-locales/el';
+import { esCoreTranslations } from './core-locales/es';
+import { heCoreTranslations } from './core-locales/he';
+import { huCoreTranslations } from './core-locales/hu';
+import { nbCoreTranslations } from './core-locales/nb';
+import { nlCoreTranslations } from './core-locales/nl';
+import { plCoreTranslations } from './core-locales/pl';
+import { ptCoreTranslations } from './core-locales/pt';
+import { roCoreTranslations } from './core-locales/ro';
+import { svCoreTranslations } from './core-locales/sv';
+import { trCoreTranslations } from './core-locales/tr';
 
-/**
- * Locales with complete product, API and email translations today.
- *
- * Keep this legacy export narrow until a locale is fully translated end to end.
- * The complete target-locale registry lives in `locales.ts`.
- */
-export const languages = ['de', 'fr', 'it', 'en'] as const;
-export type Lang = (typeof languages)[number];
+export const languages = localeCodes;
+export type Lang = LocaleCode;
 
 export const defaultLang: Lang = defaultLocale;
 
@@ -29,8 +37,8 @@ export const crowdCalendarPaths: Record<Lang, string> = getRequiredRoutePaths(
 export const t: Record<Lang, Record<string, string>> = {
   de: {
     // Meta
-    'meta.title': 'Europa-Park Jahreskarte: ResortPass aktuell verfügbar?',
-    'meta.description': 'Live-Status f\u00fcr ResortPass Silver und Gold: alle 15 Minuten gepr\u00fcft, mit kostenlosem E-Mail-Alert, aktuellen Preisen und Pass-Vergleich.',
+    'meta.title': 'Europa-Park Jahreskarte 2026: Ist der ResortPass verfügbar?',
+    'meta.description': 'Silver und Gold sind aktuell nicht verfügbar. Prüfe den Verkaufsstatus alle 15 Minuten, vergleiche die Preise 2026 und aktiviere einen kostenlosen E-Mail-Alert.',
     'meta.og_alt': 'ResortPass Tracker: Verf\u00fcgbarkeit der Europa-Park Jahreskarte',
 
     // Hero
@@ -317,6 +325,26 @@ export const t: Record<Lang, Record<string, string>> = {
     'unsub.confirm_prompt': 'M\u00f6chtest du den Alert wirklich abmelden und deine Daten l\u00f6schen?',
     'unsub.submit': 'Alert abmelden',
     'unsub.back': 'Zur\u00fcck zur Startseite',
+    'nav.home': 'Startseite',
+    'nav.plan_visit': 'Besuch planen',
+    'nav.resortpass_guide': 'ResortPass-Guide',
+    'nav.compare_passes': 'Silver oder Gold?',
+    'nav.menu': 'Menü',
+    'hero.title_lead': 'Wann gibt es wieder',
+    'hero.title_highlight': 'Europa-Park Jahreskarten?',
+    'hero.answer_label': 'Antwort',
+    'hero.how_label': "So funktioniert's",
+    'hero.explore_label': 'Mehr entdecken',
+    'subscribe.kicker': 'Der Alert',
+    'subscribe.benefit_free': 'Kostenlos & ohne Konto',
+    'subscribe.benefit_availability': 'Nur bei Verfügbarkeit — kein Newsletter',
+    'subscribe.benefit_privacy': 'Kein Tracking, jederzeit abmeldbar',
+    'footer.cta_title': 'Verpass den nächsten Verkaufsstart nicht',
+    'imprint.meta_title': 'Impressum & Datenschutz | ResortPass Tracker',
+    'imprint.meta_description': 'Impressum, Kontaktangaben und Datenschutzerklärung des unabhängigen ResortPass Trackers für Europa-Park-Fans.',
+    'language.guide_badge': 'Guide',
+    'language.guide_hint': 'Markierte Sprachen öffnen den lokalisierten Europa-Park-Guide.',
+    'language.guide_action': 'Europa-Park-Guide öffnen',
   },
 
   fr: {
@@ -589,11 +617,31 @@ export const t: Record<Lang, Record<string, string>> = {
     'unsub.confirm_prompt': 'Voulez-vous vraiment vous d\u00e9sabonner et supprimer vos donn\u00e9es ?',
     'unsub.submit': 'D\u00e9sactiver l\'alerte',
     'unsub.back': 'Retour \u00e0 l\'accueil',
+    'nav.home': 'Accueil',
+    'nav.plan_visit': 'Planifier la visite',
+    'nav.resortpass_guide': 'Guide ResortPass',
+    'nav.compare_passes': 'Silver ou Gold ?',
+    'nav.menu': 'Menu',
+    'hero.title_lead': 'Quand le ResortPass',
+    'hero.title_highlight': 'Europa-Park sera-t-il à nouveau disponible ?',
+    'hero.answer_label': 'Réponse',
+    'hero.how_label': 'Comment ça marche',
+    'hero.explore_label': 'À découvrir',
+    'subscribe.kicker': 'L’alerte',
+    'subscribe.benefit_free': 'Gratuit et sans compte',
+    'subscribe.benefit_availability': 'Seulement en cas de disponibilité',
+    'subscribe.benefit_privacy': 'Aucun suivi, désinscription à tout moment',
+    'footer.cta_title': 'Ne manquez pas la prochaine mise en vente',
+    'imprint.meta_title': 'Mentions légales & confidentialité | ResortPass Tracker',
+    'imprint.meta_description': 'Mentions légales, coordonnées et politique de confidentialité du ResortPass Tracker indépendant pour les visiteurs d’Europa-Park.',
+    'language.guide_badge': 'Guide',
+    'language.guide_hint': 'Les langues marquées ouvrent le guide Europa-Park traduit.',
+    'language.guide_action': 'Ouvrir le guide Europa-Park',
   },
 
   it: {
-    'meta.title': 'Tessera annuale Europa-Park: disponibilità ResortPass',
-    'meta.description': 'Stato live di ResortPass Silver e Gold, controllato ogni 15 minuti, con avviso e-mail gratuito, prezzi aggiornati e confronto.',
+    'meta.title': 'Pass annuale Europa-Park 2026: il ResortPass è disponibile?',
+    'meta.description': 'Silver e Gold non sono attualmente disponibili. Controlla lo stato della vendita ogni 15 minuti, confronta i prezzi 2026 e attiva un avviso e-mail gratuito.',
     'meta.og_alt': 'ResortPass Tracker: disponibilità della tessera annuale Europa-Park',
     'hero.badge': 'Progetto della comunit\u00e0 \u2014 non ufficiale',
     'hero.title': 'Quando sar\u00e0 di nuovo disponibile il ResortPass Europa-Park?',
@@ -861,6 +909,26 @@ export const t: Record<Lang, Record<string, string>> = {
     'unsub.confirm_prompt': 'Vuoi davvero disattivare l\'avviso ed eliminare i tuoi dati?',
     'unsub.submit': 'Disattiva avviso',
     'unsub.back': 'Torna alla home',
+    'nav.home': 'Home',
+    'nav.plan_visit': 'Pianifica la visita',
+    'nav.resortpass_guide': 'Guida ResortPass',
+    'nav.compare_passes': 'Silver o Gold?',
+    'nav.menu': 'Menu',
+    'hero.title_lead': 'Quando sarà di nuovo disponibile',
+    'hero.title_highlight': 'il ResortPass Europa-Park?',
+    'hero.answer_label': 'Risposta',
+    'hero.how_label': 'Come funziona',
+    'hero.explore_label': 'Scopri di più',
+    'subscribe.kicker': 'L’avviso',
+    'subscribe.benefit_free': 'Gratuito e senza account',
+    'subscribe.benefit_availability': 'Solo quando è disponibile',
+    'subscribe.benefit_privacy': 'Nessun tracciamento, annullabile sempre',
+    'footer.cta_title': 'Non perdere la prossima vendita',
+    'imprint.meta_title': 'Note legali e privacy | ResortPass Tracker',
+    'imprint.meta_description': 'Note legali, contatti e informativa sulla privacy del ResortPass Tracker indipendente dedicato ai visitatori di Europa-Park.',
+    'language.guide_badge': 'Guida',
+    'language.guide_hint': 'Le lingue contrassegnate aprono la guida Europa-Park tradotta.',
+    'language.guide_action': 'Apri la guida Europa-Park',
   },
 
   en: {
@@ -1133,7 +1201,40 @@ export const t: Record<Lang, Record<string, string>> = {
     'unsub.confirm_prompt': 'Do you really want to disable the alert and delete your data?',
     'unsub.submit': 'Disable alert',
     'unsub.back': 'Back to home',
+    'nav.home': 'Home',
+    'nav.plan_visit': 'Plan your visit',
+    'nav.resortpass_guide': 'ResortPass guide',
+    'nav.compare_passes': 'Silver or Gold?',
+    'nav.menu': 'Menu',
+    'hero.title_lead': 'When will Europa-Park',
+    'hero.title_highlight': 'annual passes be available again?',
+    'hero.answer_label': 'Answer',
+    'hero.how_label': 'How it works',
+    'hero.explore_label': 'Explore',
+    'subscribe.kicker': 'The alert',
+    'subscribe.benefit_free': 'Free and no account needed',
+    'subscribe.benefit_availability': 'Only when available — no newsletter',
+    'subscribe.benefit_privacy': 'No tracking, unsubscribe anytime',
+    'footer.cta_title': 'Do not miss the next sale',
+    'imprint.meta_title': 'Legal notice & privacy | ResortPass Tracker',
+    'imprint.meta_description': 'Legal notice, contact details and privacy policy for the independent ResortPass Tracker built for Europa-Park visitors.',
+    'language.guide_badge': 'Guide',
+    'language.guide_hint': 'Marked languages open the translated Europa-Park guide.',
+    'language.guide_action': 'Open the Europa-Park guide',
   },
+  nl: nlCoreTranslations,
+  es: esCoreTranslations,
+  sv: svCoreTranslations,
+  ro: roCoreTranslations,
+  cs: csCoreTranslations,
+  pl: plCoreTranslations,
+  tr: trCoreTranslations,
+  da: daCoreTranslations,
+  el: elCoreTranslations,
+  pt: ptCoreTranslations,
+  nb: nbCoreTranslations,
+  he: heCoreTranslations,
+  hu: huCoreTranslations,
 };
 
 const translatedLanguageSet = new Set<string>(languages);
@@ -1143,7 +1244,7 @@ export function hasTranslations(locale: LocaleCode): locale is Lang {
 }
 
 export function getTranslationLanguage(locale: LocaleCode): Lang {
-  return hasTranslations(locale) ? locale : defaultLang;
+  return locale;
 }
 
 export function getLocaleFromUrl(url: URL): LocaleCode {
@@ -1156,6 +1257,5 @@ export function getLangFromUrl(url: URL): Lang {
 }
 
 export function getTranslation(lang: LocaleCode, key: string): string {
-  const translationLanguage = getTranslationLanguage(lang);
-  return t[translationLanguage]?.[key] || t[defaultLang]?.[key] || key;
+  return t[lang]?.[key] || key;
 }

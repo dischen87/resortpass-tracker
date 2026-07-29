@@ -12,6 +12,8 @@ import {
   getLocaleFromUrl,
   getTranslation,
   hasTranslations,
+  languages,
+  t,
 } from './translations';
 
 describe('locale registry', () => {
@@ -61,14 +63,43 @@ describe('locale registry', () => {
 });
 
 describe('translation compatibility', () => {
-  test('returns the full locale while the legacy helper falls back safely', () => {
-    const url = new URL('https://www.resortpass-europapark.ch/he/');
-    expect(getLocaleFromUrl(url)).toBe('he');
-    expect(getLangFromUrl(url)).toBe('de');
-    expect(hasTranslations('he')).toBe(false);
+  test('exposes every registered locale as a fully translated language', () => {
+    expect(languages).toEqual(localeCodes);
+    for (const locale of localeCodes) expect(hasTranslations(locale)).toBe(true);
   });
 
-  test('uses the default copy until a target locale is fully translated', () => {
-    expect(getTranslation('nl', 'nav.language')).toBe(getTranslation('de', 'nav.language'));
+  test('returns the full translated locale from localized URLs', () => {
+    const url = new URL('https://www.resortpass-europapark.ch/he/');
+    expect(getLocaleFromUrl(url)).toBe('he');
+    expect(getLangFromUrl(url)).toBe('he');
+  });
+
+  test('uses native core copy without silently falling back to German', () => {
+    expect(getTranslation('nl', 'nav.language')).toBe(t.nl['nav.language']);
+    expect(getTranslation('nl', 'nav.language')).not.toBe(t.de['nav.language']);
+    expect(getTranslation('he', 'nav.language')).toBe(t.he['nav.language']);
+    expect(getTranslation('he', 'nav.language')).not.toBe(t.de['nav.language']);
+    expect(getTranslation('he', 'missing.translation.key')).toBe('missing.translation.key');
+  });
+
+  test('keeps an identical, complete core key set in all 17 languages', () => {
+    const expectedKeys = Object.keys(t.en).sort();
+    expect(expectedKeys).toHaveLength(284);
+
+    for (const locale of localeCodes) {
+      expect(Object.keys(t[locale]).sort()).toEqual(expectedKeys);
+      expect(Object.values(t[locale]).every((value) => value.trim().length > 0)).toBe(true);
+    }
+  });
+
+  test('preserves interpolation placeholders in every translation', () => {
+    const placeholders = (value: string) =>
+      [...value.matchAll(/\{[^}]+\}/g)].map((match) => match[0]).sort();
+
+    for (const locale of localeCodes) {
+      for (const [key, englishValue] of Object.entries(t.en)) {
+        expect(placeholders(t[locale][key]!)).toEqual(placeholders(englishValue));
+      }
+    }
   });
 });

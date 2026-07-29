@@ -2,6 +2,7 @@
 import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
+import { getPlanningPack } from '../content/planning';
 
 interface Props {
   lang?: Lang;
@@ -9,40 +10,15 @@ interface Props {
 
 const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
+const planningPack = getPlanningPack(lang);
 const resourceCopy = {
-  de: {
-    title: 'ResortPass-Fragen direkt klären',
-    compare: 'Silver und Gold vergleichen',
-    prices: 'Preise und Tageskarten einordnen',
-    reservation: 'Reservierung verstehen',
-    rulantica: 'Rulantica-Leistungen prüfen',
-    open: 'Guide öffnen',
-  },
-  fr: {
-    title: 'Répondre directement à vos questions ResortPass',
-    compare: 'Comparer Silver et Gold',
-    prices: 'Comprendre les prix et billets journée',
-    reservation: 'Comprendre la réservation',
-    rulantica: 'Vérifier les avantages Rulantica',
-    open: 'Ouvrir le guide',
-  },
-  it: {
-    title: 'Risposte dirette alle domande sul ResortPass',
-    compare: 'Confronta Silver e Gold',
-    prices: 'Valuta prezzi e biglietti giornalieri',
-    reservation: 'Capire la prenotazione',
-    rulantica: 'Verifica i vantaggi Rulantica',
-    open: 'Apri la guida',
-  },
-  en: {
-    title: 'Answer your ResortPass question directly',
-    compare: 'Compare Silver and Gold',
-    prices: 'Put prices and day tickets in context',
-    reservation: 'Understand reservations',
-    rulantica: 'Check Rulantica benefits',
-    open: 'Open guide',
-  },
-}[lang];
+  title: planningPack.common.relatedTitle,
+  compare: planningPack.pages.resortPassCompare.eyebrow,
+  prices: planningPack.pages.resortPassPrices.eyebrow,
+  reservation: planningPack.pages.resortPassReservation.eyebrow,
+  rulantica: planningPack.pages.resortPassRulantica.eyebrow,
+  open: planningPack.common.overview,
+};
 const resources = [
   { route: 'resortPassCompare' as const, label: resourceCopy.compare, icon: 'tabler:scale' },
   { route: 'resortPassPrices' as const, label: resourceCopy.prices, icon: 'tabler:receipt-euro' },
@@ -116,7 +92,7 @@ const resources = [
         {resources.map((resource) => (
           <a
             href={getRoutePath(resource.route, lang)!}
-            class="group flex min-h-28 flex-col rounded-2xl border-[3px] border-border bg-white p-4 text-left shadow-[3px_3px_0_var(--color-border)] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-pink)]"
+            class="group flex min-h-28 flex-col rounded-2xl border-[3px] border-border bg-white p-4 text-start shadow-[3px_3px_0_var(--color-border)] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-pink)] rtl:hover:translate-x-0.5"
           >
             <Icon name={resource.icon} class="mb-3 h-6 w-6 text-accent" aria-hidden="true" />
             <strong class="text-sm leading-snug">{resource.label}</strong>

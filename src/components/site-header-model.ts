@@ -1,8 +1,8 @@
-import type { LocaleCode } from '../i18n/locales';
+import { localeCodes, type LocaleCode } from '../i18n/locales';
 import { getRoutePath, type RouteKey } from '../i18n/routes';
 
-export const coreHeaderLocales = ['de', 'fr', 'it', 'en'] as const;
-export type CoreHeaderLocale = (typeof coreHeaderLocales)[number];
+export const coreHeaderLocales = localeCodes;
+export type CoreHeaderLocale = LocaleCode;
 
 export interface CoreHeaderRoute {
   href: string;
@@ -16,7 +16,7 @@ export interface CoreHeaderRoutes {
 }
 
 export function isCoreHeaderLocale(locale: LocaleCode): locale is CoreHeaderLocale {
-  return coreHeaderLocales.includes(locale as CoreHeaderLocale);
+  return coreHeaderLocales.includes(locale);
 }
 
 function resolveCoreRoute(routeKey: Extract<RouteKey, 'home' | 'waitTimes' | 'crowdCalendar'>, locale: LocaleCode): CoreHeaderRoute {

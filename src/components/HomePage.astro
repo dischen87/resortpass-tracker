@@ -9,8 +9,11 @@ import HistorySection from './HistorySection.astro';
 import NewsSection from './NewsSection.astro';
 import CommunitySection from './CommunitySection.astro';
 import Footer from './Footer.astro';
+import ResponsiveIllustration from './ResponsiveIllustration.astro';
 import '../styles/global.css';
 import { getTranslation, type Lang } from '../i18n/translations';
+import { getRoutePath } from '../i18n/routes';
+import { getLocaleDefinition } from '../i18n/locales';
 
 interface Props {
   lang: Lang;
@@ -19,11 +22,13 @@ interface Props {
 const { lang } = Astro.props;
 const tr = (key: string) => getTranslation(lang, key);
 const siteUrl = 'https://www.resortpass-europapark.ch';
-const homePath = lang === 'de' ? '/' : `/${lang}/`;
-const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home' }[lang];
+const homePath = getRoutePath('home', lang)!;
+const breadcrumbName = tr('nav.home');
+const localeTag = getLocaleDefinition(lang).bcp47;
+const socialImageUrl = `${siteUrl}/og-resortpass-v3.png`;
 ---
 
-<Layout lang={lang}>
+<Layout lang={lang} routeKey="home">
   <Navbar lang={lang} />
 
   <main id="main-content">
@@ -32,6 +37,12 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
     <section id="status" class="pt-6 pb-10 md:pt-8 md:pb-16" aria-labelledby="status-heading">
       <div class="section-shell">
         <h2 id="status-heading" class="sr-only">Status</h2>
+        <ResponsiveIllustration
+          baseName="resortpass-status-illustration"
+          alt={tr('meta.og_alt')}
+          class="mx-auto mb-8 max-w-[42rem] md:mb-10"
+          sizes="(max-width: 767px) calc(100vw - 2rem), 42rem"
+        />
         <div class="mx-auto grid max-w-[55rem] grid-cols-1 gap-7 md:grid-cols-2">
           <StatusCard type="silver" lang={lang} />
           <StatusCard type="gold" lang={lang} />
@@ -78,7 +89,15 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
     name: tr('meta.title'),
     url: `${siteUrl}${homePath}`,
     description: tr('meta.description'),
-    inLanguage: lang,
+    inLanguage: localeTag,
+    primaryImageOfPage: {
+      '@type': 'ImageObject',
+      contentUrl: socialImageUrl,
+      width: 1200,
+      height: 630,
+      caption: tr('meta.og_alt'),
+      representativeOfPage: true,
+    },
     isPartOf: {
       '@type': 'WebSite',
       name: 'ResortPass Tracker',
@@ -103,7 +122,8 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
     description: tr('meta.description'),
     applicationCategory: 'UtilitiesApplication',
     operatingSystem: 'Web',
-    inLanguage: lang,
+    inLanguage: localeTag,
+    image: socialImageUrl,
     offers: {
       '@type': 'Offer',
       price: '0',
@@ -132,10 +152,11 @@ const breadcrumbName = { de: 'Startseite', fr: 'Accueil', it: 'Home', en: 'Home'
 
   <script>
     import { getTranslation, type Lang } from '../i18n/translations';
+    import { getLocaleDefinition } from '../i18n/locales';
 
     const statusLang = ((window as any).__statusLang || 'de') as Lang;
     const tr = (key: string) => getTranslation(statusLang, key);
-    const locale = statusLang === 'de' ? 'de-CH' : statusLang === 'fr' ? 'fr-CH' : statusLang === 'it' ? 'it-CH' : 'en-US';
+    const locale = getLocaleDefinition(statusLang).bcp47;
 
     type PassStatus = { available?: boolean | null; state?: 'available' | 'sold_out' | 'unknown'; lastCheck?: string | null } | null;
 

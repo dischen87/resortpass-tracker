@@ -2,7 +2,11 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from './Navbar.astro';
 import Footer from './Footer.astro';
+import ResponsiveIllustration from './ResponsiveIllustration.astro';
+import BrandSafeText from './BrandSafeText.astro';
 import { crowdCalendarPaths, type Lang, getTranslation } from '../i18n/translations';
+import { getRoutePath } from '../i18n/routes';
+import { getLocaleDefinition } from '../i18n/locales';
 import '../styles/global.css';
 
 interface Props {
@@ -12,27 +16,24 @@ interface Props {
 const { lang } = Astro.props;
 const tr = (key: string) => getTranslation(lang, key);
 const siteUrl = 'https://www.resortpass-europapark.ch';
-const pagePath = lang === 'de' ? '/wartezeiten/' : `/${lang}/wartezeiten/`;
-const homePath = lang === 'de' ? '/' : `/${lang}/`;
+const pagePath = getRoutePath('waitTimes', lang)!;
+const homePath = getRoutePath('home', lang)!;
 const crowdCalendarPath = crowdCalendarPaths[lang];
-const breadcrumbNames: Record<Lang, [string, string]> = {
-  de: ['Startseite', 'Wartezeiten'],
-  fr: ['Accueil', 'Temps d’attente'],
-  it: ['Home', 'Tempi di attesa'],
-  en: ['Home', 'Wait times'],
-};
+const breadcrumbNames: [string, string] = [tr('nav.home'), tr('nav.wait_times')];
 const faqItems = [
   [tr('wait.faq_current_q'), tr('wait.faq_current_a')],
   [tr('wait.faq_popular_q'), tr('wait.faq_popular_a')],
   [tr('wait.faq_update_q'), tr('wait.faq_update_a')],
   [tr('wait.faq_official_q'), tr('wait.faq_official_a')],
 ];
-const officialAppUrls: Record<Lang, string> = {
+const officialAppUrls: Partial<Record<Lang, string>> = {
   de: 'https://www.europapark.de/de/freizeitpark/infos/media-unterhaltung/europa-park-rulantica-app',
   fr: 'https://www.europapark.de/fr/parc-de-loisirs/infos/medias-et-divertissements/appli-europa-park-rulantica',
   it: 'https://www.europapark.de/it/parco-divertimenti/info/media-intrattenimento/app-europa-park-rulantica',
   en: 'https://www.europapark.de/en/theme-park/info/media-entertainment/europa-park-rulantica-app',
 };
+const officialAppUrl = officialAppUrls[lang] || officialAppUrls.en!;
+const localeTag = getLocaleDefinition(lang).bcp47;
 const clientCopy = {
   updated: tr('wait.updated'),
   live: tr('wait.live'),
@@ -51,7 +52,7 @@ const clientCopy = {
 };
 ---
 
-<Layout lang={lang} title={tr('wait.meta_title')} description={tr('wait.meta_description')} ogImage="/og-wartezeiten.png" ogImageAlt={tr('wait.og_alt')}>
+<Layout lang={lang} routeKey="waitTimes" title={tr('wait.meta_title')} description={tr('wait.meta_description')} ogImage="/og-wartezeiten-v3.png" ogImageAlt={tr('wait.og_alt')}>
   <script type="application/ld+json" set:html={JSON.stringify({
     '@context': 'https://schema.org',
     '@graph': [
@@ -61,7 +62,15 @@ const clientCopy = {
         url: `${siteUrl}${pagePath}`,
         name: tr('wait.meta_title'),
         description: tr('wait.meta_description'),
-        inLanguage: lang,
+        inLanguage: localeTag,
+        primaryImageOfPage: {
+          '@type': 'ImageObject',
+          contentUrl: `${siteUrl}/og-wartezeiten-v3.png`,
+          width: 1200,
+          height: 630,
+          caption: tr('wait.og_alt'),
+          representativeOfPage: true,
+        },
         isPartOf: { '@type': 'WebSite', name: 'ResortPass Tracker', url: siteUrl },
         breadcrumb: { '@id': `${siteUrl}${pagePath}#breadcrumb` },
       },
@@ -69,8 +78,8 @@ const clientCopy = {
         '@type': 'BreadcrumbList',
         '@id': `${siteUrl}${pagePath}#breadcrumb`,
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: breadcrumbNames[lang][0], item: `${siteUrl}${homePath}` },
-          { '@type': 'ListItem', position: 2, name: breadcrumbNames[lang][1], item: `${siteUrl}${pagePath}` },
+          { '@type': 'ListItem', position: 1, name: breadcrumbNames[0], item: `${siteUrl}${homePath}` },
+          { '@type': 'ListItem', position: 2, name: breadcrumbNames[1], item: `${siteUrl}${pagePath}` },
         ],
       },
       {
@@ -93,34 +102,45 @@ const clientCopy = {
       <div class="blob blob-white w-80 h-80 -bottom-48 -left-28" aria-hidden="true"></div>
 
       <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10 md:pt-16 md:pb-14">
-        <div class="max-w-3xl">
-          <div class="mb-5 animate-fade-in-up">
-            <span class="badge">
-              <span class="h-2.5 w-2.5 rounded-full bg-available" aria-hidden="true"></span>
-              {tr('wait.badge')}
-            </span>
-          </div>
-          <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5 animate-fade-in-up-delay-1">{tr('wait.title')}</h1>
-          <p class="text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl animate-fade-in-up-delay-2">{tr('wait.subtitle')}</p>
-        </div>
+        <div class="grid items-center gap-9 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,0.78fr)] lg:gap-12">
+          <div>
+            <div class="max-w-3xl">
+              <div class="mb-5 animate-fade-in-up">
+                <span class="badge">
+                  <span class="h-2.5 w-2.5 rounded-full bg-available" aria-hidden="true"></span>
+                  {tr('wait.badge')}
+                </span>
+              </div>
+              <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5 animate-fade-in-up-delay-1"><BrandSafeText text={tr('wait.title')} /></h1>
+              <p class="text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl animate-fade-in-up-delay-2">{tr('wait.subtitle')}</p>
+            </div>
 
-        <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 text-sm">
-          <div id="live-state" class="inline-flex w-fit items-center gap-2 rounded-full border-2 border-border bg-white px-3 py-1.5 font-bold" aria-live="polite">
-            <span class="h-2.5 w-2.5 rounded-full bg-muted" aria-hidden="true"></span>
-            <span>{tr('wait.loading')}</span>
+            <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 text-sm">
+              <div id="live-state" class="inline-flex w-fit items-center gap-2 rounded-full border-2 border-border bg-white px-3 py-1.5 font-bold" aria-live="polite">
+                <span class="h-2.5 w-2.5 rounded-full bg-muted" aria-hidden="true"></span>
+                <span>{tr('wait.loading')}</span>
+              </div>
+              <p class="text-muted">
+                <span id="updated-label">{tr('wait.updated')} —</span>
+                <button id="refresh-wait-times" type="button" class="ms-2 font-bold text-accent hover:underline cursor-pointer">
+                  {tr('wait.refresh')}
+                </button>
+              </p>
+            </div>
+            <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-sm font-bold text-text-secondary hover:text-accent hover:underline">
+              Powered by ParkQueueTimes.com
+            </a>
+            <div class="mt-5">
+              <a href={crowdCalendarPath} class="btn-secondary">{tr('wait.forecast_cta')}</a>
+            </div>
           </div>
-          <p class="text-muted">
-            <span id="updated-label">{tr('wait.updated')} —</span>
-            <button id="refresh-wait-times" type="button" class="ml-2 font-bold text-accent hover:underline cursor-pointer">
-              {tr('wait.refresh')}
-            </button>
-          </p>
-        </div>
-        <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-sm font-bold text-text-secondary hover:text-accent hover:underline">
-          Powered by ParkQueueTimes.com
-        </a>
-        <div class="mt-5">
-          <a href={crowdCalendarPath} class="btn-secondary">{tr('wait.forecast_cta')}</a>
+          <ResponsiveIllustration
+            baseName="europa-park-wait-times-illustration"
+            alt={tr('wait.og_alt')}
+            class="w-full"
+            eager={true}
+            sizes="(max-width: 1023px) calc(100vw - 2rem), 28rem"
+          />
         </div>
       </div>
     </section>
@@ -229,7 +249,7 @@ const clientCopy = {
         <p class="mt-2">
           <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">Powered by ParkQueueTimes.com</a>
           <span aria-hidden="true"> · </span>
-          <a href={officialAppUrls[lang]} target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">{tr('wait.official_app')}</a>
+          <a href={officialAppUrl} target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">{tr('wait.official_app')}</a>
         </p>
       </div>
     </section>
@@ -265,9 +285,8 @@ const clientCopy = {
 
   <Footer lang={lang} />
 
-  <script define:vars={{ lang, clientCopy }}>
-    const localeByLanguage = { de: 'de-CH', fr: 'fr-CH', it: 'it-CH', en: 'en-GB' };
-    const locale = localeByLanguage[lang] || 'de-CH';
+  <script define:vars={{ lang, localeTag, clientCopy }}>
+    const locale = localeTag;
     const regionCodes = {
       Austria: 'AT', Croatia: 'HR', France: 'FR', Germany: 'DE', Greece: 'GR',
       Iceland: 'IS', Ireland: 'IE', Italy: 'IT', Luxembourg: 'LU', Netherlands: 'NL',

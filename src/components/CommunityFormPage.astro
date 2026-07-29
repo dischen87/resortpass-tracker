@@ -4,6 +4,7 @@ import Navbar from './Navbar.astro';
 import Footer from './Footer.astro';
 import '../styles/global.css';
 import { getTranslation, type Lang } from '../i18n/translations';
+import { getRoutePath } from '../i18n/routes';
 
 interface Props {
   lang: Lang;
@@ -11,11 +12,11 @@ interface Props {
 
 const { lang } = Astro.props;
 const tr = (key: string) => getTranslation(lang, key);
-const homePath = lang === 'de' ? '/' : `/${lang}/`;
+const homePath = getRoutePath('home', lang)!;
 ---
 
-<Layout lang={lang} title={tr('community.form_title')} noindex>
-  <Navbar lang={lang} showLanguageSwitcher={false} />
+<Layout lang={lang} routeKey="communityNew" title={tr('community.form_title')} noindex>
+  <Navbar lang={lang} />
   <main id="main-content" class="min-h-[70vh] py-14 md:py-20">
     <div class="max-w-xl mx-auto px-4 sm:px-6">
       <div class="text-center mb-8">

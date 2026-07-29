@@ -194,15 +194,85 @@ const applicationPages = new Set<GuideRouteKey>([
   'resortPassRulantica',
 ]);
 
-const heroMediaId = pageKey === 'rulanticaGuide' || pageKey === 'resortPassRulantica'
-  ? 'wikimedia-rulantica-wave-pool-2019'
-  : ['parkGuide', 'visitPlanner'].includes(pageKey)
-    ? 'wikimedia-ep-panorama-2023'
-    : undefined;
+// The available Rulantica Commons photo prominently depicts identifiable bathers,
+// including children, so it is intentionally not used as an editorial lead image.
+const heroMediaId = ['parkGuide', 'visitPlanner'].includes(pageKey)
+  ? 'wikimedia-ep-panorama-2023'
+  : undefined;
 const heroMedia = heroMediaId
   ? licensedMedia.find((media) => media.id === heroMediaId && media.downloaded)
   : undefined;
 const heroWidth = heroMedia?.id === 'wikimedia-ep-panorama-2023' ? 1800 : 1400;
+const localizedHeroAlt: Record<LocaleCode, { park: string; rulantica: string }> = {
+  de: {
+    park: 'Panorama des Europa-Park bei Sonnenaufgang mit Achterbahnen und Themenbereichen.',
+    rulantica: 'Wellenbecken in der Wasserwelt Rulantica mit Felskulisse und farbiger Beleuchtung.',
+  },
+  fr: {
+    park: 'Panorama d’Europa-Park au lever du soleil, avec montagnes russes et quartiers thématiques.',
+    rulantica: 'Piscine à vagues de Rulantica avec décor rocheux et éclairage coloré.',
+  },
+  it: {
+    park: 'Panorama di Europa-Park all’alba, con montagne russe e aree tematiche.',
+    rulantica: 'Piscina a onde di Rulantica con scenografia rocciosa e luci colorate.',
+  },
+  en: {
+    park: 'Europa-Park panorama at sunrise with roller coasters and themed areas.',
+    rulantica: 'Rulantica wave pool with rock scenery and colourful lighting.',
+  },
+  nl: {
+    park: 'Panorama van Europa-Park bij zonsopgang met achtbanen en themagebieden.',
+    rulantica: 'Golfslagbad in Rulantica met rotsdecor en kleurrijke verlichting.',
+  },
+  es: {
+    park: 'Panorámica de Europa-Park al amanecer con montañas rusas y áreas temáticas.',
+    rulantica: 'Piscina de olas de Rulantica con decoración rocosa e iluminación de colores.',
+  },
+  sv: {
+    park: 'Panorama över Europa-Park i soluppgången med berg- och dalbanor och temaområden.',
+    rulantica: 'Vågbassäng på Rulantica med klipplandskap och färgstark belysning.',
+  },
+  ro: {
+    park: 'Panoramă a Europa-Park la răsărit, cu montagne russe și zone tematice.',
+    rulantica: 'Bazinul cu valuri din Rulantica, cu decor stâncos și iluminat colorat.',
+  },
+  cs: {
+    park: 'Panorama Europa-Parku při východu slunce s horskými dráhami a tematickými oblastmi.',
+    rulantica: 'Bazén s vlnami v Rulantice se skalní kulisou a barevným osvětlením.',
+  },
+  pl: {
+    park: 'Panorama Europa-Parku o wschodzie słońca z kolejkami górskimi i strefami tematycznymi.',
+    rulantica: 'Basen z falami w Rulantice ze skalną scenerią i kolorowym oświetleniem.',
+  },
+  tr: {
+    park: 'Gün doğumunda hız trenleri ve temalı alanlarıyla Europa-Park panoraması.',
+    rulantica: 'Kayalık dekoru ve renkli aydınlatmasıyla Rulantica dalga havuzu.',
+  },
+  da: {
+    park: 'Panorama over Europa-Park ved solopgang med rutsjebaner og temaområder.',
+    rulantica: 'Bølgebassin i Rulantica med klippelandskab og farverig belysning.',
+  },
+  el: {
+    park: 'Πανόραμα του Europa-Park στην ανατολή με τρενάκια και θεματικές περιοχές.',
+    rulantica: 'Πισίνα κυμάτων στο Rulantica με βραχώδες σκηνικό και πολύχρωμο φωτισμό.',
+  },
+  pt: {
+    park: 'Panorama do Europa-Park ao nascer do sol, com montanhas-russas e áreas temáticas.',
+    rulantica: 'Piscina de ondas do Rulantica com cenário rochoso e iluminação colorida.',
+  },
+  nb: {
+    park: 'Panorama over Europa-Park ved soloppgang med berg-og-dal-baner og temaområder.',
+    rulantica: 'Bølgebasseng i Rulantica med fjellkulisser og fargerik belysning.',
+  },
+  he: {
+    park: 'מבט פנורמי על Europa-Park בזריחה, עם רכבות הרים ואזורים נושאיים.',
+    rulantica: 'בריכת הגלים של Rulantica עם תפאורת סלעים ותאורה צבעונית.',
+  },
+  hu: {
+    park: 'Az Europa-Park panorámája napfelkeltekor, hullámvasutakkal és tematikus területekkel.',
+    rulantica: 'A Rulantica hullámmedencéje szikladíszlettel és színes világítással.',
+  },
+};
 const localizedDerivativeDescription: Record<LocaleCode, string> = {
   de: `Responsive WebP-Fassung, auf ${heroWidth} Pixel Breite verkleinert; Metadaten entfernt; keine Farbänderung.`,
   fr: `Version WebP responsive, redimensionnée à ${heroWidth} px de large ; métadonnées supprimées ; aucune retouche des couleurs.`,
@@ -225,7 +295,13 @@ const localizedDerivativeDescription: Record<LocaleCode, string> = {
 const heroImage = heroMedia && 'localPath' in heroMedia
   ? {
       src: heroMedia.localPath!,
-      alt: '',
+      srcset: heroMedia.id === 'wikimedia-ep-panorama-2023'
+        ? '/images/ep-panorama-720.webp 720w, /images/ep-panorama-1200.webp 1200w, /images/ep-panorama.webp 1800w'
+        : undefined,
+      sizes: heroMedia.id === 'wikimedia-ep-panorama-2023'
+        ? '(max-width: 767px) calc(100vw - 2rem), (max-width: 1279px) calc(100vw - 3rem), 1120px'
+        : undefined,
+      alt: localizedHeroAlt[lang][heroMedia.id === 'wikimedia-ep-panorama-2023' ? 'park' : 'rulantica'],
       width: heroWidth,
       height: heroMedia.id === 'wikimedia-ep-panorama-2023' ? 721 : 938,
       attribution: heroMedia.attributionText,
@@ -378,6 +454,7 @@ const heroImage = heroMedia && 'localPath' in heroMedia
       '@type': 'WebApplication',
       name: page.heading,
       description: page.description,
+      url: `https://www.resortpass-europapark.ch${path(pageKey)}`,
       applicationCategory: 'TravelApplication',
       operatingSystem: 'Web',
       inLanguage: languageTag,

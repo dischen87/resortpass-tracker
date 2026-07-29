@@ -2,10 +2,34 @@
 import Layout from '../layouts/Layout.astro';
 import { Icon } from 'astro-icon/components';
 import Navbar from '../components/Navbar.astro';
-import Footer from '../components/Footer.astro';
+import { localeCodes } from '../i18n/locales';
+import { getRoutePath } from '../i18n/routes';
+import { getTranslation } from '../i18n/translations';
 import '../styles/global.css';
 
 const lang = 'de' as const;
+const headerByLocale = Object.fromEntries(localeCodes.map((locale) => [
+  locale,
+  {
+    language: getTranslation(locale, 'nav.language'),
+    menu: getTranslation(locale, 'nav.menu'),
+    main: getTranslation(locale, 'nav.main'),
+    alert: getTranslation(locale, 'nav.alert'),
+    waitTimes: getTranslation(locale, 'nav.wait_times'),
+    waitShort: getTranslation(locale, 'nav.wait_short'),
+    crowdForecast: getTranslation(locale, 'nav.crowd_forecast'),
+    crowdShort: getTranslation(locale, 'nav.crowd_short'),
+    planVisit: getTranslation(locale, 'nav.plan_visit'),
+    resortPassGuide: getTranslation(locale, 'nav.resortpass_guide'),
+    history: getTranslation(locale, 'nav.history_short'),
+    community: getTranslation(locale, 'community.title'),
+    homePath: getRoutePath('home', locale),
+    waitTimesPath: getRoutePath('waitTimes', locale),
+    crowdCalendarPath: getRoutePath('crowdCalendar', locale),
+    parkGuidePath: getRoutePath('parkGuide', locale),
+    resortPassGuidePath: getRoutePath('resortPassGuide', locale),
+  },
+]));
 ---
 
 <Layout lang={lang} title="404 — Seite nicht gefunden" description="Die gesuchte Seite wurde nicht gefunden." noindex>
@@ -31,33 +55,107 @@ const lang = 'de' as const;
           </p>
           <a href="/" class="btn-primary" data-nf="cta-link">
             <span data-nf="cta">Zur Startseite</span>
-            <Icon name="tabler:arrow-right" class="h-4 w-4" aria-hidden="true" />
+            <Icon name="tabler:arrow-right" class="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
           </a>
         </div>
       </div>
     </div>
   </main>
-  <Footer lang={lang} showLanguageSwitcher={false} />
 
-  <script is:inline>
+  <script define:vars={{ headerByLocale }}>
     (() => {
       const strings = {
-        de: { title: 'Seite nicht gefunden', body: 'Diese Seite existiert leider nicht — aber der Europa-Park schon! Vielleicht suchst du unseren ResortPass Tracker?', cta: 'Zur Startseite', home: '/' },
-        fr: { title: 'Page introuvable', body: "Cette page n'existe pas — mais Europa-Park, oui ! Tu cherches peut-être notre ResortPass Tracker ?", cta: "Retour à l'accueil", home: '/fr/' },
-        it: { title: 'Pagina non trovata', body: 'Questa pagina non esiste — ma Europa-Park sì! Forse cerchi il nostro ResortPass Tracker?', cta: 'Torna alla home', home: '/it/' },
-        en: { title: 'Page not found', body: "This page doesn't exist — but Europa-Park does! Maybe you're looking for our ResortPass Tracker?", cta: 'Back to home', home: '/en/' },
+        de: { htmlLang: 'de-CH', dir: 'ltr', title: 'Seite nicht gefunden', body: 'Diese Seite existiert leider nicht — aber der Europa-Park schon! Vielleicht suchst du unseren ResortPass Tracker?', cta: 'Zur Startseite', home: '/' },
+        fr: { htmlLang: 'fr-CH', dir: 'ltr', title: 'Page introuvable', body: "Cette page n’existe pas — mais Europa-Park, oui ! Vous cherchez peut-être notre ResortPass Tracker ?", cta: "Retour à l’accueil", home: '/fr/' },
+        it: { htmlLang: 'it-CH', dir: 'ltr', title: 'Pagina non trovata', body: 'Questa pagina non esiste — ma Europa-Park sì! Forse stai cercando il nostro ResortPass Tracker?', cta: 'Torna alla home', home: '/it/' },
+        en: { htmlLang: 'en-GB', dir: 'ltr', title: 'Page not found', body: 'This page does not exist — but Europa-Park does! Perhaps you are looking for our ResortPass Tracker?', cta: 'Back to home', home: '/en/' },
+        nl: { htmlLang: 'nl-NL', dir: 'ltr', title: 'Pagina niet gevonden', body: 'Deze pagina bestaat helaas niet — Europa-Park gelukkig wel! Misschien zoek je onze ResortPass Tracker?', cta: 'Terug naar de startpagina', home: '/nl/' },
+        es: { htmlLang: 'es-ES', dir: 'ltr', title: 'Página no encontrada', body: 'Esta página no existe, pero Europa-Park sí. Quizá buscas nuestro ResortPass Tracker.', cta: 'Volver al inicio', home: '/es/' },
+        sv: { htmlLang: 'sv-SE', dir: 'ltr', title: 'Sidan kunde inte hittas', body: 'Den här sidan finns tyvärr inte — men Europa-Park gör det! Du kanske letar efter vår ResortPass Tracker?', cta: 'Till startsidan', home: '/sv/' },
+        ro: { htmlLang: 'ro-RO', dir: 'ltr', title: 'Pagina nu a fost găsită', body: 'Această pagină nu există, însă Europa-Park există. Poate căutați ResortPass Tracker?', cta: 'Înapoi la pagina principală', home: '/ro/' },
+        cs: { htmlLang: 'cs-CZ', dir: 'ltr', title: 'Stránka nebyla nalezena', body: 'Tato stránka bohužel neexistuje — Europa-Park ale ano! Možná hledáte náš ResortPass Tracker?', cta: 'Zpět na domovskou stránku', home: '/cs/' },
+        pl: { htmlLang: 'pl-PL', dir: 'ltr', title: 'Nie znaleziono strony', body: 'Ta strona niestety nie istnieje — ale Europa-Park tak! Być może szukasz naszego ResortPass Trackera?', cta: 'Wróć na stronę główną', home: '/pl/' },
+        tr: { htmlLang: 'tr-TR', dir: 'ltr', title: 'Sayfa bulunamadı', body: 'Bu sayfa ne yazık ki mevcut değil — ama Europa-Park mevcut! ResortPass Tracker’ı arıyor olabilir misiniz?', cta: 'Ana sayfaya dön', home: '/tr/' },
+        da: { htmlLang: 'da-DK', dir: 'ltr', title: 'Siden blev ikke fundet', body: 'Denne side findes desværre ikke — men det gør Europa-Park! Måske leder du efter vores ResortPass Tracker?', cta: 'Tilbage til forsiden', home: '/da/' },
+        el: { htmlLang: 'el-GR', dir: 'ltr', title: 'Η σελίδα δεν βρέθηκε', body: 'Αυτή η σελίδα δεν υπάρχει — αλλά το Europa-Park υπάρχει! Ίσως αναζητάτε το ResortPass Tracker;', cta: 'Επιστροφή στην αρχική σελίδα', home: '/el/' },
+        pt: { htmlLang: 'pt-PT', dir: 'ltr', title: 'Página não encontrada', body: 'Esta página não existe, mas o Europa-Park existe. Talvez esteja à procura do nosso ResortPass Tracker.', cta: 'Voltar ao início', home: '/pt/' },
+        nb: { htmlLang: 'nb-NO', dir: 'ltr', title: 'Fant ikke siden', body: 'Denne siden finnes dessverre ikke — men Europa-Park gjør det! Kanskje du leter etter vår ResortPass Tracker?', cta: 'Tilbake til forsiden', home: '/nb/' },
+        he: { htmlLang: 'he-IL', dir: 'rtl', title: 'העמוד לא נמצא', body: 'העמוד הזה אינו קיים, אבל Europa-Park בהחלט כן. אולי חיפשתם את ResortPass Tracker?', cta: 'חזרה לעמוד הבית', home: '/he/' },
+        hu: { htmlLang: 'hu-HU', dir: 'ltr', title: 'Az oldal nem található', body: 'Ez az oldal sajnos nem létezik — az Europa-Park viszont igen! Talán a ResortPass Trackert keresed?', cta: 'Vissza a kezdőlapra', home: '/hu/' },
       };
       const seg = location.pathname.split('/').filter(Boolean)[0];
-      const lang = ['fr', 'it', 'en'].includes(seg) ? seg : 'de';
-      if (lang === 'de') return;
+      const lang = Object.prototype.hasOwnProperty.call(strings, seg) ? seg : 'de';
       const s = strings[lang];
-      document.documentElement.lang = lang;
+      const header = headerByLocale[lang];
+      document.documentElement.lang = s.htmlLang;
+      document.documentElement.dir = s.dir;
+      document.title = `404 — ${s.title}`;
       const set = (name, val) => { const el = document.querySelector(`[data-nf="${name}"]`); if (el) el.textContent = val; };
       set('title', s.title);
       set('body', s.body);
       set('cta', s.cta);
       const link = document.querySelector('[data-nf="cta-link"]');
       if (link) link.setAttribute('href', s.home);
+
+      const siteHeader = document.querySelector('[data-site-header]');
+      const brand = siteHeader?.querySelector('.site-header__brand');
+      const alert = siteHeader?.querySelector('.site-header__alert');
+      const languageToggle = siteHeader?.querySelector('#site-language-toggle');
+      const menuToggle = siteHeader?.querySelector('#site-menu-toggle');
+      const primaryNav = siteHeader?.querySelector('.site-header__primary');
+      const mobilePrimaryNav = siteHeader?.querySelector('.site-header__mobile-primary');
+      const mobileSecondaryNav = siteHeader?.querySelector('.site-header__mobile-secondary');
+
+      brand?.setAttribute('href', header.homePath);
+      alert?.setAttribute('href', `${header.homePath}#benachrichtigung`);
+      alert?.setAttribute('aria-label', header.alert);
+      const alertLabel = alert?.querySelector('span:not(.site-header__fallback-badge)');
+      if (alertLabel) alertLabel.textContent = header.alert;
+
+      languageToggle?.setAttribute('aria-label', header.language);
+      const languageCode = languageToggle?.querySelector('span');
+      if (languageCode) languageCode.textContent = lang.toUpperCase();
+      const languagePanelLabel = siteHeader?.querySelector('#site-language-panel > p');
+      if (languagePanelLabel) languagePanelLabel.textContent = header.language;
+      menuToggle?.setAttribute('aria-label', header.menu);
+      primaryNav?.setAttribute('aria-label', header.main);
+      mobilePrimaryNav?.setAttribute('aria-label', header.main);
+
+      const primaryItems = [
+        { href: header.waitTimesPath, compact: header.waitShort, full: header.waitTimes },
+        { href: header.crowdCalendarPath, compact: header.crowdShort, full: header.crowdForecast },
+        { href: header.parkGuidePath, compact: header.planVisit, full: header.planVisit },
+      ];
+      siteHeader?.querySelectorAll('.site-header__primary-link').forEach((item, index) => {
+        const next = primaryItems[index];
+        if (!next) return;
+        item.setAttribute('href', next.href);
+        item.setAttribute('aria-label', next.full);
+        const label = item.querySelector('span:not(.site-header__fallback-badge)');
+        if (label) label.textContent = next.compact;
+      });
+      siteHeader?.querySelectorAll('.site-header__mobile-primary a').forEach((item, index) => {
+        const next = primaryItems[index];
+        if (!next) return;
+        item.setAttribute('href', next.href);
+        item.setAttribute('aria-label', next.full);
+        const label = item.querySelector('span:not(.site-header__fallback-badge)');
+        if (label) label.textContent = next.full;
+      });
+
+      const secondaryItems = [
+        { href: header.resortPassGuidePath, label: header.resortPassGuide },
+        { href: `${header.homePath}#history`, label: header.history },
+        { href: `${header.homePath}#community`, label: header.community },
+      ];
+      siteHeader?.querySelectorAll('.site-header__mobile-secondary a').forEach((item, index) => {
+        const next = secondaryItems[index];
+        if (!next) return;
+        item.setAttribute('href', next.href);
+        item.setAttribute('aria-label', next.label);
+        const label = item.querySelector('span:not(.site-header__fallback-badge)');
+        if (label) label.textContent = next.label;
+      });
     })();
   </script>
 </Layout>

@@ -1,18 +1,27 @@
 ---
 import PlanningGuidePage from '../components/planning/PlanningGuidePage.astro';
+import HomePage from '../components/HomePage.astro';
+import WaitTimesPage from '../components/WaitTimesPage.astro';
+import CrowdCalendarPage from '../components/CrowdCalendarPage.astro';
+import ImprintPage from '../components/ImprintPage.astro';
+import TokenPage from '../components/TokenPage.astro';
+import CommunityFormPage from '../components/CommunityFormPage.astro';
 import { planningPacks } from '../content/planning';
 import {
   getRoutePath,
   guideRouteKeys,
   type GuideRouteKey,
+  type RouteKey,
 } from '../i18n/routes';
 import {
   isLocaleCode,
+  localeCodes,
   type LocaleCode,
 } from '../i18n/locales';
+import type { Lang } from '../i18n/translations';
 
 export function getStaticPaths() {
-  return Object.keys(planningPacks).flatMap((localeValue) => {
+  const guidePaths = Object.keys(planningPacks).flatMap((localeValue) => {
     if (!isLocaleCode(localeValue)) return [];
     return guideRouteKeys.map((pageKey) => {
       const path = getRoutePath(pageKey, localeValue);
@@ -23,14 +32,46 @@ export function getStaticPaths() {
       };
     });
   });
+
+  const existingCoreLocales = new Set<LocaleCode>(['de', 'fr', 'it', 'en']);
+  const generatedCoreRouteKeys = [
+    'home',
+    'waitTimes',
+    'crowdCalendar',
+    'imprint',
+    'confirm',
+    'unsubscribe',
+    'communityNew',
+  ] as const satisfies readonly RouteKey[];
+  const corePaths = localeCodes
+    .filter((locale) => !existingCoreLocales.has(locale))
+    .flatMap((locale) => generatedCoreRouteKeys.map((pageKey) => {
+      const path = getRoutePath(pageKey, locale);
+      if (!path) throw new Error(`Missing route for ${pageKey}/${locale}`);
+      return {
+        params: { guide: path.replace(/^\/|\/$/g, '') },
+        props: { lang: locale, pageKey },
+      };
+    }));
+
+  return [...guidePaths, ...corePaths];
 }
 
 interface Props {
   lang: LocaleCode;
-  pageKey: GuideRouteKey;
+  pageKey: RouteKey;
 }
 
 const { lang, pageKey } = Astro.props;
+const coreLang = lang as Lang;
+const isGuidePage = guideRouteKeys.includes(pageKey as GuideRouteKey);
 ---
 
-<PlanningGuidePage lang={lang} pageKey={pageKey} />
+{isGuidePage && <PlanningGuidePage lang={lang} pageKey={pageKey as GuideRouteKey} />}
+{pageKey === 'home' && <HomePage lang={coreLang} />}
+{pageKey === 'waitTimes' && <WaitTimesPage lang={coreLang} />}
+{pageKey === 'crowdCalendar' && <CrowdCalendarPage lang={coreLang} />}
+{pageKey === 'imprint' && <ImprintPage lang={coreLang} />}
+{pageKey === 'confirm' && <TokenPage lang={coreLang} mode="confirm" />}
+{pageKey === 'unsubscribe' && <TokenPage lang={coreLang} mode="unsubscribe" />}
+{pageKey === 'communityNew' && <CommunityFormPage lang={coreLang} />}

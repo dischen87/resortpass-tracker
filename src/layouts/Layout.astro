@@ -33,7 +33,7 @@ const tr = (key: string) => getTranslation(lang, key);
 
 const title = Astro.props.title || tr('meta.title');
 const description = Astro.props.description || tr('meta.description');
-const ogImage = Astro.props.ogImage || '/og-image.png';
+const ogImage = Astro.props.ogImage || '/og-resortpass-v3.png';
 const ogImageAlt = Astro.props.ogImageAlt || tr('meta.og_alt');
 const siteUrl = "https://www.resortpass-europapark.ch";
 const rawPath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;

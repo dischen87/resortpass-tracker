@@ -4,9 +4,11 @@ import { localeCodes } from '../i18n/locales';
 import { getCoreHeaderRoutes } from './site-header-model';
 
 const siteHeaderPath = new URL('./SiteHeader.astro', import.meta.url);
+const languageSwitcherPath = new URL('./LanguageSwitcher.astro', import.meta.url);
 const navbarPath = new URL('./Navbar.astro', import.meta.url);
 const planningPagePath = new URL('./planning/PlanningPage.astro', import.meta.url);
 const siteHeaderSource = await Bun.file(siteHeaderPath).text();
+const languageSwitcherSource = await Bun.file(languageSwitcherPath).text();
 const navbarSource = await Bun.file(navbarPath).text();
 const planningPageSource = await Bun.file(planningPagePath).text();
 
@@ -21,7 +23,7 @@ describe('shared site header', () => {
     expect(result.styleError).toEqual([]);
   });
 
-  test('keeps the four published core locales and uses an explicit English fallback elsewhere', () => {
+  test('keeps every core destination localized in all published locales', () => {
     expect(getCoreHeaderRoutes('de')).toEqual({
       home: { href: '/', fallbackToEnglish: false },
       waitTimes: { href: '/wartezeiten/', fallbackToEnglish: false },
@@ -29,12 +31,14 @@ describe('shared site header', () => {
     });
     expect(getCoreHeaderRoutes('fr').crowdCalendar.href).toBe('/fr/affluence/');
 
-    for (const locale of localeCodes.filter((code) => !['de', 'fr', 'it', 'en'].includes(code))) {
-      expect(getCoreHeaderRoutes(locale)).toEqual({
-        home: { href: '/en/', fallbackToEnglish: true },
-        waitTimes: { href: '/en/wartezeiten/', fallbackToEnglish: true },
-        crowdCalendar: { href: '/en/crowd-calendar/', fallbackToEnglish: true },
-      });
+    for (const locale of localeCodes) {
+      const routes = getCoreHeaderRoutes(locale);
+      expect(routes.home.fallbackToEnglish).toBe(false);
+      expect(routes.waitTimes.fallbackToEnglish).toBe(false);
+      expect(routes.crowdCalendar.fallbackToEnglish).toBe(false);
+      expect(routes.home.href).toBeTruthy();
+      expect(routes.waitTimes.href).toBeTruthy();
+      expect(routes.crowdCalendar.href).toBeTruthy();
     }
   });
 
@@ -55,5 +59,15 @@ describe('shared site header', () => {
     expect(siteHeaderSource).toContain('!siteHeader.contains(event.target as Node)');
     expect(siteHeaderSource).toContain('aria-controls="site-mobile-panel"');
     expect(siteHeaderSource).toContain('aria-controls="site-language-panel"');
+  });
+
+  test('keeps every locale reachable without polluting hreflang semantics', () => {
+    expect(siteHeaderSource).toContain('fallbackRouteKey="parkGuide"');
+    expect(siteHeaderSource).toContain('fallbackHint={languageFallbackCopy.hint}');
+    expect(languageSwitcherSource).toContain('resolveLanguageNavigation');
+    expect(languageSwitcherSource).toContain('data-language-locale');
+    expect(languageSwitcherSource).toContain('data-language-equivalent');
+    expect(languageSwitcherSource).not.toContain('hreflang');
+    expect(languageSwitcherSource).not.toContain('rel="alternate"');
   });
 });

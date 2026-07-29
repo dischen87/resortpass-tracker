@@ -2,8 +2,10 @@
 import { Icon } from 'astro-icon/components';
 import Layout from '../../layouts/Layout.astro';
 import SiteHeader from '../SiteHeader.astro';
+import ResponsiveIllustration from '../ResponsiveIllustration.astro';
+import BrandSafeText from '../BrandSafeText.astro';
 import { getLocaleDefinition, type LocaleCode } from '../../i18n/locales';
-import type { RouteKey } from '../../i18n/routes';
+import { normalizeRoutePath, type RouteKey } from '../../i18n/routes';
 import SourceStamp from './SourceStamp.astro';
 import '../../styles/global.css';
 
@@ -34,6 +36,8 @@ export interface PlanningSource {
 
 export interface PlanningHeroImage {
   src: string;
+  srcset?: string;
+  sizes?: string;
   alt: string;
   width: number;
   height: number;
@@ -102,7 +106,7 @@ const {
   related = [],
   faqs = [],
   sources = [],
-  ogImage = '/og-resortpass-v2.png',
+  ogImage = '/og-planning-v3.png',
   heroImage,
 } = Astro.props;
 
@@ -112,9 +116,7 @@ const canonical = `${siteUrl}${Astro.url.pathname}`;
 const allSources = [primarySource, ...sources].filter(
   (source, index, list) => list.findIndex((candidate) => candidate.url === source.url) === index,
 );
-const normalizedCurrentPath = Astro.url.pathname.endsWith('/')
-  ? Astro.url.pathname
-  : `${Astro.url.pathname}/`;
+const normalizedCurrentPath = normalizeRoutePath(Astro.url.pathname);
 const isHubPage = normalizedCurrentPath === hubPath;
 const homeIsHub = homePath === hubPath;
 const breadcrumbItems = isHubPage
@@ -147,7 +149,7 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
   title={title}
   description={description}
   ogImage={ogImage}
-  ogImageAlt={heading}
+  ogImageAlt={`ResortPass Tracker — ${copy.plannerLabel}`}
   skipLinkLabel={copy.skip}
 >
   <SiteHeader
@@ -185,7 +187,7 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
               <Icon name="tabler:map-pin" class="h-4 w-4 text-pink" aria-hidden="true" />
               {eyebrow}
             </span>
-            <h1 class="planning-hero__title">{heading}</h1>
+            <h1 class="planning-hero__title"><BrandSafeText text={heading} /></h1>
           </div>
 
           <aside class="planning-answer">
@@ -208,11 +210,13 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
           <figure class="planning-hero-media">
             <img
               src={heroImage.src}
+              srcset={heroImage.srcset}
+              sizes={heroImage.sizes}
               alt={heroImage.alt}
               width={heroImage.width}
               height={heroImage.height}
-              loading="eager"
-              fetchpriority="high"
+              loading="lazy"
+              fetchpriority="low"
               decoding="async"
             />
             <figcaption>
@@ -222,6 +226,14 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
               <span>{heroImage.modification}</span>
             </figcaption>
           </figure>
+        )}
+        {!heroImage && (
+          <ResponsiveIllustration
+            baseName="europa-park-trip-planning-illustration"
+            alt={`ResortPass Tracker — ${heading}`}
+            class="mx-auto mt-9 max-w-[48rem]"
+            sizes="(max-width: 767px) calc(100vw - 2rem), 48rem"
+          />
         )}
 
         {toc.length > 0 && (
@@ -342,21 +354,27 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
       name: 'Mathias Graf',
     },
     about: structuredAboutNames.map((name) => ({ '@type': 'Thing', name })),
-    ...(heroImage
+    primaryImageOfPage: heroImage
       ? {
-          primaryImageOfPage: {
-            '@type': 'ImageObject',
-            contentUrl: `${siteUrl}${heroImage.src}`,
-            encodingFormat: 'image/webp',
-            width: heroImage.width,
-            height: heroImage.height,
-            creditText: heroImage.attribution,
-            license: heroImage.licenseUrl,
-            acquireLicensePage: heroImage.filePageUrl,
-            representativeOfPage: true,
-          },
+          '@type': 'ImageObject',
+          contentUrl: `${siteUrl}${heroImage.src}`,
+          encodingFormat: 'image/webp',
+          width: heroImage.width,
+          height: heroImage.height,
+          creditText: heroImage.attribution,
+          license: heroImage.licenseUrl,
+          acquireLicensePage: heroImage.filePageUrl,
+          representativeOfPage: true,
         }
-      : {}),
+      : {
+          '@type': 'ImageObject',
+          contentUrl: `${siteUrl}${ogImage}`,
+          encodingFormat: 'image/png',
+          width: 1200,
+          height: 630,
+          caption: `ResortPass Tracker — ${copy.plannerLabel}`,
+          representativeOfPage: true,
+        },
     ...(breadcrumbItems.length > 1
       ? {
           breadcrumb: {

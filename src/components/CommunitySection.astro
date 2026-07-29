@@ -1,6 +1,8 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+import { getLocaleDefinition } from '../i18n/locales';
+import { getRoutePath } from '../i18n/routes';
 
 interface Props {
   lang?: Lang;
@@ -8,7 +10,8 @@ interface Props {
 
 const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
-const formPath = lang === 'de' ? '/community/neu/' : `/${lang}/community/neu/`;
+const formPath = getRoutePath('communityNew', lang)!;
+const localeTag = getLocaleDefinition(lang).bcp47;
 ---
 
 <section class="py-16 md:py-20" id="community">
@@ -50,7 +53,7 @@ const formPath = lang === 'de' ? '/community/neu/' : `/${lang}/community/neu/`;
   </div>
 </section>
 
-<script define:vars={{ lang, emptyText: tr('community.empty'), errorText: tr('community.load_error') }}>
+<script define:vars={{ lang, localeTag, emptyText: tr('community.empty'), errorText: tr('community.load_error') }}>
   window.__communityLang = lang;
   window.__communityEmpty = emptyText;
   window.__communityError = errorText;
@@ -60,7 +63,6 @@ const formPath = lang === 'de' ? '/community/neu/' : `/${lang}/community/neu/`;
   const lang = (window as any).__communityLang || 'de';
   const emptyText = (window as any).__communityEmpty || '';
   const errorText = (window as any).__communityError || '';
-  const byLabel = lang === 'de' ? 'von' : lang === 'fr' ? 'par' : lang === 'it' ? 'di' : 'by';
   const cardShadows = ['#C4B5FD', '#FDE68A', '#F9A8D4'];
   const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -75,8 +77,7 @@ const formPath = lang === 'de' ? '/community/neu/' : `/${lang}/community/neu/`;
 
   function formatDate(dateStr: string) {
     const d = new Date(dateStr + 'Z');
-    const locale = lang === 'de' ? 'de-CH' : lang;
-    return d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return d.toLocaleDateString(localeTag, { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
   function renderPost(post: { author_name: string; title: string; body: string; created_at: string }, index: number) {
@@ -87,7 +88,7 @@ const formPath = lang === 'de' ? '/community/neu/' : `/${lang}/community/neu/`;
         <div class="min-w-0">
             <h3 class="text-sm font-bold mb-1 font-heading">${escapeHtml(post.title)}</h3>
             <p class="text-sm text-text-secondary leading-relaxed mb-2 whitespace-pre-line">${escapeHtml(post.body)}</p>
-            <p class="text-xs text-muted">${byLabel} ${escapeHtml(post.author_name)} &middot; ${formatDate(post.created_at)}</p>
+            <p class="text-xs text-muted">${escapeHtml(post.author_name)} &middot; ${formatDate(post.created_at)}</p>
         </div>
       </article>
     `;

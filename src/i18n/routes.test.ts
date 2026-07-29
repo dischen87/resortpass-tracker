@@ -66,9 +66,10 @@ describe('semantic route registry', () => {
   });
 
   test('keeps every existing route mapping backed by its Astro page', () => {
+    const dynamicRoutePage = join(import.meta.dir, '..', 'pages', '[...guide].astro');
     for (const routeKey of sourceBackedRouteKeys) {
       for (const { path } of getRouteAlternates(routeKey)) {
-        expect(sourcePageExists(path)).toBe(true);
+        expect(sourcePageExists(path) || existsSync(dynamicRoutePage)).toBe(true);
       }
     }
   });
@@ -91,12 +92,14 @@ describe('semantic route registry', () => {
     expect(findRouteKeyByPath('/en/crowd-calendar/')).toBe('crowdCalendar');
   });
 
-  test('does not invent alternates for target locales without pages', () => {
-    expect(getRoutePath('home', 'nl')).toBeUndefined();
-    expect(getRoutePath('waitTimes', 'he')).toBeUndefined();
+  test('publishes every core route for all requested locales', () => {
+    for (const routeKey of sourceBackedRouteKeys) {
+      expect(getRouteAlternates(routeKey)).toHaveLength(localeCodes.length);
+      for (const locale of localeCodes) expect(getRoutePath(routeKey, locale)).toBeDefined();
+    }
 
     const resolved = resolveRouteAlternates({ pathname: '/en/crowd-calendar/' });
-    expect(resolved.alternates.map(({ locale }) => locale)).toEqual(['de', 'fr', 'it', 'en']);
+    expect(resolved.alternates.map(({ locale }) => locale)).toEqual([...localeCodes]);
     expect(resolved.xDefaultPath).toBe('/besucherprognose/');
   });
 
@@ -219,6 +222,18 @@ describe('localized guide routes', () => {
         expect(resolved.alternates).toEqual(expectedAlternates);
         expect(resolved.xDefaultPath).toBe(expectedDefault);
       }
+    }
+  });
+
+  test('resolves percent-encoded Hebrew build and sitemap URLs', () => {
+    for (const routeKey of guideRouteKeys) {
+      const hebrewPath = getRoutePath(routeKey, 'he')!;
+      const encodedPath = new URL(hebrewPath, 'https://example.com').pathname;
+
+      expect(normalizeRoutePath(encodedPath)).toBe(hebrewPath);
+      expect(findRouteKeyByPath(encodedPath)).toBe(routeKey);
+      expect(resolveRouteAlternates({ pathname: encodedPath }).alternates)
+        .toEqual(getRouteAlternates(routeKey));
     }
   });
 });

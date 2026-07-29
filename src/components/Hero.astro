@@ -2,6 +2,7 @@
 import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, crowdCalendarPaths, getTranslation } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
+import BrandSafeText from './BrandSafeText.astro';
 
 interface Props {
   lang?: Lang;
@@ -9,32 +10,17 @@ interface Props {
 
 const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
-const titleLines: Record<Lang, [string, string]> = {
-  de: ['Wann gibt es wieder', 'Europa-Park Jahreskarten?'],
-  fr: ['Quand le ResortPass', 'Europa-Park sera-t-il à nouveau disponible ?'],
-  it: ['Quando sarà di nuovo disponibile', 'il ResortPass Europa-Park?'],
-  en: ['When will Europa-Park', 'annual passes be available again?'],
-};
-const [titleLead, titleHighlight] = titleLines[lang];
-const answerLabel = { de: 'Antwort', fr: 'Réponse', it: 'Risposta', en: 'Answer' }[lang];
-const howLabel = { de: "So funktioniert's", fr: 'Comment ça marche', it: 'Come funziona', en: 'How it works' }[lang];
-const exploreLabel = { de: 'Mehr entdecken', fr: 'À découvrir', it: 'Scopri di più', en: 'Explore' }[lang];
-const planningLabel = {
-  de: 'Besuch planen',
-  fr: 'Planifier la visite',
-  it: 'Pianifica la visita',
-  en: 'Plan your visit',
-}[lang];
-const compareLabel = {
-  de: 'Silver oder Gold?',
-  fr: 'Silver ou Gold ?',
-  it: 'Silver o Gold?',
-  en: 'Silver or Gold?',
-}[lang];
+const titleLead = tr('hero.title_lead');
+const titleHighlight = tr('hero.title_highlight');
+const answerLabel = tr('hero.answer_label');
+const howLabel = tr('hero.how_label');
+const exploreLabel = tr('hero.explore_label');
+const planningLabel = tr('nav.plan_visit');
+const compareLabel = tr('nav.compare_passes');
 
-const homePath = lang === defaultLang ? '/' : `/${lang}/`;
+const homePath = getRoutePath('home', lang)!;
 const features = [
-  { href: `${homePath}wartezeiten/`, icon: 'tabler:clock-hour-4', label: tr('nav.wait_times'), tint: 'accent', live: true },
+  { href: getRoutePath('waitTimes', lang)!, icon: 'tabler:clock-hour-4', label: tr('nav.wait_times'), tint: 'accent', live: true },
   { href: crowdCalendarPaths[lang], icon: 'tabler:calendar-stats', label: tr('nav.crowd_forecast'), tint: 'gold', live: true },
   { href: getRoutePath('parkGuide', lang)!, icon: 'tabler:map-2', label: planningLabel, tint: 'pink', live: false },
   { href: getRoutePath('resortPassCompare', lang)!, icon: 'tabler:scale', label: compareLabel, tint: 'accent', live: false },
@@ -58,8 +44,8 @@ const features = [
       </div>
 
       <h1 class="mb-6 text-[2.15rem] font-extrabold leading-[1.02] tracking-[-0.015em] md:text-5xl lg:text-[3.65rem] animate-fade-in-up-delay-1">
-        <span class="block">{titleLead}</span>
-        <span class="highlight-swipe">{titleHighlight}</span>
+        <span class="block"><BrandSafeText text={titleLead} /></span>
+        <span class="highlight-swipe"><BrandSafeText text={titleHighlight} /></span>
       </h1>
 
       <div class="hero-status mx-auto mb-7 max-w-2xl animate-fade-in-up-delay-2">

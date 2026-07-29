@@ -5,11 +5,11 @@ import {
   type LocaleCode,
 } from '../i18n/locales';
 import {
-  resolveRouteAlternates,
   type RouteKey,
   type RoutePaths,
 } from '../i18n/routes';
 import { getTranslation } from '../i18n/translations';
+import { resolveLanguageNavigation } from './language-switcher-model';
 
 interface Props {
   lang?: LocaleCode;
@@ -18,34 +18,182 @@ interface Props {
   /** Explicitly published localized paths; retained for backwards compatibility. */
   paths?: RoutePaths;
   label?: string;
+  /** Optional, visibly-labelled destination when no same-page translation exists. */
+  fallbackRouteKey?: RouteKey;
+  fallbackBadge?: string;
+  fallbackHint?: string;
+  fallbackActionLabel?: string;
 }
 
 const lang = Astro.props.lang || defaultLocale;
 const languageLabel = Astro.props.label || getTranslation(lang, 'nav.language');
-const { alternates } = resolveRouteAlternates({
+const items = resolveLanguageNavigation({
   pathname: Astro.url.pathname,
   routeKey: Astro.props.routeKey,
   explicitPaths: Astro.props.paths,
+  fallbackRouteKey: Astro.props.fallbackRouteKey,
 });
+const hasFallbacks = items.some((item) => !item.equivalent);
+const fallbackBadge = Astro.props.fallbackBadge || 'Guide';
+const fallbackActionLabel = Astro.props.fallbackActionLabel || 'Europa-Park guide';
 ---
 
-{alternates.length > 1 && (
-  <nav aria-label={languageLabel} class="flex flex-wrap items-center gap-1" dir="ltr">
-    {alternates.map(({ locale, path }) => (
-      <a
-        href={path}
-        class:list={[
-          'inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide transition-colors cursor-pointer',
-          locale === lang
-            ? 'bg-bg-light text-accent border-2 border-accent'
-            : 'text-muted hover:text-text-primary hover:bg-bg border-2 border-transparent',
-        ]}
-        aria-current={locale === lang ? 'page' : undefined}
-        aria-label={getLocaleDefinition(locale).nativeName}
-        lang={getLocaleDefinition(locale).bcp47}
-      >
-        {locale.toUpperCase()}
-      </a>
-    ))}
-  </nav>
+{items.length > 1 && (
+  <div class="language-switcher">
+    <nav aria-label={languageLabel} class="language-switcher__grid" dir="ltr">
+      {items.map(({ locale, path, equivalent }) => {
+        const localeDefinition = getLocaleDefinition(locale);
+        const isCurrentPage = equivalent && locale === lang;
+        const ariaLabel = equivalent
+          ? localeDefinition.nativeName
+          : `${localeDefinition.nativeName} — ${fallbackActionLabel}`;
+
+        return (
+          <a
+            href={path}
+            class:list={[
+              'language-switcher__link',
+              {
+                'language-switcher__link--current': isCurrentPage,
+                'language-switcher__link--fallback': !equivalent,
+              },
+            ]}
+            aria-current={isCurrentPage ? 'page' : undefined}
+            aria-label={ariaLabel}
+            data-language-locale={locale}
+            data-language-equivalent={String(equivalent)}
+          >
+            <span class="language-switcher__code" aria-hidden="true">{locale.toUpperCase()}</span>
+            <span
+              class="language-switcher__name"
+              lang={localeDefinition.bcp47}
+              dir={localeDefinition.direction}
+            >
+              {localeDefinition.nativeName}
+            </span>
+            {!equivalent && (
+              <span class="language-switcher__badge" aria-hidden="true">{fallbackBadge}</span>
+            )}
+          </a>
+        );
+      })}
+    </nav>
+
+    {hasFallbacks && Astro.props.fallbackHint && (
+      <p class="language-switcher__hint">
+        <span aria-hidden="true"></span>
+        {Astro.props.fallbackHint}
+      </p>
+    )}
+  </div>
 )}
+
+<style>
+  .language-switcher {
+    container-type: inline-size;
+  }
+
+  .language-switcher__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.35rem;
+  }
+
+  .language-switcher__link {
+    display: grid;
+    min-width: 0;
+    min-height: 2.75rem;
+    cursor: pointer;
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.45rem;
+    border: 2px solid transparent;
+    border-radius: 0.75rem;
+    padding: 0.35rem 0.45rem;
+    color: var(--color-text-secondary);
+    font-size: 0.76rem;
+    font-weight: 800;
+    transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+  }
+
+  .language-switcher__link:hover {
+    background: var(--color-bg);
+    color: var(--color-text-primary);
+  }
+
+  .language-switcher__link--current {
+    border-color: var(--color-accent);
+    background: var(--color-bg-light);
+    color: var(--color-accent-dark);
+  }
+
+  .language-switcher__code {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: 999px;
+    background: #f0eafe;
+    color: var(--color-accent-dark);
+    font-size: 0.68rem;
+    font-weight: 950;
+    letter-spacing: 0.04em;
+  }
+
+  .language-switcher__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .language-switcher__badge {
+    border-radius: 999px;
+    background: #fff0f7;
+    color: #be185d;
+    padding: 0.18rem 0.38rem;
+    font-size: 0.52rem;
+    font-weight: 950;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+  }
+
+  .language-switcher__hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+    border-top: 1px solid var(--color-border-light);
+    padding-top: 0.65rem;
+    color: var(--color-muted);
+    font-size: 0.68rem;
+    line-height: 1.45;
+  }
+
+  .language-switcher__hint > span {
+    width: 0.48rem;
+    height: 0.48rem;
+    flex: 0 0 auto;
+    margin-top: 0.22rem;
+    border-radius: 999px;
+    background: var(--color-pink);
+  }
+
+  @container (min-width: 18rem) {
+    .language-switcher__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @container (min-width: 28rem) {
+    .language-switcher__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .language-switcher__link {
+      transition: none;
+    }
+  }
+</style>

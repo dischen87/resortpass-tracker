@@ -85,9 +85,16 @@ describe('daily availability feed', () => {
 
     const hebrewXml = buildRss('he', [formatDailyDigest(row, 'he')], 'https://example.com/');
     expect(hebrewXml).toContain('<language>he-IL</language>');
-    expect(hebrewXml).toContain('https://example.com/he/מדריך-resortpass/');
-    expect(hebrewXml).not.toContain('/he/#history');
+    expect(hebrewXml).toContain('<link>https://example.com/he/</link>');
+    expect(hebrewXml).toContain('<link>https://example.com/he/#history</link>');
     expect(hebrewXml).toContain('lang=he');
+
+    for (const lang of supportedLanguages) {
+      const localizedXml = buildRss(lang, [formatDailyDigest(row, lang)], 'https://example.com/');
+      const prefix = lang === 'de' ? '/' : `/${lang}/`;
+      expect(localizedXml).toContain(`<link>https://example.com${prefix}</link>`);
+      expect(localizedXml).toContain(`<link>https://example.com${prefix}#history</link>`);
+    }
   });
 });
 

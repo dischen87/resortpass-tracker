@@ -1,0 +1,30 @@
+---
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+const brandTokens = new Set(['Europa-Park', 'ResortPass', 'Rulantica']);
+const parts = text.split(
+  /((?:[\u0590-\u05ff]-)?(?:Europa-Park|ResortPass|Rulantica))/gu,
+);
+---
+
+{parts.map((part) => {
+  const match = part.match(/^([\u0590-\u05ff]-)?(Europa-Park|ResortPass|Rulantica)$/u);
+  if (!match || !brandTokens.has(match[2]!)) return part;
+  return (
+    <span class="brand-safe-group">
+      {match[1]}
+      <bdi dir="ltr">{match[2]}</bdi>
+    </span>
+  );
+})}
+
+<style>
+  .brand-safe-group {
+    display: inline-block;
+    white-space: nowrap;
+    unicode-bidi: isolate;
+  }
+</style>

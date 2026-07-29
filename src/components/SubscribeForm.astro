@@ -8,13 +8,12 @@ interface Props {
 
 const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
-const kicker = { de: 'Der Alert', fr: "L'alerte", it: "L'avviso", en: 'The alert' }[lang];
-const benefits: Record<Lang, string[]> = {
-  de: ['Kostenlos & ohne Konto', 'Nur bei Verfügbarkeit — kein Newsletter', 'Kein Tracking, jederzeit abmeldbar'],
-  fr: ['Gratuit & sans compte', 'Seulement en cas de disponibilité', 'Aucun suivi, désinscription à tout moment'],
-  it: ['Gratuito & senza account', 'Solo quando è disponibile', 'Nessun tracciamento, annullabile sempre'],
-  en: ['Free & no account needed', 'Only when available — no newsletter', 'No tracking, unsubscribe anytime'],
-};
+const kicker = tr('subscribe.kicker');
+const benefits = [
+  tr('subscribe.benefit_free'),
+  tr('subscribe.benefit_availability'),
+  tr('subscribe.benefit_privacy'),
+];
 ---
 
 <section class="border-y-[3px] border-border bg-white py-16 md:py-20" id="benachrichtigung">
@@ -99,7 +98,7 @@ const benefits: Record<Lang, string[]> = {
       </div>
 
       <ul class="space-y-3 lg:col-start-1 lg:row-start-2 reveal">
-        {benefits[lang].map((benefit) => (
+        {benefits.map((benefit) => (
           <li class="flex items-start gap-3 text-sm font-bold text-text-secondary">
             <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-100 text-available">
               <Icon name="tabler:check" class="h-4 w-4" aria-hidden="true" />

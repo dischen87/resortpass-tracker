@@ -9,10 +9,7 @@ import {
 } from '../i18n/routes';
 import { getTranslation, type Lang } from '../i18n/translations';
 import LanguageSwitcher from './LanguageSwitcher.astro';
-import {
-  getCoreHeaderRoutes,
-  isCoreHeaderLocale,
-} from './site-header-model';
+import { getCoreHeaderRoutes } from './site-header-model';
 
 export interface SiteHeaderPlanningItem {
   href: string;
@@ -41,39 +38,29 @@ const {
 } = Astro.props;
 
 const currentRouteKey = Astro.props.routeKey || findRouteKeyByPath(Astro.url.pathname);
-const coreLocale: Lang = isCoreHeaderLocale(lang) ? lang : 'en';
+const coreLocale: Lang = lang;
 const tr = (key: string) => getTranslation(coreLocale, key);
 const coreRoutes = getCoreHeaderRoutes(lang);
 const parkGuidePath = getRoutePath('parkGuide', lang)!;
 const resortPassGuidePath = getRoutePath('resortPassGuide', lang)!;
-const planningFallbackLabel = {
-  de: 'Besuch planen',
-  fr: 'Planifier la visite',
-  it: 'Pianifica la visita',
-  en: 'Plan your visit',
-}[coreLocale];
+const planningFallbackLabel = tr('nav.plan_visit');
 const resolvedPlannerLabel = plannerLabel || planningFallbackLabel;
-const resolvedMenuLabel = menuLabel || {
-  de: 'Menü',
-  fr: 'Menu',
-  it: 'Menu',
-  en: 'Menu',
-}[coreLocale];
+const resolvedMenuLabel = menuLabel || tr('nav.menu');
 const resolvedLanguageLabel = languageLabel || tr('nav.language');
 const isPlanningRoute = currentRouteKey ? guideRouteKeys.includes(currentRouteKey as (typeof guideRouteKeys)[number]) : false;
-const fallbackSuffix = {
-  de: 'auf Englisch',
-  fr: 'en anglais',
-  it: 'in inglese',
-  en: 'in English',
-}[coreLocale];
+const languageFallbackCopy = {
+  badge: tr('language.guide_badge'),
+  hint: tr('language.guide_hint'),
+  action: tr('language.guide_action'),
+};
 const englishBadge = (fallback: boolean) => fallback ? 'EN' : undefined;
-const withFallbackAria = (label: string, fallback: boolean) => fallback ? `${label} — ${fallbackSuffix}` : label;
+const withFallbackAria = (label: string, fallback: boolean) => fallback ? `${label} — English` : label;
 
 const primaryItems = [
   {
     href: coreRoutes.waitTimes.href,
     label: tr('nav.wait_times'),
+    compactLabel: tr('nav.wait_short'),
     icon: 'tabler:clock',
     active: currentRouteKey === 'waitTimes',
     fallback: coreRoutes.waitTimes.fallbackToEnglish,
@@ -81,6 +68,7 @@ const primaryItems = [
   {
     href: coreRoutes.crowdCalendar.href,
     label: tr('nav.crowd_forecast'),
+    compactLabel: tr('nav.crowd_short'),
     icon: 'tabler:calendar-stats',
     active: currentRouteKey === 'crowdCalendar',
     fallback: coreRoutes.crowdCalendar.fallbackToEnglish,
@@ -88,6 +76,7 @@ const primaryItems = [
   {
     href: parkGuidePath,
     label: resolvedPlannerLabel,
+    compactLabel: resolvedPlannerLabel,
     icon: 'tabler:map-2',
     active: isPlanningRoute,
     fallback: false,
@@ -97,12 +86,7 @@ const primaryItems = [
 const secondaryItems = [
   {
     href: resortPassGuidePath,
-    label: {
-      de: 'ResortPass-Guide',
-      fr: 'Guide ResortPass',
-      it: 'Guida ResortPass',
-      en: 'ResortPass guide',
-    }[coreLocale],
+    label: tr('nav.resortpass_guide'),
     icon: 'tabler:ticket',
     fallback: false,
   },
@@ -114,7 +98,7 @@ const secondaryItems = [
   },
   {
     href: `${coreRoutes.home.href}#community`,
-    label: 'Community',
+    label: tr('community.title'),
     icon: 'tabler:users-group',
     fallback: coreRoutes.home.fallbackToEnglish,
   },
@@ -145,7 +129,7 @@ const secondaryItems = [
               lang={item.fallback ? 'en' : undefined}
             >
               <Icon name={item.icon} class="h-[1.05rem] w-[1.05rem]" aria-hidden="true" />
-              <span>{item.label}</span>
+              <span>{item.compactLabel}</span>
               {englishBadge(item.fallback) && <span class="site-header__fallback-badge" aria-hidden="true">EN</span>}
             </a>
           ))}
@@ -193,7 +177,15 @@ const secondaryItems = [
         {showLanguageSwitcher && (
           <div id="site-language-panel" class="site-header__language-panel" hidden>
             <p>{resolvedLanguageLabel}</p>
-            <LanguageSwitcher lang={lang} routeKey={currentRouteKey} label={resolvedLanguageLabel} />
+            <LanguageSwitcher
+              lang={lang}
+              routeKey={currentRouteKey}
+              label={resolvedLanguageLabel}
+              fallbackRouteKey="parkGuide"
+              fallbackBadge={languageFallbackCopy.badge}
+              fallbackHint={languageFallbackCopy.hint}
+              fallbackActionLabel={languageFallbackCopy.action}
+            />
           </div>
         )}
 
@@ -244,19 +236,6 @@ const secondaryItems = [
                 ))}
               </nav>
 
-              {showLanguageSwitcher && (
-                <details class="site-header__mobile-languages">
-                  <summary>
-                    <Icon name="tabler:language" class="h-5 w-5" aria-hidden="true" />
-                    <span>{resolvedLanguageLabel}</span>
-                    <span class="site-header__current-language">{lang.toUpperCase()}</span>
-                    <Icon name="tabler:chevron-down" class="site-header__language-chevron h-5 w-5" aria-hidden="true" />
-                  </summary>
-                  <div>
-                    <LanguageSwitcher lang={lang} routeKey={currentRouteKey} label={resolvedLanguageLabel} />
-                  </div>
-                </details>
-              )}
             </div>
           </div>
         </div>
@@ -309,7 +288,6 @@ const secondaryItems = [
         : undefined;
     setPanel(menuToggle, menuPanel, false);
     setPanel(languageToggle, languagePanel, false);
-    siteHeader?.querySelector<HTMLDetailsElement>('.site-header__mobile-languages')?.removeAttribute('open');
     if (returnFocus) activeToggle?.focus();
   };
 
@@ -443,7 +421,7 @@ const secondaryItems = [
   }
 
   .site-header__language-toggle {
-    display: none;
+    display: inline-flex;
     gap: 0.35rem;
     cursor: pointer;
     border: 2px solid var(--color-border);
@@ -489,8 +467,8 @@ const secondaryItems = [
     position: absolute;
     inset-inline-end: 0;
     top: calc(100% + 0.55rem);
-    width: min(20rem, calc(100vw - 2rem));
-    max-height: min(22rem, calc(100vh - 6rem));
+    width: min(31rem, calc(100vw - 2rem));
+    max-height: min(32rem, calc(100vh - 6rem));
     overflow: auto;
     border: 2px solid var(--color-border);
     border-radius: 1rem;
@@ -599,49 +577,6 @@ const secondaryItems = [
     text-align: center;
   }
 
-  .site-header__mobile-languages {
-    border-top: 1px solid var(--color-border-light);
-    padding-top: 0.7rem;
-  }
-
-  .site-header__mobile-languages summary {
-    display: flex;
-    min-height: 2.75rem;
-    cursor: pointer;
-    list-style: none;
-    align-items: center;
-    gap: 0.55rem;
-    border: 1px solid var(--color-border-light);
-    border-radius: 0.75rem;
-    background: white;
-    padding: 0.6rem 0.75rem;
-    font-size: 0.86rem;
-    font-weight: 850;
-  }
-
-  .site-header__mobile-languages summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .site-header__mobile-languages > div {
-    padding-top: 0.65rem;
-  }
-
-  .site-header__current-language {
-    margin-inline-start: auto;
-    color: var(--color-accent);
-    font-size: 0.74rem;
-    font-weight: 900;
-  }
-
-  .site-header__language-chevron {
-    transition: transform 160ms ease;
-  }
-
-  .site-header__mobile-languages[open] .site-header__language-chevron {
-    transform: rotate(180deg);
-  }
-
   .site-header__fallback-badge {
     display: inline-flex;
     min-width: 1.5rem;
@@ -723,19 +658,20 @@ const secondaryItems = [
     }
   }
 
-  @media (max-width: 23rem) {
+  @media (max-width: 38rem) {
     .site-header__brand .brand-wordmark {
       display: none;
     }
+  }
 
+  @media (max-width: 23rem) {
     .site-header__mobile-planning {
       grid-template-columns: 1fr;
     }
   }
 
   @media (min-width: 64rem) {
-    .site-header__primary,
-    .site-header__language-toggle {
+    .site-header__primary {
       display: flex;
     }
   }
@@ -767,8 +703,7 @@ const secondaryItems = [
       padding-block: 0.75rem 0.85rem;
     }
 
-    .site-header__mobile-primary,
-    .site-header__mobile-languages {
+    .site-header__mobile-primary {
       display: none;
     }
 
@@ -786,10 +721,6 @@ const secondaryItems = [
       top: calc(100% + 3.85rem);
     }
 
-    .site-header__menu-toggle {
-      display: none;
-    }
-
     .site-header__planner-bar {
       display: block;
     }
@@ -797,8 +728,7 @@ const secondaryItems = [
 
   @media (prefers-reduced-motion: reduce) {
     .site-header__primary-link,
-    .site-header__alert,
-    .site-header__language-chevron {
+    .site-header__alert {
       transition: none;
     }
   }
