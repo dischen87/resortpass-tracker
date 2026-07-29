@@ -1,0 +1,760 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { ResortPassToolLocaleCopy } from '../../content/planning-types';
+import { centralFacts } from '../../data';
+
+interface Props {
+  copy: ResortPassToolLocaleCopy;
+  paths: {
+    compare: string;
+    prices: string;
+    reservation: string;
+    rulantica: string;
+  };
+  mode?: 'full' | 'compact';
+  toolId?: string;
+}
+
+const {
+  copy,
+  paths,
+  mode = 'full',
+  toolId = 'resortpass-tool',
+} = Astro.props;
+
+const numberFact = (id: string) =>
+  Number(centralFacts.find((fact) => fact.id === id)?.value || 0);
+const rangeFact = (id: string) => {
+  const values = String(
+    centralFacts.find((fact) => fact.id === id)?.value || '0-0',
+  ).split('-').map(Number);
+  return { min: values[0] || 0, max: values[1] || values[0] || 0 };
+};
+
+const prices = {
+  silverAdult: numberFact('resortpass-silver-adult-price-2026'),
+  silverReduced: numberFact('resortpass-silver-reduced-price-2026'),
+  goldAdult: numberFact('resortpass-gold-adult-price-2026'),
+  goldReduced: numberFact('resortpass-gold-reduced-price-2026'),
+  europaPark: rangeFact('europa-park-one-day-adult-price-range-2026'),
+  rulantica: rangeFact('rulantica-day-adult-price-range-2026'),
+};
+
+const defaultTotals = {
+  tickets: 5 * prices.europaPark.min,
+  silver: prices.silverAdult,
+  gold: prices.goldAdult,
+};
+const defaultLowestValue = Math.min(...Object.values(defaultTotals));
+const defaultLowestKeys = Object.entries(defaultTotals)
+  .filter(([, value]) => value === defaultLowestValue)
+  .map(([key]) => key as keyof typeof defaultTotals);
+const euro = (value: number) => `${value.toFixed(value % 1 ? 2 : 0)} €`;
+
+const links = [
+  { href: paths.compare, label: copy.compareLink, icon: 'tabler:scale' },
+  { href: paths.prices, label: copy.pricesLink, icon: 'tabler:receipt-euro' },
+  { href: paths.reservation, label: copy.reservationLink, icon: 'tabler:calendar-check' },
+  { href: paths.rulantica, label: copy.rulanticaLink, icon: 'tabler:swimming' },
+];
+---
+
+<section class:list={['rp-tool', { 'rp-tool--compact': mode === 'compact' }]} id={toolId} aria-labelledby={`${toolId}-title`}>
+  <header class="rp-tool__intro">
+    <span class="section-kicker">{copy.eyebrow}</span>
+    <h2 id={`${toolId}-title`} class="section-heading">{copy.title}</h2>
+    <p>{copy.intro}</p>
+  </header>
+
+  <section class="rp-status" aria-labelledby={`${toolId}-status-title`}>
+    <div class="rp-section-title">
+      <Icon name="tabler:activity-heartbeat" aria-hidden="true" />
+      <h3 id={`${toolId}-status-title`}>{copy.statusTitle}</h3>
+    </div>
+    <div class="rp-status__grid" aria-live="polite" aria-busy="true" data-status-grid>
+      {(['silver', 'gold'] as const).map((pass) => (
+        <article class={`rp-status-card rp-status-card--${pass}`} data-pass={pass} data-state="checking">
+          <div>
+            <span class="rp-status-card__dot" aria-hidden="true"></span>
+            <strong>{pass === 'silver' ? copy.silver : copy.gold}</strong>
+          </div>
+          <p data-status-text>{copy.statusChecking}</p>
+          <time data-status-time hidden></time>
+        </article>
+      ))}
+    </div>
+    <noscript><p class="rp-noscript">{copy.statusUnknown}</p></noscript>
+  </section>
+
+  {mode === 'full' && (
+    <>
+      <section class="rp-comparison" aria-labelledby={`${toolId}-comparison-title`}>
+        <div class="rp-section-title">
+          <Icon name="tabler:columns-3" aria-hidden="true" />
+          <h3 id={`${toolId}-comparison-title`}>{copy.comparisonTitle}</h3>
+        </div>
+        <div class="rp-comparison-cards">
+          {([
+            {
+              name: copy.silver,
+              price: prices.silverAdult,
+              concession: prices.silverReduced,
+              days: copy.visitDaysSilver,
+              water: copy.rulanticaSilver,
+              flexibility: copy.flexibilitySilver,
+            },
+            {
+              name: copy.gold,
+              price: prices.goldAdult,
+              concession: prices.goldReduced,
+              days: copy.visitDaysGold,
+              water: copy.rulanticaGold,
+              flexibility: copy.flexibilityGold,
+            },
+          ] as const).map((pass) => (
+            <article>
+              <h4>{pass.name}</h4>
+              <dl>
+                <div><dt>{copy.adultPrice}</dt><dd>{pass.price} €</dd></div>
+                <div><dt>{copy.concessionPrice}</dt><dd>{pass.concession} €</dd></div>
+                <div><dt>{copy.visitDays}</dt><dd>{pass.days}</dd></div>
+                <div><dt>{copy.rulanticaBenefit}</dt><dd>{pass.water}</dd></div>
+                <div><dt>{copy.flexibility}</dt><dd>{pass.flexibility}</dd></div>
+              </dl>
+            </article>
+          ))}
+        </div>
+        <div class="rp-table-wrap" tabindex="0">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">{copy.feature}</th>
+                <th scope="col">{copy.silver}</th>
+                <th scope="col">{copy.gold}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">{copy.adultPrice}</th>
+                <td>{prices.silverAdult} €</td>
+                <td>{prices.goldAdult} €</td>
+              </tr>
+              <tr>
+                <th scope="row">{copy.concessionPrice}</th>
+                <td>{prices.silverReduced} €</td>
+                <td>{prices.goldReduced} €</td>
+              </tr>
+              <tr>
+                <th scope="row">{copy.visitDays}</th>
+                <td>{copy.visitDaysSilver}</td>
+                <td>{copy.visitDaysGold}</td>
+              </tr>
+              <tr>
+                <th scope="row">{copy.rulanticaBenefit}</th>
+                <td>{copy.rulanticaSilver}</td>
+                <td>{copy.rulanticaGold}</td>
+              </tr>
+              <tr>
+                <th scope="row">{copy.flexibility}</th>
+                <td>{copy.flexibilitySilver}</td>
+                <td>{copy.flexibilityGold}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="rp-calculator" aria-labelledby={`${toolId}-calculator-title`}>
+        <div class="rp-section-title">
+          <Icon name="tabler:calculator" aria-hidden="true" />
+          <div>
+            <h3 id={`${toolId}-calculator-title`}>{copy.calculatorTitle}</h3>
+            <p>{copy.calculatorIntro}</p>
+          </div>
+        </div>
+
+        <form data-rp-calculator>
+          <label>
+            <span>{copy.visitsLabel}</span>
+            <input type="number" name="visits" min="1" max="30" step="1" value="5" inputmode="numeric" />
+          </label>
+          <label>
+            <span>{copy.rulanticaVisitsLabel}</span>
+            <input type="number" name="rulantica" min="0" max="10" step="1" value="0" inputmode="numeric" />
+          </label>
+          <label>
+            <span>{copy.priceScenarioLabel}</span>
+            <select name="scenario">
+              <option value="low">{copy.lowerPriceScenario}</option>
+              <option value="high">{copy.upperPriceScenario}</option>
+            </select>
+          </label>
+          <button type="submit">
+            <Icon name="tabler:sparkles" aria-hidden="true" />
+            {copy.calculate}
+          </button>
+        </form>
+
+        <div class="rp-results" aria-live="polite">
+          <article data-result="tickets">
+            <span>{copy.dayTicketsCost}</span>
+            <strong>{euro(defaultTotals.tickets)}</strong>
+          </article>
+          <article data-result="silver">
+            <span>{copy.silverCost}</span>
+            <strong>{euro(defaultTotals.silver)}</strong>
+          </article>
+          <article data-result="gold">
+            <span>{copy.goldCost}</span>
+            <strong>{euro(defaultTotals.gold)}</strong>
+          </article>
+        </div>
+        <p class="rp-lowest" data-lowest>
+          {copy.lowestCost}: {defaultLowestKeys
+            .map((key) => ({
+              tickets: copy.dayTicketsCost,
+              silver: copy.silverCost,
+              gold: copy.goldCost,
+            })[key])
+            .join(' / ')} · {euro(defaultLowestValue)}
+        </p>
+        <p class="rp-disclaimer">{copy.estimateDisclaimer}</p>
+      </section>
+    </>
+  )}
+
+  <nav class="rp-links" aria-label={copy.linksTitle}>
+    <h3>{copy.linksTitle}</h3>
+    <div>
+      {links.map((link) => (
+        <a href={link.href}>
+          <Icon name={link.icon} aria-hidden="true" />
+          <span>{link.label}</span>
+          <Icon name="tabler:arrow-up-right" aria-hidden="true" />
+        </a>
+      ))}
+    </div>
+  </nav>
+</section>
+
+<script is:inline define:vars={{
+  toolId,
+  prices,
+  statusCopy: {
+    available: copy.statusAvailable,
+    unavailable: copy.statusUnavailable,
+    unknown: copy.statusUnknown,
+    checking: copy.statusChecking,
+    error: copy.statusError,
+    lastChecked: copy.lastChecked,
+  },
+  resultCopy: {
+    tickets: copy.dayTicketsCost,
+    silver: copy.silverCost,
+    gold: copy.goldCost,
+    lowest: copy.lowestCost,
+  },
+}}>
+  (() => {
+    const root = document.getElementById(toolId);
+    if (!root) return;
+
+    const locale = document.documentElement.lang || 'de';
+    const money = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: 0,
+    });
+    const dateTime = new Intl.DateTimeFormat(locale, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+
+    const parseTimestamp = (value) => {
+      if (!value) return null;
+      const normalized = String(value).includes('T')
+        ? String(value)
+        : String(value).replace(' ', 'T');
+      const date = new Date(/[zZ]|[+-]\d\d:\d\d$/.test(normalized)
+        ? normalized
+        : `${normalized}Z`);
+      return Number.isNaN(date.getTime()) ? null : date;
+    };
+
+    const stateOf = (status) => {
+      if (!status) return 'unknown';
+      if (status.state === 'available' || status.available === true) return 'available';
+      if (status.state === 'sold_out' || status.available === false) return 'unavailable';
+      return 'unknown';
+    };
+
+    const renderStatus = (pass, status, didFail = false) => {
+      const card = root.querySelector(`[data-pass="${pass}"]`);
+      if (!(card instanceof HTMLElement)) return;
+      const state = didFail ? 'error' : stateOf(status);
+      card.dataset.state = state;
+      const text = card.querySelector('[data-status-text]');
+      if (text) text.textContent = statusCopy[state] || statusCopy.unknown;
+      const time = card.querySelector('[data-status-time]');
+      const checked = parseTimestamp(status?.lastCheck);
+      if (time instanceof HTMLTimeElement && checked) {
+        time.hidden = false;
+        time.dateTime = checked.toISOString();
+        time.textContent = `${statusCopy.lastChecked}: ${dateTime.format(checked)}`;
+      }
+    };
+
+    const loadStatus = async () => {
+      const grid = root.querySelector('[data-status-grid]');
+      try {
+        const response = await fetch('/api/status', {
+          headers: { Accept: 'application/json' },
+        });
+        if (!response.ok) throw new Error('status');
+        const data = await response.json();
+        renderStatus('silver', data.silver);
+        renderStatus('gold', data.gold);
+      } catch {
+        renderStatus('silver', null, true);
+        renderStatus('gold', null, true);
+      } finally {
+        grid?.setAttribute('aria-busy', 'false');
+      }
+    };
+
+    const calculator = root.querySelector('[data-rp-calculator]');
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+    const calculate = () => {
+      if (!(calculator instanceof HTMLFormElement)) return;
+      const data = new FormData(calculator);
+      const visits = clamp(Number(data.get('visits')) || 1, 1, 30);
+      const waterVisits = clamp(Number(data.get('rulantica')) || 0, 0, 10);
+      const scenario = data.get('scenario') === 'high' ? 'max' : 'min';
+      const parkDayPrice = prices.europaPark[scenario];
+      const waterDayPrice = prices.rulantica[scenario];
+      const totals = {
+        tickets: visits * parkDayPrice + waterVisits * waterDayPrice,
+        silver: prices.silverAdult + waterVisits * waterDayPrice,
+        gold: prices.goldAdult + Math.max(0, waterVisits - 2) * waterDayPrice,
+      };
+
+      for (const [key, value] of Object.entries(totals)) {
+        const result = root.querySelector(`[data-result="${key}"]`);
+        const output = result?.querySelector('strong');
+        if (output) output.textContent = money.format(value);
+        result?.classList.remove('is-lowest');
+      }
+
+      const lowestValue = Math.min(...Object.values(totals));
+      const lowestKeys = Object.entries(totals)
+        .filter(([, value]) => value === lowestValue)
+        .map(([key]) => key);
+      for (const key of lowestKeys) {
+        root.querySelector(`[data-result="${key}"]`)?.classList.add('is-lowest');
+      }
+      const lowest = root.querySelector('[data-lowest]');
+      if (lowest) {
+        lowest.textContent = `${resultCopy.lowest}: ${lowestKeys
+          .map((key) => resultCopy[key])
+          .join(' / ')} · ${money.format(lowestValue)}`;
+      }
+    };
+
+    calculator?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      calculate();
+    });
+    calculator?.addEventListener('input', calculate);
+    calculate();
+    loadStatus();
+  })();
+</script>
+
+<style>
+  .rp-tool {
+    overflow: hidden;
+    border: 3px solid var(--color-border);
+    border-radius: 1.5rem;
+    background: white;
+    box-shadow: 7px 7px 0 var(--shadow-pink);
+  }
+
+  .rp-tool__intro,
+  .rp-status,
+  .rp-comparison,
+  .rp-calculator,
+  .rp-links {
+    padding: clamp(1.15rem, 4vw, 2.25rem);
+  }
+
+  .rp-tool__intro {
+    border-bottom: 2px solid var(--color-border-light);
+    background:
+      radial-gradient(circle at 92% 18%, rgb(249 168 212 / 0.45), transparent 12rem),
+      var(--color-bg-light);
+  }
+
+  .rp-tool__intro h2 {
+    margin-top: 0.35rem;
+  }
+
+  .rp-tool__intro p,
+  .rp-calculator .rp-section-title p {
+    max-width: 49rem;
+    margin-top: 0.65rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  .rp-status,
+  .rp-comparison,
+  .rp-calculator {
+    border-bottom: 2px solid var(--color-border-light);
+  }
+
+  .rp-section-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .rp-section-title > svg {
+    width: 1.35rem;
+    height: 1.35rem;
+    flex: 0 0 auto;
+    color: var(--color-accent);
+  }
+
+  .rp-section-title h3,
+  .rp-links h3 {
+    font-size: 1.25rem;
+    line-height: 1.2;
+  }
+
+  .rp-status__grid,
+  .rp-results {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .rp-status-card {
+    border: 2px solid var(--color-border);
+    border-radius: 1rem;
+    padding: 0.95rem;
+    background: var(--color-bg-light);
+  }
+
+  .rp-status-card > div {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .rp-status-card__dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 999px;
+    background: var(--color-muted);
+  }
+
+  .rp-status-card[data-state='available'] {
+    background: #ecfdf5;
+  }
+
+  .rp-status-card[data-state='available'] .rp-status-card__dot {
+    background: var(--color-available);
+    box-shadow: 0 0 0 4px rgb(16 185 129 / 0.16);
+  }
+
+  .rp-status-card[data-state='unavailable'] {
+    background: #fff7ed;
+  }
+
+  .rp-status-card[data-state='unavailable'] .rp-status-card__dot {
+    background: var(--color-gold);
+  }
+
+  .rp-status-card[data-state='error'] .rp-status-card__dot {
+    background: var(--color-pink);
+  }
+
+  .rp-status-card p {
+    margin-top: 0.45rem;
+    color: var(--color-text-secondary);
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .rp-status-card time {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--color-muted);
+    font-size: 0.72rem;
+  }
+
+  .rp-status-card time[hidden] {
+    display: none;
+  }
+
+  .rp-table-wrap {
+    display: none;
+    margin-top: 1rem;
+    overflow-x: auto;
+    border: 2px solid var(--color-border);
+    border-radius: 1rem;
+  }
+
+  .rp-comparison-cards {
+    display: grid;
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+
+  .rp-comparison-cards article {
+    overflow: hidden;
+    border: 2px solid var(--color-border);
+    border-radius: 1rem;
+    background: white;
+  }
+
+  .rp-comparison-cards h4 {
+    background: var(--color-text-primary);
+    padding: 0.65rem 0.8rem;
+    color: white;
+    font-size: 1rem;
+  }
+
+  .rp-comparison-cards dl > div {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.7rem 0.8rem;
+  }
+
+  .rp-comparison-cards dl > div + div {
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  .rp-comparison-cards dt {
+    color: var(--color-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .rp-comparison-cards dd {
+    color: var(--color-text-secondary);
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+
+  .rp-table-wrap:focus-visible {
+    outline: 3px solid var(--color-pink);
+    outline-offset: 3px;
+  }
+
+  table {
+    width: 100%;
+    min-width: 42rem;
+    border-collapse: collapse;
+    text-align: start;
+  }
+
+  th,
+  td {
+    border-bottom: 1px solid var(--color-border-light);
+    padding: 0.75rem 0.85rem;
+    text-align: start;
+    vertical-align: top;
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  thead th {
+    background: var(--color-text-primary);
+    color: white;
+    font-size: 0.75rem;
+  }
+
+  tbody th {
+    width: 28%;
+    background: var(--color-bg-light);
+  }
+
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  .rp-calculator form {
+    display: grid;
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+
+  .rp-calculator label {
+    display: grid;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+
+  .rp-calculator input,
+  .rp-calculator select {
+    min-height: 3.1rem;
+    width: 100%;
+    border: 2px solid var(--color-border);
+    border-radius: 0.85rem;
+    background: white;
+    padding: 0.7rem 0.85rem;
+    color: var(--color-text-primary);
+    font: inherit;
+  }
+
+  .rp-calculator button {
+    display: inline-flex;
+    min-height: 3.1rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border: 2px solid var(--color-border);
+    border-radius: 0.85rem;
+    background: var(--color-accent);
+    padding: 0.7rem 1rem;
+    color: white;
+    font: inherit;
+    font-weight: 800;
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+
+  .rp-calculator button svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .rp-calculator :is(input, select, button):focus-visible,
+  .rp-links a:focus-visible {
+    outline: 3px solid var(--color-pink);
+    outline-offset: 3px;
+  }
+
+  .rp-results article {
+    border: 2px solid var(--color-border-light);
+    border-radius: 0.9rem;
+    padding: 0.85rem;
+    background: var(--color-bg-light);
+  }
+
+  .rp-results article.is-lowest {
+    border-color: var(--color-border);
+    background: #ecfdf5;
+    box-shadow: 3px 3px 0 var(--color-available);
+  }
+
+  .rp-results span,
+  .rp-results strong {
+    display: block;
+  }
+
+  .rp-results span {
+    min-height: 2.4em;
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .rp-results strong {
+    margin-top: 0.35rem;
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+  }
+
+  .rp-lowest {
+    margin-top: 1rem;
+    font-size: 0.88rem;
+    font-weight: 800;
+  }
+
+  .rp-disclaimer,
+  .rp-noscript {
+    margin-top: 0.7rem;
+    color: var(--color-muted);
+    font-size: 0.73rem;
+    line-height: 1.5;
+  }
+
+  .rp-links > div {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 0.9rem;
+  }
+
+  .rp-links a {
+    display: grid;
+    min-height: 3rem;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.55rem;
+    border: 2px solid var(--color-border-light);
+    border-radius: 0.85rem;
+    padding: 0.65rem 0.75rem;
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .rp-links a:hover {
+    border-color: var(--color-border);
+    color: var(--color-accent);
+  }
+
+  .rp-links svg {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .rp-tool--compact .rp-links {
+    background: var(--color-bg-light);
+  }
+
+  @media (min-width: 40rem) {
+    .rp-status__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .rp-results {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 44rem) {
+    .rp-comparison-cards {
+      display: none;
+    }
+
+    .rp-table-wrap {
+      display: block;
+    }
+  }
+
+  @media (min-width: 52rem) {
+    .rp-calculator form {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+      align-items: end;
+    }
+
+    .rp-links > div {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      transition: none !important;
+    }
+  }
+</style>

@@ -1,7 +1,13 @@
 import nodemailer from 'nodemailer';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { defaultLang, type Lang } from '../src/i18n/translations';
+import {
+  defaultLanguage,
+  fallbackLanguage,
+  isRtlLanguage,
+  normalizeLanguage,
+  type SupportedLanguage,
+} from './locales';
 
 const SITE_URL = process.env.SITE_URL || 'https://www.resortpass-europapark.ch';
 const SMTP_HOST = process.env.SMTP_HOST || 'localhost';
@@ -10,6 +16,7 @@ const SMTP_USER = process.env.SMTP_USER || '';
 const SMTP_PASS = process.env.SMTP_PASS || '';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@resortpass-europapark.ch';
 const FROM_NAME = process.env.FROM_NAME || 'ResortPass Tracker';
+const localizedUiLanguages = new Set<SupportedLanguage>(['de', 'fr', 'it', 'en']);
 
 const transportConfig: any = {
   host: SMTP_HOST,
@@ -26,13 +33,13 @@ if (SMTP_USER && SMTP_PASS) {
 
 const transporter = nodemailer.createTransport(transportConfig);
 
-interface RenderedEmail {
+export interface RenderedEmail {
   subject: string;
   html: string;
   text: string;
 }
 
-const emailCopy: Record<Lang, {
+interface EmailCopy {
   footer: string;
   confirm: {
     title: string;
@@ -67,7 +74,9 @@ const emailCopy: Record<Lang, {
     resubscribe: string;
     text: (siteUrl: string) => string;
   };
-}> = {
+}
+
+const emailCopy: Partial<Record<SupportedLanguage, EmailCopy>> & Record<'de' | 'fr' | 'it' | 'en', EmailCopy> = {
   de: {
     footer: 'ResortPass Tracker — inoffizielles Community-Projekt',
     confirm: {
@@ -215,7 +224,8 @@ const emailCopy: Record<Lang, {
 };
 
 function loadTemplate(name: string): string {
-  return readFileSync(join(import.meta.dir, '..', 'emails', `${name}.html`), 'utf-8');
+  return readFileSync(join(import.meta.dir, '..', 'emails', `${name}.html`), 'utf-8')
+    .replace('<html lang="{{LANG}}">', '<html lang="{{LANG}}" dir="{{DIR}}">');
 }
 
 function escapeHtml(value: string): string {
@@ -235,9 +245,24 @@ function replacePlaceholders(template: string, vars: Record<string, string>): st
   return result;
 }
 
-export function localizedSiteUrl(lang: Lang = defaultLang, route = ''): string {
+function emailContext(value: unknown) {
+  const requestedLanguage = normalizeLanguage(value);
+  const localizedCopy = emailCopy[requestedLanguage];
+  const contentLanguage = localizedCopy ? requestedLanguage : fallbackLanguage;
+  return {
+    requestedLanguage,
+    contentLanguage,
+    copy: localizedCopy || emailCopy.en,
+  };
+}
+
+export function localizedSiteUrl(lang: string = defaultLanguage, route = ''): string {
   const base = SITE_URL.replace(/\/+$/, '');
-  const locale = lang === defaultLang ? '' : `/${lang}`;
+  const normalizedLanguage = normalizeLanguage(lang);
+  const routeLanguage = localizedUiLanguages.has(normalizedLanguage)
+    ? normalizedLanguage
+    : fallbackLanguage;
+  const locale = routeLanguage === defaultLanguage ? '' : `/${routeLanguage}`;
   const path = route.replace(/^\/+|\/+$/g, '');
   return `${base}${locale}/${path}`;
 }
@@ -247,15 +272,20 @@ function linkSection(message: string, button: string, url?: string): string {
   return `<p style="color: #94A3B8; font-size: 14px; line-height: 1.5; margin: 20px 0 0; text-align: center;">${escapeHtml(message)}<br /><a href="${escapeHtml(url)}" style="color: #3B82F6; text-decoration: none;">${escapeHtml(button)}</a></p>`;
 }
 
-export function renderConfirmationEmail(confirmToken: string, lang: Lang = defaultLang, communityUrl?: string): RenderedEmail {
-  const copy = emailCopy[lang];
-  const confirmUrl = `${localizedSiteUrl(lang, 'confirm')}?token=${encodeURIComponent(confirmToken)}`;
+export function renderConfirmationEmail(
+  confirmToken: string,
+  lang: string = defaultLanguage,
+  communityUrl?: string,
+): RenderedEmail {
+  const { requestedLanguage, contentLanguage, copy } = emailContext(lang);
+  const confirmUrl = `${localizedSiteUrl(requestedLanguage, 'confirm')}?token=${encodeURIComponent(confirmToken)}`;
   const template = loadTemplate('confirm').replaceAll(
     '{{COMMUNITY_SECTION}}',
     linkSection(copy.confirm.community, copy.confirm.communityButton, communityUrl),
   );
   const html = replacePlaceholders(template, {
-    LANG: lang,
+    LANG: contentLanguage,
+    DIR: isRtlLanguage(contentLanguage) ? 'rtl' : 'ltr',
     TITLE: copy.confirm.title,
     GREETING: copy.confirm.greeting,
     MESSAGE: copy.confirm.message,
@@ -263,7 +293,7 @@ export function renderConfirmationEmail(confirmToken: string, lang: Lang = defau
     IGNORE: copy.confirm.ignore,
     FOOTER: copy.footer,
     CONFIRM_URL: confirmUrl,
-    SITE_URL: localizedSiteUrl(lang),
+    SITE_URL: localizedSiteUrl(requestedLanguage),
   });
 
   return { subject: copy.confirm.subject, html, text: copy.confirm.text(confirmUrl, communityUrl) };
@@ -272,19 +302,20 @@ export function renderConfirmationEmail(confirmToken: string, lang: Lang = defau
 export function renderAlertEmail(
   passType: 'silver' | 'gold',
   unsubscribeToken: string,
-  lang: Lang = defaultLang,
+  lang: string = defaultLanguage,
   communityUrl?: string,
 ): RenderedEmail {
-  const copy = emailCopy[lang];
+  const { requestedLanguage, contentLanguage, copy } = emailContext(lang);
   const passLabel = passType === 'silver' ? 'Silver' : 'Gold';
   const shopUrl = 'https://tickets.mackinternational.de/de/resortpass/uebersicht';
-  const unsubscribeUrl = `${localizedSiteUrl(lang, 'unsubscribe')}?token=${encodeURIComponent(unsubscribeToken)}`;
+  const unsubscribeUrl = `${localizedSiteUrl(requestedLanguage, 'unsubscribe')}?token=${encodeURIComponent(unsubscribeToken)}`;
   const template = loadTemplate('alert').replaceAll(
     '{{COMMUNITY_SECTION}}',
     linkSection(copy.alert.community, copy.alert.communityButton, communityUrl),
   );
   const html = replacePlaceholders(template, {
-    LANG: lang,
+    LANG: contentLanguage,
+    DIR: isRtlLanguage(contentLanguage) ? 'rtl' : 'ltr',
     TITLE: copy.alert.title,
     GREETING: copy.alert.greeting,
     HEADLINE: copy.alert.headline(passLabel),
@@ -295,7 +326,7 @@ export function renderAlertEmail(
     UNSUBSCRIBE: copy.alert.unsubscribe,
     SHOP_URL: shopUrl,
     UNSUBSCRIBE_URL: unsubscribeUrl,
-    SITE_URL: localizedSiteUrl(lang),
+    SITE_URL: localizedSiteUrl(requestedLanguage),
   });
 
   return {
@@ -305,11 +336,12 @@ export function renderAlertEmail(
   };
 }
 
-export function renderUnsubscribeEmail(lang: Lang = defaultLang): RenderedEmail {
-  const copy = emailCopy[lang];
-  const siteUrl = localizedSiteUrl(lang);
+export function renderUnsubscribeEmail(lang: string = defaultLanguage): RenderedEmail {
+  const { requestedLanguage, contentLanguage, copy } = emailContext(lang);
+  const siteUrl = localizedSiteUrl(requestedLanguage);
   const html = replacePlaceholders(loadTemplate('unsubscribe'), {
-    LANG: lang,
+    LANG: contentLanguage,
+    DIR: isRtlLanguage(contentLanguage) ? 'rtl' : 'ltr',
     TITLE: copy.unsubscribe.title,
     HEADING: copy.unsubscribe.heading,
     MESSAGE: copy.unsubscribe.message,
@@ -324,7 +356,7 @@ export function renderUnsubscribeEmail(lang: Lang = defaultLang): RenderedEmail 
 export async function sendConfirmationEmail(
   email: string,
   confirmToken: string,
-  lang: Lang = defaultLang,
+  lang: string = defaultLanguage,
   communityUrl?: string,
 ) {
   await transporter.sendMail({
@@ -338,7 +370,7 @@ export async function sendAlertEmail(
   email: string,
   passType: 'silver' | 'gold',
   unsubscribeToken: string,
-  lang: Lang = defaultLang,
+  lang: string = defaultLanguage,
   communityUrl?: string,
 ) {
   await transporter.sendMail({
@@ -348,7 +380,7 @@ export async function sendAlertEmail(
   });
 }
 
-export async function sendUnsubscribeConfirmation(email: string, lang: Lang = defaultLang) {
+export async function sendUnsubscribeConfirmation(email: string, lang: string = defaultLanguage) {
   await transporter.sendMail({
     from: `${FROM_NAME} <${FROM_EMAIL}>`,
     to: email,

@@ -1,0 +1,49 @@
+---
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  checkedAt: string;
+  sourceUrl: string;
+  sourceLabel: string;
+  updatedLabel: string;
+  sourcePrefix: string;
+}
+
+const { checkedAt, sourceUrl, sourceLabel, updatedLabel, sourcePrefix } = Astro.props;
+---
+
+<p class="source-stamp">
+  <span class="source-stamp__item">
+    <Icon name="tabler:calendar-check" class="h-4 w-4" aria-hidden="true" />
+    {updatedLabel}: <time datetime={checkedAt}>{checkedAt}</time>
+  </span>
+  <a class="source-stamp__item source-stamp__link" href={sourceUrl} target="_blank" rel="noopener noreferrer">
+    <Icon name="tabler:external-link" class="h-4 w-4" aria-hidden="true" />
+    {sourcePrefix}: {sourceLabel}
+  </a>
+</p>
+
+<style>
+  .source-stamp {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .source-stamp__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .source-stamp__link {
+    color: var(--color-accent-dark);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+</style>

@@ -1,0 +1,1140 @@
+---
+import { Icon } from 'astro-icon/components';
+import { restaurantDirectory } from '../../data';
+import type { RestaurantDirectoryEntry } from '../../data/restaurants';
+import type {
+  HTTPSUrl,
+  ISODate,
+} from '../../data/types';
+import type {
+  RestaurantDietFeature,
+  RestaurantFamilyFeature,
+  RestaurantFinderLocaleCopy,
+  RestaurantTimeSlot,
+} from '../../content/planning-types';
+
+export interface RestaurantDistanceEvidence {
+  metres: number;
+  originLabel: string;
+  sourceUrl: HTTPSUrl;
+  checkedAt: ISODate;
+}
+
+export interface RestaurantFilterEvidence {
+  timeSlots?: readonly RestaurantTimeSlot[];
+  distance?: RestaurantDistanceEvidence;
+  familyFeatures?: readonly RestaurantFamilyFeature[];
+  dietFeatures?: readonly RestaurantDietFeature[];
+  sourceUrl: HTTPSUrl;
+  checkedAt: ISODate;
+  nextReviewAt: ISODate;
+}
+
+export type RestaurantFilterEvidenceById = Readonly<Record<string, RestaurantFilterEvidence>>;
+
+interface Props {
+  copy: RestaurantFinderLocaleCopy;
+  restaurants?: readonly RestaurantDirectoryEntry[];
+  filterEvidence?: RestaurantFilterEvidenceById;
+  locale?: string;
+  asOfDate?: ISODate;
+  toolId?: string;
+}
+
+const DEFAULT_FILTER_EVIDENCE = {
+  'gasthaus-adler-rust': {
+    timeSlots: ['evening'],
+    sourceUrl: 'https://adler-rust.de/',
+    checkedAt: '2026-07-29',
+    nextReviewAt: '2026-10-15',
+  },
+  'hardys-rust': {
+    timeSlots: ['breakfast', 'evening'],
+    sourceUrl: 'https://www.hardys-rust.de/de',
+    checkedAt: '2026-07-29',
+    nextReviewAt: '2026-10-15',
+  },
+  'casa-rustica-rust': {
+    timeSlots: ['evening'],
+    sourceUrl:
+      'https://www.rust.de/site/Rust/node/2647762/zmdetail_1573025589/RestaurantCasaRustica.html?nodeID=1573025589&zm.sid=zm2vp1z9lxh1',
+    checkedAt: '2026-07-29',
+    nextReviewAt: '2026-10-15',
+  },
+  'hotel-restaurant-mythos': {
+    familyFeatures: ['kids_menu'],
+    sourceUrl: 'https://www.hotel-mythos-rust.de/restaurant.php',
+    checkedAt: '2026-07-29',
+    nextReviewAt: '2026-10-15',
+  },
+  'kaiserstuehler-hof-rust': {
+    timeSlots: ['evening'],
+    sourceUrl: 'https://www.kaiserstuehlerhof-rust.de/',
+    checkedAt: '2026-07-29',
+    nextReviewAt: '2026-10-15',
+  },
+  'restaurant-fenix-rust': {
+    timeSlots: ['evening'],
+    sourceUrl: 'https://www.restaurants-rust.de/en/reservierung',
+    checkedAt: '2026-07-29',
+    nextReviewAt: '2026-10-15',
+  },
+} as const satisfies RestaurantFilterEvidenceById;
+
+const {
+  copy,
+  restaurants = restaurantDirectory,
+  filterEvidence = DEFAULT_FILTER_EVIDENCE,
+  locale = 'de',
+  asOfDate = new Date().toISOString().slice(0, 10) as ISODate,
+  toolId = 'restaurant-finder',
+} = Astro.props;
+
+const collator = new Intl.Collator(locale, {
+  numeric: true,
+  sensitivity: 'base',
+});
+const orderedRestaurants = [...restaurants].sort((a, b) =>
+  collator.compare(a.name, b.name)
+);
+const statusOptions = Array.from(
+  new Set(orderedRestaurants.map((restaurant) => restaurant.verifiedStatus)),
+);
+const currentFilterEvidence = Object.fromEntries(
+  Object.entries(filterEvidence).filter(([, evidence]) =>
+    evidence.nextReviewAt >= asOfDate
+  ),
+) as RestaurantFilterEvidenceById;
+const timeOrder: readonly RestaurantTimeSlot[] = ['breakfast', 'evening'];
+const familyOrder: readonly RestaurantFamilyFeature[] = ['kids_menu'];
+const dietOrder: readonly RestaurantDietFeature[] = [
+  'vegetarian_evidence',
+  'vegan_evidence',
+  'gluten_free_evidence',
+];
+const availableTimes = timeOrder.filter((slot) =>
+  orderedRestaurants.some((restaurant) =>
+    currentFilterEvidence[restaurant.id]?.timeSlots?.includes(slot)
+  )
+);
+const availableFamilyFeatures = familyOrder.filter((feature) =>
+  orderedRestaurants.some((restaurant) =>
+    currentFilterEvidence[restaurant.id]?.familyFeatures?.includes(feature)
+  )
+);
+const availableDietFeatures = dietOrder.filter((feature) =>
+  orderedRestaurants.some((restaurant) =>
+    currentFilterEvidence[restaurant.id]?.dietFeatures?.includes(feature)
+  )
+);
+const hasDistanceEvidence = orderedRestaurants.some(
+  (restaurant) => currentFilterEvidence[restaurant.id]?.distance,
+);
+const availableDistanceOptions = copy.distanceOptions.filter(({ maxMetres }) =>
+  orderedRestaurants.some((restaurant) => {
+    const distance = currentFilterEvidence[restaurant.id]?.distance?.metres;
+    return distance !== undefined && distance <= maxMetres;
+  })
+);
+const unavailableEvidence = [
+  availableTimes.length === 0 ? copy.unavailableEvidence.time : null,
+  !hasDistanceEvidence ? copy.unavailableEvidence.distance : null,
+  availableFamilyFeatures.length === 0 ? copy.unavailableEvidence.family : null,
+  availableDietFeatures.length === 0 ? copy.unavailableEvidence.diet : null,
+].filter((item): item is string => Boolean(item));
+const preparedRestaurants = orderedRestaurants.map((entry) => {
+  const evidence = currentFilterEvidence[entry.id];
+  const content = copy.entryContent[entry.id];
+  const primarySourceIsWebsite =
+    entry.officialWebsiteUrl !== null && entry.officialWebsiteUrl === entry.sourceUrl;
+
+  return {
+    entry,
+    content,
+    evidence,
+    reviewDue: entry.nextReviewAt < asOfDate,
+    primarySourceIsWebsite,
+    featureLabels: [
+      ...(evidence?.timeSlots ?? []).map((slot) => copy.timeSlots[slot]),
+      ...(evidence?.familyFeatures ?? []).map(
+        (feature) => copy.familyFeatures[feature],
+      ),
+      ...(evidence?.dietFeatures ?? []).map(
+        (feature) => copy.dietFeatures[feature],
+      ),
+    ],
+  };
+});
+---
+
+<section class="restaurant-tool" id={toolId} aria-labelledby={`${toolId}-title`}>
+  <header class="restaurant-tool__intro">
+    <span class="section-kicker">{copy.eyebrow}</span>
+    <h2 id={`${toolId}-title`} class="section-heading">{copy.title}</h2>
+    <p>{copy.intro}</p>
+  </header>
+
+  <aside class="restaurant-neutrality">
+    <Icon name="tabler:scale" aria-hidden="true" />
+    <div>
+      <h3>{copy.notRecommendationTitle}</h3>
+      <p>{copy.notRecommendationText}</p>
+    </div>
+  </aside>
+
+  <p class="restaurant-tool__no-js" data-no-js>
+    <Icon name="tabler:info-circle" aria-hidden="true" />
+    {copy.noJs}
+  </p>
+
+  <form
+    class="restaurant-controls"
+    aria-label={copy.filtersLabel}
+    data-restaurant-form
+    hidden
+  >
+    <div class="restaurant-controls__grid">
+      <label>
+        <span>{copy.searchLabel}</span>
+        <span class="restaurant-controls__search">
+          <Icon name="tabler:search" aria-hidden="true" />
+          <input
+            type="search"
+            name="query"
+            autocomplete="off"
+            placeholder={copy.searchPlaceholder}
+          />
+        </span>
+      </label>
+
+      <label>
+        <span>{copy.statusLabel}</span>
+        <select name="status">
+          <option value="all">{copy.allStatuses}</option>
+          {statusOptions.map((status) => (
+            <option value={status}>{copy.statuses[status]}</option>
+          ))}
+        </select>
+      </label>
+
+      {availableTimes.length > 0 && (
+        <label>
+          <span>{copy.timeLabel}</span>
+          <select name="time">
+            <option value="all">{copy.allTimes}</option>
+            {availableTimes.map((slot) => (
+              <option value={slot}>{copy.timeSlots[slot]}</option>
+            ))}
+          </select>
+        </label>
+      )}
+
+      {hasDistanceEvidence && availableDistanceOptions.length > 0 && (
+        <label>
+          <span>{copy.distanceLabel}</span>
+          <select name="distance">
+            <option value="all">{copy.allDistances}</option>
+            {availableDistanceOptions.map((option) => (
+              <option value={option.maxMetres}>{option.label}</option>
+            ))}
+          </select>
+        </label>
+      )}
+    </div>
+
+    {(availableFamilyFeatures.length > 0 || availableDietFeatures.length > 0) && (
+      <fieldset class="restaurant-needs">
+        <legend>{copy.needsLabel}</legend>
+        <div>
+          {availableFamilyFeatures.map((feature) => (
+            <label>
+              <input
+                type="checkbox"
+                name="need"
+                value={`family:${feature}`}
+              />
+              <span>{copy.familyFeatures[feature]}</span>
+            </label>
+          ))}
+          {availableDietFeatures.map((feature) => (
+            <label>
+              <input
+                type="checkbox"
+                name="need"
+                value={`diet:${feature}`}
+              />
+              <span>{copy.dietFeatures[feature]}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    )}
+
+    {unavailableEvidence.length > 0 && (
+      <aside class="restaurant-evidence-gaps">
+        <Icon name="tabler:database-off" aria-hidden="true" />
+        <div>
+          <h3>{copy.unavailableEvidenceTitle}</h3>
+          <ul>
+            {unavailableEvidence.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+      </aside>
+    )}
+
+    <button type="reset" class="restaurant-controls__reset">
+      <Icon name="tabler:refresh" aria-hidden="true" />
+      {copy.reset}
+    </button>
+  </form>
+
+  <div class="restaurant-results">
+    <div class="restaurant-results__head">
+      <p class="restaurant-results__eyebrow">{copy.resultsLabel}</p>
+      <p
+        class="restaurant-results__count"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <strong data-result-count>{preparedRestaurants.length}</strong>
+        <span data-result-label>
+          {preparedRestaurants.length === 1
+            ? copy.resultSingular
+            : copy.resultPlural}
+        </span>
+      </p>
+    </div>
+
+    <ul class="restaurant-results__list">
+      {preparedRestaurants.map(({
+        entry,
+        content,
+        evidence,
+        reviewDue,
+        primarySourceIsWebsite,
+        featureLabels,
+      }) => (
+        <li
+          data-restaurant-card
+          data-search={`${entry.name} ${entry.address}`}
+          data-status={entry.verifiedStatus}
+          data-times={(evidence?.timeSlots ?? []).join('|')}
+          data-distance={evidence?.distance?.metres ?? ''}
+          data-needs={[
+            ...(evidence?.familyFeatures ?? []).map((item) => `family:${item}`),
+            ...(evidence?.dietFeatures ?? []).map((item) => `diet:${item}`),
+          ].join('|')}
+        >
+          <article class="restaurant-card">
+            <header class="restaurant-card__head">
+              <div class="restaurant-card__badges">
+                <span class={`restaurant-status restaurant-status--${entry.verifiedStatus}`}>
+                  <Icon name="tabler:rosette-discount-check" aria-hidden="true" />
+                  {copy.statuses[entry.verifiedStatus]}
+                </span>
+                <span class="restaurant-card__neutral">
+                  <Icon name="tabler:scale" aria-hidden="true" />
+                  {copy.notRecommendation}
+                </span>
+                {reviewDue && (
+                  <span class="restaurant-card__review-due">
+                    <Icon name="tabler:clock-exclamation" aria-hidden="true" />
+                    {copy.reviewDue}
+                  </span>
+                )}
+              </div>
+              <h3 dir="auto">{entry.name}</h3>
+              <address>
+                <Icon name="tabler:map-pin" aria-hidden="true" />
+                <bdi dir="auto">{entry.address}</bdi>
+              </address>
+            </header>
+
+            {(featureLabels.length > 0 || evidence?.distance) && (
+              <div class="restaurant-card__features" aria-label={copy.filterEvidence}>
+                {featureLabels.map((label) => <span>{label}</span>)}
+                {evidence?.distance && (
+                  <a
+                    href={evidence.distance.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {evidence.distance.metres} m · {evidence.distance.originLabel}
+                    <Icon name="tabler:external-link" aria-hidden="true" />
+                  </a>
+                )}
+              </div>
+            )}
+
+            <div class="restaurant-card__evidence">
+              <section aria-labelledby={`${toolId}-${entry.id}-cuisine`}>
+                <h4 id={`${toolId}-${entry.id}-cuisine`}>
+                  <Icon name="tabler:tools-kitchen-2" aria-hidden="true" />
+                  {copy.cuisineEvidence}
+                </h4>
+                <ul>
+                  {content.cuisineEvidence.map((item) => <li>{item}</li>)}
+                </ul>
+              </section>
+              <section aria-labelledby={`${toolId}-${entry.id}-service`}>
+                <h4 id={`${toolId}-${entry.id}-service`}>
+                  <Icon name="tabler:clock-check" aria-hidden="true" />
+                  {copy.serviceEvidence}
+                </h4>
+                <ul>
+                  {content.serviceEvidence.map((item) => <li>{item}</li>)}
+                </ul>
+              </section>
+            </div>
+
+            <p class="restaurant-card__verification">
+              <strong>{copy.verificationNote}:</strong>{' '}
+              {content.verificationNote}
+            </p>
+
+            <details class="restaurant-card__uncertainty">
+              <summary>
+                <Icon name="tabler:alert-triangle" aria-hidden="true" />
+                {copy.uncertaintyTitle}
+                <Icon name="tabler:chevron-down" aria-hidden="true" />
+              </summary>
+              <ul>
+                {content.uncertainties.map((item) => <li>{item}</li>)}
+              </ul>
+            </details>
+
+            <footer class="restaurant-card__footer">
+              <span>
+                <Icon name="tabler:calendar-check" aria-hidden="true" />
+                {copy.checkedAt}: <time datetime={entry.checkedAt}>{entry.checkedAt}</time>
+              </span>
+              {evidence && (
+                <span>
+                  <Icon name="tabler:filter-check" aria-hidden="true" />
+                  {copy.evidenceCheckedAt}:{' '}
+                  <time datetime={evidence.checkedAt}>{evidence.checkedAt}</time>
+                </span>
+              )}
+              <div class="restaurant-card__links">
+                {evidence && (
+                  <a
+                    href={evidence.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${copy.filterEvidence}: ${entry.name}`}
+                  >
+                    <Icon name="tabler:filter-check" aria-hidden="true" />
+                    {copy.filterEvidence}
+                  </a>
+                )}
+                <a
+                  href={entry.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${primarySourceIsWebsite
+                    ? copy.operatorWebsite
+                    : copy.source}: ${entry.name}`}
+                >
+                  <Icon name="tabler:external-link" aria-hidden="true" />
+                  {primarySourceIsWebsite ? copy.operatorWebsite : copy.source}
+                </a>
+                {entry.officialWebsiteUrl
+                  && entry.officialWebsiteUrl !== entry.sourceUrl && (
+                  <a
+                    href={entry.officialWebsiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Icon name="tabler:world" aria-hidden="true" />
+                    {copy.operatorWebsite}
+                  </a>
+                )}
+                {entry.corroboratingSourceUrl
+                  && entry.corroboratingSourceUrl !== entry.sourceUrl && (
+                  <a
+                    href={entry.corroboratingSourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Icon name="tabler:external-link" aria-hidden="true" />
+                    {copy.corroboratingSource}
+                  </a>
+                )}
+              </div>
+            </footer>
+          </article>
+        </li>
+      ))}
+    </ul>
+
+    <div class="restaurant-results__empty" data-empty hidden>
+      <Icon name="tabler:zoom-cancel" aria-hidden="true" />
+      <div>
+        <h3>{copy.emptyTitle}</h3>
+        <p>{copy.emptyText}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline define:vars={{
+  toolId,
+  locale,
+  resultSingular: copy.resultSingular,
+  resultPlural: copy.resultPlural,
+}}>
+  (() => {
+    const root = document.getElementById(toolId);
+    const form = root?.querySelector('[data-restaurant-form]');
+    const noJsNotice = root?.querySelector('[data-no-js]');
+    const cards = Array.from(root?.querySelectorAll('[data-restaurant-card]') ?? []);
+    const count = root?.querySelector('[data-result-count]');
+    const countLabel = root?.querySelector('[data-result-label]');
+    const empty = root?.querySelector('[data-empty]');
+
+    const searchLocale = document.documentElement.lang || locale;
+    const normalize = (value) => String(value)
+      .trim()
+      .toLocaleLowerCase(searchLocale)
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '');
+
+    const render = () => {
+      if (!(form instanceof HTMLFormElement)) return;
+
+      const formData = new FormData(form);
+      const query = normalize(formData.get('query') ?? '');
+      const status = String(formData.get('status') ?? 'all');
+      const time = String(formData.get('time') ?? 'all');
+      const distance = String(formData.get('distance') ?? 'all');
+      const needs = formData.getAll('need').map(String);
+      let visible = 0;
+
+      for (const card of cards) {
+        if (!(card instanceof HTMLElement)) continue;
+
+        const times = (card.dataset.times ?? '').split('|').filter(Boolean);
+        const cardNeeds = (card.dataset.needs ?? '').split('|').filter(Boolean);
+        const distanceMetres = Number(card.dataset.distance);
+        const matchesQuery = query === ''
+          || normalize(card.dataset.search ?? '').includes(query);
+        const matchesStatus = status === 'all' || card.dataset.status === status;
+        const matchesTime = time === 'all' || times.includes(time);
+        const matchesDistance = distance === 'all'
+          || (Number.isFinite(distanceMetres)
+            && distanceMetres > 0
+            && distanceMetres <= Number(distance));
+        const matchesNeeds = needs.every((need) => cardNeeds.includes(need));
+        const isVisible = matchesQuery
+          && matchesStatus
+          && matchesTime
+          && matchesDistance
+          && matchesNeeds;
+
+        card.hidden = !isVisible;
+        if (isVisible) visible += 1;
+      }
+
+      if (count) count.textContent = String(visible);
+      if (countLabel) {
+        countLabel.textContent = visible === 1 ? resultSingular : resultPlural;
+      }
+      if (empty instanceof HTMLElement) empty.hidden = visible !== 0;
+    };
+
+    if (form instanceof HTMLFormElement) {
+      form.hidden = false;
+      if (noJsNotice instanceof HTMLElement) noJsNotice.hidden = true;
+      form.addEventListener('input', render);
+      form.addEventListener('change', render);
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        render();
+      });
+      form.addEventListener('reset', () => requestAnimationFrame(render));
+      render();
+    }
+  })();
+</script>
+
+<style>
+  .restaurant-tool {
+    overflow: hidden;
+    border: 3px solid var(--color-border);
+    border-radius: 1.5rem;
+    background: var(--color-surface);
+    box-shadow: 7px 7px 0 var(--shadow-amber);
+  }
+
+  .restaurant-tool__intro {
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+    border-bottom: 2px solid var(--color-border-light);
+    background:
+      radial-gradient(circle at 92% 14%, rgb(250 204 21 / 0.25), transparent 12rem),
+      var(--color-bg-light);
+  }
+
+  .restaurant-tool__intro .section-heading {
+    margin-top: 0.35rem;
+  }
+
+  .restaurant-tool__intro p {
+    max-width: 48rem;
+    margin-top: 0.75rem;
+    color: var(--color-text-secondary);
+    line-height: 1.65;
+  }
+
+  .restaurant-neutrality,
+  .restaurant-tool__no-js,
+  .restaurant-evidence-gaps,
+  .restaurant-results__empty {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .restaurant-neutrality {
+    border-bottom: 2px solid var(--color-border-light);
+    background: #fffbeb;
+    padding: 1rem clamp(1.25rem, 4vw, 2.25rem);
+  }
+
+  .restaurant-neutrality > svg,
+  .restaurant-tool__no-js > svg,
+  .restaurant-evidence-gaps > svg,
+  .restaurant-results__empty > svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex: 0 0 auto;
+  }
+
+  .restaurant-neutrality > svg {
+    color: var(--color-gold);
+  }
+
+  .restaurant-neutrality h3 {
+    font-size: 0.95rem;
+  }
+
+  .restaurant-neutrality p {
+    margin-top: 0.15rem;
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .restaurant-tool__no-js {
+    margin: 1rem;
+    border: 2px solid var(--color-border-light);
+    border-radius: 0.9rem;
+    background: white;
+    padding: 0.8rem 0.9rem;
+    color: var(--color-text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .restaurant-controls {
+    display: grid;
+    gap: 1.1rem;
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+  }
+
+  .restaurant-controls[hidden],
+  [data-restaurant-card][hidden],
+  .restaurant-results__empty[hidden],
+  .restaurant-tool__no-js[hidden] {
+    display: none;
+  }
+
+  .restaurant-controls__grid {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .restaurant-controls__grid > label {
+    display: grid;
+    gap: 0.45rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+
+  .restaurant-controls input[type='search'],
+  .restaurant-controls select {
+    min-height: 3.25rem;
+    width: 100%;
+    border: 2px solid var(--color-border);
+    border-radius: 0.9rem;
+    background: white;
+    color: var(--color-text-primary);
+    font: inherit;
+    font-weight: 700;
+  }
+
+  .restaurant-controls input[type='search'] {
+    padding-block: 0.75rem;
+    padding-inline: 2.7rem 0.9rem;
+  }
+
+  .restaurant-controls select {
+    padding-block: 0.75rem;
+    padding-inline: 0.9rem 2.7rem;
+  }
+
+  .restaurant-controls__search {
+    position: relative;
+  }
+
+  .restaurant-controls__search > svg {
+    position: absolute;
+    inset-inline-start: 0.9rem;
+    top: 50%;
+    z-index: 1;
+    width: 1.1rem;
+    height: 1.1rem;
+    translate: 0 -50%;
+    color: var(--color-muted);
+    pointer-events: none;
+  }
+
+  .restaurant-needs {
+    min-width: 0;
+    border: 0;
+    padding: 0;
+  }
+
+  .restaurant-needs legend {
+    margin-bottom: 0.55rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+
+  .restaurant-needs > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .restaurant-needs label {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .restaurant-needs input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+  }
+
+  .restaurant-needs span {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    border: 2px solid var(--color-border-light);
+    border-radius: 999px;
+    background: white;
+    padding: 0.55rem 0.8rem;
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1.2;
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      background var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
+  }
+
+  .restaurant-needs input:checked + span {
+    border-color: var(--color-border);
+    background: var(--color-accent);
+    color: white;
+  }
+
+  .restaurant-controls input:focus-visible,
+  .restaurant-controls select:focus-visible,
+  .restaurant-controls__reset:focus-visible,
+  .restaurant-card a:focus-visible,
+  .restaurant-card summary:focus-visible,
+  .restaurant-needs input:focus-visible + span {
+    outline: 3px solid var(--color-pink);
+    outline-offset: 3px;
+  }
+
+  .restaurant-evidence-gaps {
+    border: 2px solid var(--color-border-light);
+    border-radius: 0.9rem;
+    background: #f9fafb;
+    padding: 0.8rem 0.9rem;
+  }
+
+  .restaurant-evidence-gaps > svg {
+    color: var(--color-muted);
+  }
+
+  .restaurant-evidence-gaps h3 {
+    font-size: 0.85rem;
+  }
+
+  .restaurant-evidence-gaps ul {
+    display: grid;
+    gap: 0.2rem;
+    margin: 0.35rem 0 0;
+    padding-inline-start: 1.1rem;
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+
+  .restaurant-controls__reset {
+    display: inline-flex;
+    min-height: 2.75rem;
+    width: fit-content;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border: 2px solid var(--color-border);
+    border-radius: 0.8rem;
+    background: white;
+    padding: 0.55rem 0.8rem;
+    color: var(--color-text-primary);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+
+  .restaurant-controls__reset svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .restaurant-results {
+    border-top: 3px solid var(--color-border);
+    background: #fffdf8;
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+  }
+
+  .restaurant-results__eyebrow {
+    color: var(--color-accent-dark);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .restaurant-results__count {
+    margin-top: 0.15rem;
+    font-family: var(--font-heading);
+    font-size: 1.45rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .restaurant-results__list {
+    display: grid;
+    gap: 1rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .restaurant-card {
+    height: 100%;
+    overflow: hidden;
+    border: 2px solid var(--color-border);
+    border-radius: 1.1rem;
+    background: white;
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+
+  .restaurant-card__head {
+    padding: 1rem;
+  }
+
+  .restaurant-card__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .restaurant-status,
+  .restaurant-card__neutral,
+  .restaurant-card__review-due {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 999px;
+    padding: 0.28rem 0.55rem;
+    font-size: 0.65rem;
+    font-weight: 900;
+    line-height: 1.2;
+  }
+
+  .restaurant-status svg,
+  .restaurant-card__neutral svg,
+  .restaurant-card__review-due svg {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .restaurant-status--first_party_verified {
+    background: var(--available-bg);
+    color: #166534;
+  }
+
+  .restaurant-status--public_directory_verified {
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  .restaurant-status--needs_reverification,
+  .restaurant-card__review-due {
+    background: #fffbeb;
+    color: #92400e;
+  }
+
+  .restaurant-status--license_page_verified {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
+
+  .restaurant-card__neutral {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
+
+  .restaurant-card__head h3 {
+    margin-top: 0.65rem;
+    font-size: 1.25rem;
+    line-height: 1.15;
+  }
+
+  .restaurant-card__head address {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    font-style: normal;
+    line-height: 1.45;
+  }
+
+  .restaurant-card__head address svg {
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 auto;
+    margin-top: 0.05rem;
+    color: var(--color-pink);
+  }
+
+  .restaurant-card__features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    border-top: 1px solid var(--color-border-light);
+    padding: 0.75rem 1rem;
+  }
+
+  .restaurant-card__features span,
+  .restaurant-card__features a {
+    display: inline-flex;
+    min-height: 1.8rem;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 999px;
+    background: #ede9fe;
+    padding: 0.28rem 0.55rem;
+    color: var(--color-accent-dark);
+    font-size: 0.68rem;
+    font-weight: 900;
+  }
+
+  .restaurant-card__features a {
+    min-height: 2.25rem;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .restaurant-card__features a svg {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .restaurant-card__evidence {
+    display: grid;
+    border-block: 1px solid var(--color-border-light);
+  }
+
+  .restaurant-card__evidence section {
+    min-width: 0;
+    padding: 0.9rem 1rem;
+  }
+
+  .restaurant-card__evidence section + section {
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  .restaurant-card__evidence h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+  }
+
+  .restaurant-card__evidence h4 svg {
+    width: 1rem;
+    height: 1rem;
+    color: var(--color-accent);
+  }
+
+  .restaurant-card__evidence ul,
+  .restaurant-card__uncertainty ul {
+    display: grid;
+    gap: 0.3rem;
+    margin: 0.45rem 0 0;
+    padding-inline-start: 1rem;
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .restaurant-card__uncertainty {
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .restaurant-card__verification {
+    border-bottom: 1px solid var(--color-border-light);
+    background: #f9fafb;
+    padding: 0.75rem 1rem;
+    color: var(--color-text-secondary);
+    font-size: 0.74rem;
+    line-height: 1.5;
+  }
+
+  .restaurant-card__uncertainty summary {
+    display: grid;
+    min-height: 3rem;
+    cursor: pointer;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    list-style: none;
+  }
+
+  .restaurant-card__uncertainty summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .restaurant-card__uncertainty summary svg {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .restaurant-card__uncertainty summary svg:first-child {
+    color: var(--color-gold);
+  }
+
+  .restaurant-card__uncertainty summary svg:last-child {
+    transition: rotate var(--dur-2) var(--ease-out);
+  }
+
+  .restaurant-card__uncertainty[open] summary svg:last-child {
+    rotate: 180deg;
+  }
+
+  .restaurant-card__uncertainty ul {
+    margin-top: 0;
+    padding: 0 1rem 1rem 2.2rem;
+  }
+
+  .restaurant-card__footer {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.8rem 1rem;
+    color: var(--color-muted);
+    font-size: 0.68rem;
+  }
+
+  .restaurant-card__footer > span,
+  .restaurant-card__links,
+  .restaurant-card__links a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .restaurant-card__footer svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .restaurant-card__links {
+    gap: 0.55rem 0.8rem;
+  }
+
+  .restaurant-card__links a {
+    min-height: 2.25rem;
+    color: var(--color-accent-dark);
+    font-weight: 900;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+
+  .restaurant-results__empty {
+    margin-top: 1.25rem;
+    border: 2px dashed var(--color-border);
+    border-radius: 1rem;
+    background: white;
+    padding: 1.25rem;
+  }
+
+  .restaurant-results__empty > svg {
+    color: var(--color-pink);
+  }
+
+  .restaurant-results__empty h3 {
+    font-size: 1rem;
+  }
+
+  .restaurant-results__empty p {
+    margin-top: 0.2rem;
+    color: var(--color-text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  @media (min-width: 48rem) {
+    .restaurant-controls__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .restaurant-results__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .restaurant-card__evidence {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .restaurant-card__evidence section + section {
+      border-top: 0;
+      border-inline-start: 1px solid var(--color-border-light);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .restaurant-needs span,
+    .restaurant-card__uncertainty summary svg:last-child {
+      transition: none;
+    }
+  }
+</style>

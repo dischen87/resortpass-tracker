@@ -1,45 +1,51 @@
 ---
-import { type Lang, defaultLang, languages, langNames, getTranslation } from '../i18n/translations';
+import {
+  defaultLocale,
+  getLocaleDefinition,
+  type LocaleCode,
+} from '../i18n/locales';
+import {
+  resolveRouteAlternates,
+  type RouteKey,
+  type RoutePaths,
+} from '../i18n/routes';
+import { getTranslation } from '../i18n/translations';
 
 interface Props {
-  lang?: Lang;
-  paths?: Partial<Record<Lang, string>>;
+  lang?: LocaleCode;
+  /** Semantic route identifier. Usually inferred from the current pathname. */
+  routeKey?: RouteKey;
+  /** Explicitly published localized paths; retained for backwards compatibility. */
+  paths?: RoutePaths;
+  label?: string;
 }
 
-const lang = Astro.props.lang || defaultLang;
-const paths = Astro.props.paths;
-const languageLabel = getTranslation(lang, 'nav.language');
-
-function getPathForLang(targetLang: Lang): string {
-  if (paths?.[targetLang]) return paths[targetLang];
-  const path = Astro.url.pathname;
-  let cleanPath = path;
-  for (const l of languages) {
-    if (l !== defaultLang && (path.startsWith(`/${l}/`) || path === `/${l}`)) {
-      cleanPath = path.slice(l.length + 1) || '/';
-      break;
-    }
-  }
-  if (!cleanPath.endsWith('/')) cleanPath += '/';
-  if (targetLang === defaultLang) return cleanPath;
-  return `/${targetLang}${cleanPath}`;
-}
+const lang = Astro.props.lang || defaultLocale;
+const languageLabel = Astro.props.label || getTranslation(lang, 'nav.language');
+const { alternates } = resolveRouteAlternates({
+  pathname: Astro.url.pathname,
+  routeKey: Astro.props.routeKey,
+  explicitPaths: Astro.props.paths,
+});
 ---
 
-<nav aria-label={languageLabel} class="flex flex-wrap items-center gap-1">
-  {languages.map((l) => (
-    <a
-      href={getPathForLang(l)}
-      class:list={[
-        'inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide transition-colors cursor-pointer',
-        l === lang
-          ? 'bg-bg-light text-accent border-2 border-accent'
-          : 'text-muted hover:text-text-primary hover:bg-bg border-2 border-transparent',
-      ]}
-      aria-current={l === lang ? 'page' : undefined}
-      aria-label={langNames[l]}
-    >
-      {l.toUpperCase()}
-    </a>
-  ))}
-</nav>
+{alternates.length > 1 && (
+  <nav aria-label={languageLabel} class="flex flex-wrap items-center gap-1" dir="ltr">
+    {alternates.map(({ locale, path }) => (
+      <a
+        href={path}
+        class:list={[
+          'inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide transition-colors cursor-pointer',
+          locale === lang
+            ? 'bg-bg-light text-accent border-2 border-accent'
+            : 'text-muted hover:text-text-primary hover:bg-bg border-2 border-transparent',
+        ]}
+        aria-current={locale === lang ? 'page' : undefined}
+        aria-label={getLocaleDefinition(locale).nativeName}
+        lang={getLocaleDefinition(locale).bcp47}
+      >
+        {locale.toUpperCase()}
+      </a>
+    ))}
+  </nav>
+)}

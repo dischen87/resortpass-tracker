@@ -1,8 +1,15 @@
 import { Database } from 'bun:sqlite';
 import { randomBytes } from 'crypto';
+import {
+  defaultLanguage,
+  normalizeLanguage,
+  supportedLanguages,
+  type SupportedLanguage,
+} from './locales';
 
 const DB_PATH = process.env.DB_PATH || './data/resortpass.db';
-export type SubscriberLang = 'de' | 'fr' | 'it' | 'en';
+export type SubscriberLang = SupportedLanguage;
+const LANGUAGE_CHECK_SQL = supportedLanguages.map((lang) => `'${lang}'`).join(', ');
 
 let db: Database;
 
@@ -43,7 +50,9 @@ function initSchema() {
       confirmed BOOLEAN DEFAULT 0,
       confirm_token TEXT,
       unsubscribe_token TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      community_token TEXT,
+      lang TEXT NOT NULL DEFAULT 'de' CHECK(lang IN (${LANGUAGE_CHECK_SQL}))
     );
 
     CREATE TABLE IF NOT EXISTS status_log (
@@ -81,28 +90,103 @@ function initSchema() {
       ON community_posts (status, created_at);
   `);
 
-  // Add community_token column if it doesn't exist yet
-  try {
-    db.exec('ALTER TABLE subscribers ADD COLUMN community_token TEXT');
-  } catch {
-    // Column already exists
-  }
-
-  try {
-    db.exec("ALTER TABLE subscribers ADD COLUMN lang TEXT NOT NULL DEFAULT 'de' CHECK(lang IN ('de', 'fr', 'it', 'en'))");
-  } catch {
-    // Column already exists
-  }
-
+  migrateSubscriberLocaleSchema();
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_subscribers_community_token ON subscribers (community_token)');
+}
+
+function migrateSubscriberLocaleSchema() {
+  const table = db.query(
+    "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'subscribers'",
+  ).get() as { sql: string } | null;
+  if (!table) return;
+
+  const columns = db.query('PRAGMA table_info(subscribers)').all() as { name: string }[];
+  const columnNames = new Set(columns.map((column) => column.name));
+  const hasCommunityToken = columnNames.has('community_token');
+  const hasLang = columnNames.has('lang');
+  const hasCurrentLanguageCheck = supportedLanguages.every((lang) => table.sql.includes(`'${lang}'`));
+
+  if (hasCommunityToken && hasLang && hasCurrentLanguageCheck) return;
+
+  const foreignKeys = db.query('PRAGMA foreign_keys').get() as { foreign_keys: number };
+  db.exec('PRAGMA foreign_keys = OFF');
+
+  try {
+    const migrate = db.transaction(() => {
+      db.exec('DROP TABLE IF EXISTS subscribers_locale_migration');
+      db.exec(`
+        CREATE TABLE subscribers_locale_migration (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          email TEXT UNIQUE NOT NULL,
+          notify_silver BOOLEAN DEFAULT 1,
+          notify_gold BOOLEAN DEFAULT 1,
+          confirmed BOOLEAN DEFAULT 0,
+          confirm_token TEXT,
+          unsubscribe_token TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          community_token TEXT,
+          lang TEXT NOT NULL DEFAULT 'de' CHECK(lang IN (${LANGUAGE_CHECK_SQL}))
+        )
+      `);
+
+      const communityToken = hasCommunityToken ? 'community_token' : 'NULL';
+      const language = hasLang
+        ? `CASE WHEN lower(lang) IN (${LANGUAGE_CHECK_SQL}) THEN lower(lang) ELSE 'en' END`
+        : `'${defaultLanguage}'`;
+
+      db.exec(`
+        INSERT INTO subscribers_locale_migration (
+          id,
+          email,
+          notify_silver,
+          notify_gold,
+          confirmed,
+          confirm_token,
+          unsubscribe_token,
+          created_at,
+          community_token,
+          lang
+        )
+        SELECT
+          id,
+          email,
+          notify_silver,
+          notify_gold,
+          confirmed,
+          confirm_token,
+          unsubscribe_token,
+          created_at,
+          ${communityToken},
+          ${language}
+        FROM subscribers
+      `);
+
+      db.exec('DROP TABLE subscribers');
+      db.exec('ALTER TABLE subscribers_locale_migration RENAME TO subscribers');
+    });
+    migrate();
+
+    const violations = db.query('PRAGMA foreign_key_check').all();
+    if (violations.length > 0) {
+      throw new Error(`Subscriber locale migration left ${violations.length} foreign-key violation(s)`);
+    }
+  } finally {
+    if (foreignKeys.foreign_keys) db.exec('PRAGMA foreign_keys = ON');
+  }
 }
 
 export function generateToken(): string {
   return randomBytes(32).toString('hex');
 }
 
-export function addSubscriber(email: string, notifySilver: boolean, notifyGold: boolean, lang: SubscriberLang = 'de') {
+export function addSubscriber(
+  email: string,
+  notifySilver: boolean,
+  notifyGold: boolean,
+  lang: SubscriberLang | string = defaultLanguage,
+) {
   const d = getDb();
+  const subscriberLang = normalizeLanguage(lang);
   const confirmToken = generateToken();
   const unsubscribeToken = generateToken();
   const communityToken = generateToken();
@@ -127,13 +211,13 @@ export function addSubscriber(email: string, notifySilver: boolean, notifyGold: 
 
     // The address is not active yet, so replace its pending signup request.
     d.query('UPDATE subscribers SET notify_silver = ?, notify_gold = ?, confirm_token = ?, community_token = ?, lang = ? WHERE email = ?')
-      .run(notifySilver ? 1 : 0, notifyGold ? 1 : 0, confirmToken, token, lang, email);
+      .run(notifySilver ? 1 : 0, notifyGold ? 1 : 0, confirmToken, token, subscriberLang, email);
     return { confirmToken, communityToken: token, isNew: false, alreadyConfirmed: false };
   }
 
   d.query(
     'INSERT INTO subscribers (email, notify_silver, notify_gold, confirm_token, unsubscribe_token, community_token, lang) VALUES (?, ?, ?, ?, ?, ?, ?)'
-  ).run(email, notifySilver ? 1 : 0, notifyGold ? 1 : 0, confirmToken, unsubscribeToken, communityToken, lang);
+  ).run(email, notifySilver ? 1 : 0, notifyGold ? 1 : 0, confirmToken, unsubscribeToken, communityToken, subscriberLang);
 
   return { confirmToken, communityToken, isNew: true, alreadyConfirmed: false };
 }
@@ -159,12 +243,13 @@ export function unsubscribe(token: string): boolean {
 export function getConfirmedSubscribers(passType: 'silver' | 'gold') {
   const d = getDb();
   const column = passType === 'silver' ? 'notify_silver' : 'notify_gold';
-  return d.query(`SELECT email, unsubscribe_token, community_token, lang FROM subscribers WHERE confirmed = 1 AND ${column} = 1`).all() as {
+  const rows = d.query(`SELECT email, unsubscribe_token, community_token, lang FROM subscribers WHERE confirmed = 1 AND ${column} = 1`).all() as {
     email: string;
     unsubscribe_token: string;
     community_token: string | null;
-    lang: SubscriberLang;
+    lang: string;
   }[];
+  return rows.map((row) => ({ ...row, lang: normalizeLanguage(row.lang) }));
 }
 
 export function getLatestStatus() {
@@ -357,13 +442,14 @@ export function getPostCountBySubscriberToday(subscriberId: number): number {
 
 export function getAllConfirmedSubscribers() {
   const d = getDb();
-  return d.query('SELECT id, email, unsubscribe_token, community_token, lang FROM subscribers WHERE confirmed = 1').all() as {
+  const rows = d.query('SELECT id, email, unsubscribe_token, community_token, lang FROM subscribers WHERE confirmed = 1').all() as {
     id: number;
     email: string;
     unsubscribe_token: string;
     community_token: string | null;
-    lang: SubscriberLang;
+    lang: string;
   }[];
+  return rows.map((row) => ({ ...row, lang: normalizeLanguage(row.lang) }));
 }
 
 export function getMonthlyHeatmap(passType: 'silver' | 'gold', d: Database = getDb()) {

@@ -1,0 +1,894 @@
+---
+import { Icon } from 'astro-icon/components';
+import Layout from '../../layouts/Layout.astro';
+import LanguageSwitcher from '../LanguageSwitcher.astro';
+import { getLocaleDefinition, type LocaleCode } from '../../i18n/locales';
+import type { RouteKey } from '../../i18n/routes';
+import SourceStamp from './SourceStamp.astro';
+import '../../styles/global.css';
+
+export interface PlanningNavItem {
+  href: string;
+  label: string;
+  icon?: string;
+  active?: boolean;
+}
+
+export interface PlanningRelatedItem {
+  href: string;
+  eyebrow: string;
+  title: string;
+  text: string;
+  icon: string;
+}
+
+export interface PlanningFaq {
+  question: string;
+  answer: string;
+}
+
+export interface PlanningSource {
+  url: string;
+  label: string;
+}
+
+export interface PlanningHeroImage {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  attribution: string;
+  filePageUrl: string;
+  licenseUrl: string;
+  modification: string;
+}
+
+export interface PlanningPageCopy {
+  skip: string;
+  menu: string;
+  language: string;
+  home: string;
+  plannerLabel: string;
+  answerLabel: string;
+  updatedLabel: string;
+  sourcePrefix: string;
+  onThisPage: string;
+  relatedTitle: string;
+  sourcesTitle: string;
+  sourcesIntro: string;
+  correctionLabel: string;
+  correctionText: string;
+  unofficial: string;
+  footerText: string;
+}
+
+interface Props {
+  lang: LocaleCode;
+  routeKey: RouteKey;
+  title: string;
+  description: string;
+  eyebrow: string;
+  heading: string;
+  answer: string;
+  checkedAt: string;
+  primarySource: PlanningSource;
+  copy: PlanningPageCopy;
+  homePath: string;
+  hubPath: string;
+  navItems: PlanningNavItem[];
+  toc?: PlanningNavItem[];
+  related?: PlanningRelatedItem[];
+  faqs?: PlanningFaq[];
+  sources?: PlanningSource[];
+  ogImage?: string;
+  heroImage?: PlanningHeroImage;
+}
+
+const {
+  lang,
+  routeKey,
+  title,
+  description,
+  eyebrow,
+  heading,
+  answer,
+  checkedAt,
+  primarySource,
+  copy,
+  homePath,
+  hubPath,
+  navItems,
+  toc = [],
+  related = [],
+  faqs = [],
+  sources = [],
+  ogImage = '/og-resortpass-v2.png',
+  heroImage,
+} = Astro.props;
+
+const siteUrl = 'https://www.resortpass-europapark.ch';
+const languageTag = getLocaleDefinition(lang).bcp47;
+const canonical = `${siteUrl}${Astro.url.pathname}`;
+const allSources = [primarySource, ...sources].filter(
+  (source, index, list) => list.findIndex((candidate) => candidate.url === source.url) === index,
+);
+const normalizedCurrentPath = Astro.url.pathname.endsWith('/')
+  ? Astro.url.pathname
+  : `${Astro.url.pathname}/`;
+const isHubPage = normalizedCurrentPath === hubPath;
+const homeIsHub = homePath === hubPath;
+const breadcrumbItems = isHubPage
+  ? (homeIsHub
+      ? []
+      : [
+          { name: copy.home, href: homePath },
+          { name: heading },
+        ])
+  : (homeIsHub
+      ? [
+          { name: copy.plannerLabel, href: hubPath },
+          { name: heading },
+        ]
+      : [
+          { name: copy.home, href: homePath },
+          { name: copy.plannerLabel, href: hubPath },
+          { name: heading },
+        ]);
+const structuredAboutNames = routeKey.startsWith('resortPass')
+  ? ['Europa-Park ResortPass', 'Europa-Park']
+  : routeKey === 'rulanticaGuide'
+    ? ['Rulantica', 'Europa-Park']
+    : ['Europa-Park'];
+---
+
+<Layout
+  lang={lang}
+  routeKey={routeKey}
+  title={title}
+  description={description}
+  ogImage={ogImage}
+  ogImageAlt={heading}
+  skipLinkLabel={copy.skip}
+>
+  <header class="planning-header">
+    <div class="section-shell">
+      <div class="planning-header__bar">
+        <a href={homePath} class="planning-brand" aria-label="ResortPass Tracker">
+          <img src="/favicon.svg" alt="" width="42" height="42" />
+          <span class="brand-wordmark">resortpass<span>tracker</span></span>
+        </a>
+
+        <nav class="planning-header__desktop" aria-label={copy.plannerLabel}>
+          {navItems.slice(0, 5).map((item) => (
+            <a href={item.href} aria-current={item.active ? 'page' : undefined} class:list={{ active: item.active }}>
+              {item.label}
+            </a>
+          ))}
+          <details class="planning-more">
+            <summary class:list={{ active: navItems.slice(5).some((item) => item.active) }}>
+              <Icon name="tabler:dots" class="h-5 w-5" aria-hidden="true" />
+              {copy.menu}
+            </summary>
+            <div class="planning-more__panel">
+              {navItems.slice(5).map((item) => (
+                <a href={item.href} aria-current={item.active ? 'page' : undefined} class:list={{ active: item.active }}>
+                  {item.icon && <Icon name={item.icon} class="h-4 w-4 shrink-0" aria-hidden="true" />}
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </details>
+        </nav>
+
+        <details class="planning-language">
+          <summary aria-label={copy.language}>
+            <Icon name="tabler:language" class="h-5 w-5" aria-hidden="true" />
+            <span class="hidden sm:inline">{lang.toUpperCase()}</span>
+          </summary>
+          <div class="planning-language__panel">
+            <LanguageSwitcher lang={lang} routeKey={routeKey} label={copy.language} />
+          </div>
+        </details>
+      </div>
+
+      <nav class="planning-header__mobile" aria-label={copy.plannerLabel}>
+        {navItems.map((item) => (
+          <a href={item.href} aria-current={item.active ? 'page' : undefined} class:list={{ active: item.active }}>
+            {item.icon && <Icon name={item.icon} class="h-4 w-4 shrink-0" aria-hidden="true" />}
+            {item.label}
+          </a>
+        ))}
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="planning-hero">
+      <span class="planning-hero__shape planning-hero__shape--one" aria-hidden="true"></span>
+      <span class="planning-hero__shape planning-hero__shape--two" aria-hidden="true"></span>
+      <div class="section-shell relative z-10 py-10 md:py-16">
+        {breadcrumbItems.length > 1 && (
+          <nav class="planning-breadcrumb" aria-label={copy.onThisPage}>
+            {breadcrumbItems.map((item, index) => (
+              <>
+                {index > 0 && (
+                  <Icon name="tabler:chevron-right" class="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+                )}
+                {'href' in item
+                  ? <a href={item.href}>{item.name}</a>
+                  : <span aria-current="page">{item.name}</span>}
+              </>
+            ))}
+          </nav>
+        )}
+
+        <div class="mt-7 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.72fr)] lg:gap-12">
+          <div>
+            <span class="badge">
+              <Icon name="tabler:map-pin" class="h-4 w-4 text-pink" aria-hidden="true" />
+              {eyebrow}
+            </span>
+            <h1 class="planning-hero__title">{heading}</h1>
+          </div>
+
+          <aside class="planning-answer">
+            <p class="planning-answer__label">
+              <Icon name="tabler:sparkles" class="h-4 w-4" aria-hidden="true" />
+              {copy.answerLabel}
+            </p>
+            <p>{answer}</p>
+            <SourceStamp
+              checkedAt={checkedAt}
+              sourceUrl={primarySource.url}
+              sourceLabel={primarySource.label}
+              updatedLabel={copy.updatedLabel}
+              sourcePrefix={copy.sourcePrefix}
+            />
+          </aside>
+        </div>
+
+        {heroImage && (
+          <figure class="planning-hero-media">
+            <img
+              src={heroImage.src}
+              alt={heroImage.alt}
+              width={heroImage.width}
+              height={heroImage.height}
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+            />
+            <figcaption>
+              <span>{heroImage.attribution}</span>
+              <a href={heroImage.filePageUrl} target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>
+              <a href={heroImage.licenseUrl} target="_blank" rel="license noopener noreferrer">CC BY-SA 4.0</a>
+              <span>{heroImage.modification}</span>
+            </figcaption>
+          </figure>
+        )}
+
+        {toc.length > 0 && (
+          <nav class="planning-toc" aria-label={copy.onThisPage}>
+            <span>{copy.onThisPage}</span>
+            <div>
+              {toc.map((item) => (
+                <a href={item.href}>
+                  {item.icon && <Icon name={item.icon} class="h-4 w-4" aria-hidden="true" />}
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </nav>
+        )}
+      </div>
+    </section>
+
+    <slot />
+
+    {faqs.length > 0 && (
+      <section class="py-14 md:py-20" id="faq" aria-labelledby="faq-title">
+        <div class="section-shell max-w-4xl">
+          <h2 id="faq-title" class="section-heading">FAQ</h2>
+          <div class="mt-7 grid gap-3">
+            {faqs.map((item, index) => (
+              <details class="planning-faq" open={index === 0}>
+                <summary>{item.question}<Icon name="tabler:plus" class="h-5 w-5" aria-hidden="true" /></summary>
+                <p>{item.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    {related.length > 0 && (
+      <section class="section-alt py-14 md:py-20" aria-labelledby="related-title">
+        <div class="section-shell">
+          <h2 id="related-title" class="section-heading">{copy.relatedTitle}</h2>
+          <div class="mt-7 grid gap-5 md:grid-cols-3">
+            {related.map((item) => (
+              <a href={item.href} class="planning-related card">
+                <span class="planning-related__icon"><Icon name={item.icon} class="h-6 w-6" aria-hidden="true" /></span>
+                <span class="section-kicker">{item.eyebrow}</span>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+                <Icon name="tabler:arrow-up-right" class="mt-auto h-5 w-5 text-accent rtl:-scale-x-100" aria-hidden="true" />
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <section class="py-14 md:py-20" aria-labelledby="sources-title">
+      <div class="section-shell">
+        <div class="planning-sources">
+          <div>
+            <span class="section-kicker">{copy.unofficial}</span>
+            <h2 id="sources-title" class="mt-2 text-2xl font-extrabold">{copy.sourcesTitle}</h2>
+            <p class="mt-2 text-sm leading-relaxed text-text-secondary">{copy.sourcesIntro}</p>
+          </div>
+          <ul>
+            {allSources.map((source) => (
+              <li>
+                <a href={source.url} target="_blank" rel="noopener noreferrer">
+                  {source.label}
+                  <Icon name="tabler:external-link" class="h-4 w-4" aria-hidden="true" />
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p class="planning-sources__correction">
+            <strong>{copy.correctionLabel}</strong> {copy.correctionText}
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="planning-footer">
+    <div class="section-shell">
+      <a href={homePath} class="planning-brand">
+        <img src="/favicon.svg" alt="" width="40" height="40" />
+        <span class="brand-wordmark">resortpass<span>tracker</span></span>
+      </a>
+      <p>{copy.footerText}</p>
+      <p>© {new Date().getFullYear()} ResortPass Tracker</p>
+    </div>
+    <div class="striped-rule" aria-hidden="true"></div>
+  </footer>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: heading,
+    headline: heading,
+    description,
+    url: canonical,
+    dateModified: checkedAt,
+    inLanguage: languageTag,
+    isAccessibleForFree: true,
+    isPartOf: {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}/#website`,
+      name: 'ResortPass Tracker',
+      url: siteUrl,
+    },
+    publisher: {
+      '@type': 'Organization',
+      '@id': `${siteUrl}/#publisher`,
+      name: 'ResortPass Tracker',
+      url: siteUrl,
+    },
+    author: {
+      '@type': 'Person',
+      name: 'Mathias Graf',
+    },
+    about: structuredAboutNames.map((name) => ({ '@type': 'Thing', name })),
+    ...(heroImage
+      ? {
+          primaryImageOfPage: {
+            '@type': 'ImageObject',
+            contentUrl: `${siteUrl}${heroImage.src}`,
+            encodingFormat: 'image/webp',
+            width: heroImage.width,
+            height: heroImage.height,
+            creditText: heroImage.attribution,
+            license: heroImage.licenseUrl,
+            acquireLicensePage: heroImage.filePageUrl,
+            representativeOfPage: true,
+          },
+        }
+      : {}),
+    ...(breadcrumbItems.length > 1
+      ? {
+          breadcrumb: {
+            '@type': 'BreadcrumbList',
+            itemListElement: breadcrumbItems.map((item, index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              name: item.name,
+              item: 'href' in item ? `${siteUrl}${item.href}` : canonical,
+            })),
+          },
+        }
+      : {}),
+    citation: allSources.map((source) => source.url),
+  })} />
+
+  {faqs.length > 0 && (
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: { '@type': 'Answer', text: item.answer },
+      })),
+    })} />
+  )}
+</Layout>
+
+<style>
+  .planning-header {
+    position: relative;
+    z-index: 50;
+    border-bottom: 2px solid var(--color-border-light);
+    background: rgb(255 249 240 / 0.96);
+    padding-block: 0.65rem;
+    backdrop-filter: blur(14px);
+  }
+
+  .planning-header__bar {
+    display: flex;
+    min-height: 3.2rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .planning-brand {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.55rem;
+    border-radius: 0.8rem;
+  }
+
+  .planning-brand img {
+    width: 2.4rem;
+    height: 2.4rem;
+    flex: 0 0 auto;
+  }
+
+  .planning-header__desktop {
+    display: none;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .planning-header__desktop a,
+  .planning-header__mobile a {
+    border-radius: 999px;
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .planning-header__desktop a {
+    padding: 0.55rem 0.75rem;
+  }
+
+  .planning-header__desktop a:hover,
+  .planning-header__desktop a.active,
+  .planning-header__mobile a.active {
+    background: var(--color-bg-light);
+    color: var(--color-accent-dark);
+  }
+
+  .planning-language {
+    position: relative;
+    flex: 0 0 auto;
+  }
+
+  .planning-language summary,
+  .planning-more summary {
+    display: inline-flex;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    cursor: pointer;
+    list-style: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    border: 2px solid var(--color-border);
+    border-radius: 999px;
+    background: white;
+    padding-inline: 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 900;
+  }
+
+  .planning-language summary::-webkit-details-marker,
+  .planning-more summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .planning-language__panel,
+  .planning-more__panel {
+    position: absolute;
+    inset-inline-end: 0;
+    top: calc(100% + 0.6rem);
+    width: min(22rem, calc(100vw - 2rem));
+    max-height: min(28rem, calc(100vh - 6rem));
+    overflow: auto;
+    border: 3px solid var(--color-border);
+    border-radius: 1rem;
+    background: white;
+    padding: 0.75rem;
+    box-shadow: 5px 5px 0 var(--color-pink);
+  }
+
+  .planning-more {
+    position: relative;
+  }
+
+  .planning-more summary {
+    padding-inline: 0.75rem;
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+  }
+
+  .planning-more summary.active {
+    background: var(--color-bg-light);
+    color: var(--color-accent-dark);
+  }
+
+  .planning-more__panel {
+    display: grid;
+    gap: 0.35rem;
+    inset-inline-end: 0;
+    width: min(20rem, calc(100vw - 2rem));
+  }
+
+  .planning-more__panel a {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.5rem;
+    border: 2px solid transparent;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .planning-more__panel a:hover,
+  .planning-more__panel a.active {
+    border-color: var(--color-border-light);
+  }
+
+  .planning-header__mobile {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    margin-top: 0.45rem;
+    padding-bottom: 0.2rem;
+    scrollbar-width: none;
+  }
+
+  .planning-header__mobile::-webkit-scrollbar {
+    display: none;
+  }
+
+  .planning-header__mobile a {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.35rem;
+    border: 2px solid var(--color-border-light);
+    background: white;
+    padding-inline: 0.75rem;
+  }
+
+  .planning-hero {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .planning-hero__shape {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(54px);
+    pointer-events: none;
+  }
+
+  .planning-hero__shape--one {
+    width: 18rem;
+    height: 18rem;
+    inset-inline-start: -8rem;
+    top: 3rem;
+    background: rgb(196 181 253 / 0.36);
+  }
+
+  .planning-hero__shape--two {
+    width: 15rem;
+    height: 15rem;
+    inset-inline-end: -6rem;
+    bottom: -3rem;
+    background: rgb(250 204 21 / 0.24);
+  }
+
+  .planning-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .planning-breadcrumb a:hover {
+    color: var(--color-accent-dark);
+  }
+
+  .planning-hero__title {
+    max-width: 52rem;
+    margin-top: 1.25rem;
+    font-size: clamp(2.35rem, 8vw, 4.65rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+
+  .planning-answer {
+    display: grid;
+    gap: 0.85rem;
+    border: 3px solid var(--color-border);
+    border-radius: 1.3rem;
+    background: white;
+    padding: 1.25rem;
+    box-shadow: 6px 6px 0 var(--color-accent);
+  }
+
+  .planning-answer > p:not(.planning-answer__label) {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .planning-answer__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-accent-dark);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .planning-toc {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 2rem;
+    border: 2px solid var(--color-border);
+    border-radius: 1rem;
+    background: rgb(255 255 255 / 0.86);
+    padding: 0.8rem;
+  }
+
+  .planning-hero-media {
+    overflow: hidden;
+    margin-top: 2rem;
+    border: 3px solid var(--color-border);
+    border-radius: 1.25rem;
+    background: white;
+    box-shadow: 6px 6px 0 var(--color-pink);
+  }
+
+  .planning-hero-media img {
+    display: block;
+    width: 100%;
+    max-height: 30rem;
+    object-fit: cover;
+  }
+
+  .planning-hero-media figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.65rem;
+    border-top: 2px solid var(--color-border);
+    padding: 0.65rem 0.8rem;
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .planning-hero-media figcaption a {
+    color: var(--color-accent-dark);
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+
+  .planning-toc > span {
+    color: var(--color-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .planning-toc > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .planning-toc a {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.35rem;
+    border: 2px solid var(--color-border-light);
+    border-radius: 999px;
+    background: white;
+    padding-inline: 0.75rem;
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .planning-faq {
+    border: 2px solid var(--color-border);
+    border-radius: 1rem;
+    background: white;
+  }
+
+  .planning-faq summary {
+    display: flex;
+    min-height: 3.5rem;
+    cursor: pointer;
+    list-style: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+    font-weight: 800;
+  }
+
+  .planning-faq summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .planning-faq[open] summary svg {
+    rotate: 45deg;
+  }
+
+  .planning-faq p {
+    border-top: 1px solid var(--color-border-light);
+    padding: 1rem;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+
+  .planning-related {
+    display: flex;
+    min-height: 15rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1.25rem;
+  }
+
+  .planning-related__icon {
+    display: grid;
+    width: 2.8rem;
+    height: 2.8rem;
+    place-items: center;
+    border: 2px solid var(--color-border);
+    border-radius: 0.85rem;
+    background: var(--color-yellow);
+  }
+
+  .planning-related h3 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  .planning-related p {
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+
+  .planning-sources {
+    display: grid;
+    gap: 1.25rem;
+    border: 3px solid var(--color-border);
+    border-radius: 1.25rem;
+    background: white;
+    padding: clamp(1.25rem, 4vw, 2rem);
+    box-shadow: 5px 5px 0 var(--shadow-violet);
+  }
+
+  .planning-sources ul {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .planning-sources a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-accent-dark);
+    font-size: 0.83rem;
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+
+  .planning-sources__correction {
+    border-top: 2px solid var(--color-border-light);
+    padding-top: 1rem;
+    color: var(--color-muted);
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+
+  .planning-footer {
+    border-top: 3px solid var(--color-border);
+    background: white;
+  }
+
+  .planning-footer .section-shell {
+    display: grid;
+    gap: 0.65rem;
+    padding-block: 2rem;
+    color: var(--color-muted);
+    font-size: 0.75rem;
+  }
+
+  @media (min-width: 58rem) {
+    .planning-header {
+      position: sticky;
+      top: 0;
+    }
+
+    .planning-header__desktop {
+      display: flex;
+    }
+
+    .planning-header__mobile {
+      display: none;
+    }
+
+    .planning-toc {
+      grid-template-columns: auto 1fr;
+      align-items: center;
+    }
+
+    .planning-sources {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .planning-sources__correction {
+      grid-column: 1 / -1;
+    }
+
+    .planning-footer .section-shell {
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+    }
+
+    .planning-footer .section-shell > p:nth-child(2) {
+      text-align: center;
+    }
+  }
+</style>

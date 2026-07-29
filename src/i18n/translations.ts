@@ -1,21 +1,30 @@
+import {
+  defaultLocale,
+  getLocaleDefinition,
+  getLocaleFromPathname,
+  type LocaleCode,
+} from './locales';
+import { getRequiredRoutePaths } from './routes';
+
+/**
+ * Locales with complete product, API and email translations today.
+ *
+ * Keep this legacy export narrow until a locale is fully translated end to end.
+ * The complete target-locale registry lives in `locales.ts`.
+ */
 export const languages = ['de', 'fr', 'it', 'en'] as const;
 export type Lang = (typeof languages)[number];
 
-export const defaultLang: Lang = 'de';
+export const defaultLang: Lang = defaultLocale;
 
-export const langNames: Record<Lang, string> = {
-  de: 'Deutsch',
-  fr: 'Fran\u00e7ais',
-  it: 'Italiano',
-  en: 'English',
-};
+export const langNames: Record<Lang, string> = Object.fromEntries(
+  languages.map((locale) => [locale, getLocaleDefinition(locale).nativeName]),
+) as Record<Lang, string>;
 
-export const crowdCalendarPaths: Record<Lang, string> = {
-  de: '/besucherprognose/',
-  fr: '/fr/affluence/',
-  it: '/it/affluenza/',
-  en: '/en/crowd-calendar/',
-};
+export const crowdCalendarPaths: Record<Lang, string> = getRequiredRoutePaths(
+  'crowdCalendar',
+  languages,
+);
 
 export const t: Record<Lang, Record<string, string>> = {
   de: {
@@ -44,9 +53,9 @@ export const t: Record<Lang, Record<string, string>> = {
     'status.unknown_short': 'Unbekannt',
     'status.checking': 'Wird geprüft…',
     'status.gold_includes': 'Alle Europa-Park-\u00d6ffnungstage + 2 Rulantica-Tagestickets',
-    'status.silver_includes': '\u00dcber 230 festgelegte Europa-Park-\u00d6ffnungstage',
-    'status.price_caption': 'Preise, Stand 18. Juli 2026',
-    'status.price_note': 'Preise laut Europa-Park, Stand 18. Juli 2026. Sondertarife erfordern einen Nachweis und unterscheiden sich je nach Berechtigung. ',
+    'status.silver_includes': 'Vorab definierte Europa-Park-\u00d6ffnungstage',
+    'status.price_caption': 'Preise, Stand 29. Juli 2026',
+    'status.price_note': 'Preise laut Europa-Park, Stand 29. Juli 2026. Sondertarife erfordern einen Nachweis und unterscheiden sich je nach Berechtigung. ',
     'status.official_details': 'Offizielle Details',
     'nav.alert': 'Alert an',
     'nav.skip': 'Zum Inhalt springen',
@@ -203,13 +212,13 @@ export const t: Record<Lang, Record<string, string>> = {
     'info.how_title': 'Wie funktioniert dieser Tracker?',
     'info.how_text': 'Unser System pr\u00fcft den offiziellen MackInternational-Ticketshop alle 15 Minuten. Netzfehler, Warteschlangen und Schutzseiten gelten als unbekannt und l\u00f6sen weder einen Verlaufseintrag noch einen Alert aus. Verf\u00fcgbarkeit wird doppelt best\u00e4tigt.',
     'info.silver_title': 'ResortPass Silver',
-    'info.silver_desc': 'Ein Jahr lang Zutritt an mehr als 230 vorab festgelegten Europa-Park-\u00d6ffnungstagen. Besuchsdatum reservieren; Rulantica ist nicht enthalten.',
+    'info.silver_desc': 'Ein Jahr lang Zutritt an vorab definierten Europa-Park-\u00d6ffnungstagen. Besuchsdatum reservieren; Rulantica ist nicht enthalten.',
     'info.gold_title': 'ResortPass Gold',
     'info.gold_desc': 'Ein Jahr lang Zutritt an allen Europa-Park-\u00d6ffnungstagen plus genau zwei Rulantica-Tagestickets. F\u00fcr beide Parks ist eine Reservierung erforderlich.',
     'info.answer_label': 'Offizieller Stand',
     'info.tip_title': 'Wann gibt es wieder Europa-Park Jahreskarten?',
     'info.tip_text': 'Europa-Park nennt aktuell weder einen Termin noch einen festen Verkaufsrhythmus. Neue ResortP\u00e4sse k\u00f6nnen deshalb nicht seri\u00f6s vorausgesagt werden. Der Tracker meldet den tats\u00e4chlichen Shop-Status, sobald er sich \u00e4ndert.',
-    'info.source_note': 'Produktangaben und Preise gepr\u00fcft am 18. Juli 2026. ',
+    'info.source_note': 'Produktangaben und Preise gepr\u00fcft am 29. Juli 2026. ',
 
     // History
     'history.title': 'Verf\u00fcgbarkeits-Verlauf',
@@ -311,8 +320,8 @@ export const t: Record<Lang, Record<string, string>> = {
   },
 
   fr: {
-    'meta.title': 'Pass annuel Europa-Park : disponibilit\u00e9 du ResortPass',
-    'meta.description': 'Statut en direct des ResortPass Silver et Gold, v\u00e9rifi\u00e9 toutes les 15 minutes, avec alerte e-mail gratuite, prix actuels et comparatif.',
+    'meta.title': 'Pass annuel Europa-Park 2026 : ResortPass disponible ?',
+    'meta.description': 'Silver et Gold sont actuellement indisponibles. Statut de vente vérifié toutes les 15 minutes, alerte e-mail gratuite, prix 2026 et comparatif.',
     'meta.og_alt': 'ResortPass Tracker : disponibilit\u00e9 du pass annuel Europa-Park',
     'hero.badge': 'Projet communautaire \u2014 non officiel',
     'hero.title': 'Quand le ResortPass Europa-Park sera-t-il \u00e0 nouveau disponible?',
@@ -331,9 +340,9 @@ export const t: Record<Lang, Record<string, string>> = {
     'status.unknown_short': 'Inconnu',
     'status.checking': 'Vérification…',
     'status.gold_includes': 'Tous les jours d\'ouverture d\'Europa-Park + 2 billets Rulantica',
-    'status.silver_includes': 'Plus de 230 jours d\'ouverture Europa-Park pr\u00e9d\u00e9finis',
-    'status.price_caption': 'Prix au 18 juillet 2026',
-    'status.price_note': 'Prix Europa-Park au 18 juillet 2026. Les tarifs sp\u00e9ciaux exigent un justificatif et varient selon l\'\u00e9ligibilit\u00e9. ',
+    'status.silver_includes': 'Jours d\'ouverture Europa-Park pr\u00e9d\u00e9finis',
+    'status.price_caption': 'Prix au 29 juillet 2026',
+    'status.price_note': 'Prix Europa-Park au 29 juillet 2026. Les tarifs sp\u00e9ciaux exigent un justificatif et varient selon l\'\u00e9ligibilit\u00e9. ',
     'status.official_details': 'D\u00e9tails officiels',
     'nav.alert': 'Alerte',
     'nav.skip': 'Aller au contenu',
@@ -406,7 +415,7 @@ export const t: Record<Lang, Record<string, string>> = {
     'wait.faq_official_a': 'Non. Les données proviennent de la source indépendante ParkQueueTimes.com. Sur place, l’app officielle Europa-Park & Rulantica fait foi.',
 
     'crowd.meta_title': 'Affluence Europa-Park {year} : aujourd’hui, demain & meilleurs jours',
-    'crowd.meta_description': 'Comparez l’affluence à Europa-Park aujourd’hui, demain et les prochains jours d’ouverture : indice de fréquentation, horaires et jours les plus calmes.',
+    'crowd.meta_description': 'Calendrier d’affluence Europa-Park : comparez aujourd’hui, demain et les prochains jours avec indice, horaires et dates actuellement les plus calmes.',
     'crowd.og_alt': 'Prévision d’affluence à Europa-Park jour par jour',
     'crowd.badge': 'Affluence jour par jour',
     'crowd.title': 'Prévision d’affluence à Europa-Park',
@@ -484,13 +493,13 @@ export const t: Record<Lang, Record<string, string>> = {
     'info.how_title': 'Comment fonctionne ce tracker?',
     'info.how_text': 'Notre syst\u00e8me contr\u00f4le la billetterie officielle MackInternational toutes les 15 minutes. Les erreurs r\u00e9seau, files d\'attente et pages de protection restent inconnues et ne d\u00e9clenchent ni historique ni alerte. Une disponibilit\u00e9 est confirm\u00e9e deux fois.',
     'info.silver_title': 'ResortPass Silver',
-    'info.silver_desc': 'Pendant un an, acc\u00e8s \u00e0 plus de 230 jours d\'ouverture Europa-Park pr\u00e9d\u00e9finis. R\u00e9servation obligatoire ; Rulantica n\'est pas inclus.',
+    'info.silver_desc': 'Pendant un an, acc\u00e8s aux jours d\'ouverture Europa-Park pr\u00e9d\u00e9finis. R\u00e9servation obligatoire ; Rulantica n\'est pas inclus.',
     'info.gold_title': 'ResortPass Gold',
     'info.gold_desc': 'Pendant un an, acc\u00e8s \u00e0 tous les jours d\'ouverture d\'Europa-Park, plus exactement deux billets journaliers Rulantica. R\u00e9servation requise pour les deux parcs.',
     'info.answer_label': 'Situation officielle',
     'info.tip_title': 'Quand les pass annuels Europa-Park reviendront-ils ?',
     'info.tip_text': 'Europa-Park ne communique actuellement ni date ni rythme de vente fixe. Il serait donc trompeur de pr\u00e9dire le prochain lot. Le tracker signale le statut r\u00e9el de la billetterie d\u00e8s qu\'il change.',
-    'info.source_note': 'Produits et prix v\u00e9rifi\u00e9s le 18 juillet 2026. ',
+    'info.source_note': 'Produits et prix v\u00e9rifi\u00e9s le 29 juillet 2026. ',
     'history.title': 'Historique de disponibilit\u00e9',
     'history.desc': 'L\'historique documente nos contr\u00f4les r\u00e9els de la billetterie. Il montre les observations pass\u00e9es, sans pr\u00e9dire les prochaines ventes.',
     'history.tracking_since': 'Donn\u00e9es collect\u00e9es depuis',
@@ -603,9 +612,9 @@ export const t: Record<Lang, Record<string, string>> = {
     'status.unknown_short': 'Sconosciuto',
     'status.checking': 'Verifica…',
     'status.gold_includes': 'Tutti i giorni di apertura di Europa-Park + 2 biglietti Rulantica',
-    'status.silver_includes': 'Oltre 230 giorni di apertura Europa-Park prestabiliti',
-    'status.price_caption': 'Prezzi al 18 luglio 2026',
-    'status.price_note': 'Prezzi Europa-Park al 18 luglio 2026. Le tariffe speciali richiedono un documento e variano in base ai requisiti. ',
+    'status.silver_includes': 'Giorni di apertura Europa-Park prestabiliti',
+    'status.price_caption': 'Prezzi al 29 luglio 2026',
+    'status.price_note': 'Prezzi Europa-Park al 29 luglio 2026. Le tariffe speciali richiedono un documento e variano in base ai requisiti. ',
     'status.official_details': 'Dettagli ufficiali',
     'nav.alert': 'Avviso',
     'nav.skip': 'Vai al contenuto',
@@ -756,13 +765,13 @@ export const t: Record<Lang, Record<string, string>> = {
     'info.how_title': 'Come funziona questo tracker?',
     'info.how_text': 'Il sistema controlla il negozio ufficiale MackInternational ogni 15 minuti. Errori di rete, code e pagine di protezione restano sconosciuti e non generano storico o avvisi. La disponibilit\u00e0 viene confermata due volte.',
     'info.silver_title': 'ResortPass Silver',
-    'info.silver_desc': 'Per un anno, accesso a oltre 230 giorni di apertura Europa-Park prestabiliti. Prenotazione obbligatoria; Rulantica non \u00e8 incluso.',
+    'info.silver_desc': 'Per un anno, accesso nei giorni di apertura Europa-Park prestabiliti. Prenotazione obbligatoria; Rulantica non \u00e8 incluso.',
     'info.gold_title': 'ResortPass Gold',
     'info.gold_desc': 'Per un anno, accesso a tutti i giorni di apertura di Europa-Park pi\u00f9 esattamente due biglietti giornalieri Rulantica. Prenotazione richiesta per entrambi i parchi.',
     'info.answer_label': 'Situazione ufficiale',
     'info.tip_title': 'Quando torneranno le tessere annuali Europa-Park?',
     'info.tip_text': 'Europa-Park non comunica attualmente n\u00e9 una data n\u00e9 un ritmo di vendita fisso. Non \u00e8 quindi possibile prevedere seriamente il prossimo lotto. Il tracker segnala il vero stato del negozio appena cambia.',
-    'info.source_note': 'Prodotti e prezzi verificati il 18 luglio 2026. ',
+    'info.source_note': 'Prodotti e prezzi verificati il 29 luglio 2026. ',
     'history.title': 'Storico disponibilit\u00e0',
     'history.desc': 'Lo storico documenta i nostri controlli reali del negozio. Mostra ci\u00f2 che \u00e8 stato osservato, ma non prevede le vendite future.',
     'history.tracking_since': 'Dati raccolti dal',
@@ -855,8 +864,8 @@ export const t: Record<Lang, Record<string, string>> = {
   },
 
   en: {
-    'meta.title': 'Europa-Park Annual Pass: ResortPass Availability',
-    'meta.description': 'Live ResortPass Silver and Gold status, checked every 15 minutes, with free email alerts, current prices and a clear pass comparison.',
+    'meta.title': 'Europa-Park Annual Pass 2026: Is ResortPass Available?',
+    'meta.description': 'Silver and Gold are currently unavailable. Check the live sale status every 15 minutes, compare 2026 prices and get a free email alert.',
     'meta.og_alt': 'ResortPass Tracker: Europa-Park annual pass availability',
     'hero.badge': 'Community project \u2014 unofficial',
     'hero.title': 'When will Europa-Park annual passes be available again?',
@@ -875,9 +884,9 @@ export const t: Record<Lang, Record<string, string>> = {
     'status.unknown_short': 'Unknown',
     'status.checking': 'Checking…',
     'status.gold_includes': 'All Europa-Park opening days + 2 Rulantica day tickets',
-    'status.silver_includes': 'More than 230 predefined Europa-Park opening days',
-    'status.price_caption': 'Prices as of July 18, 2026',
-    'status.price_note': 'Europa-Park prices as of July 18, 2026. Special rates require evidence and vary by eligibility. ',
+    'status.silver_includes': 'Predefined Europa-Park opening days',
+    'status.price_caption': 'Prices as of July 29, 2026',
+    'status.price_note': 'Europa-Park prices as of July 29, 2026. Special rates require evidence and vary by eligibility. ',
     'status.official_details': 'Official details',
     'nav.alert': 'Alert',
     'nav.skip': 'Skip to content',
@@ -950,7 +959,7 @@ export const t: Record<Lang, Record<string, string>> = {
     'wait.faq_official_a': 'No. The data comes from the independent source ParkQueueTimes.com. In the park, the official Europa-Park & Rulantica app is authoritative.',
 
     'crowd.meta_title': 'Europa-Park Crowd Calendar {year}: Today, Tomorrow & Best Days',
-    'crowd.meta_description': 'Compare Europa-Park crowd levels for today, tomorrow and upcoming opening days, with a crowd index, opening hours and the quietest available dates.',
+    'crowd.meta_description': 'Europa-Park crowd calendar for today, tomorrow and upcoming opening days, with crowd index, opening hours and the quietest currently available dates.',
     'crowd.og_alt': 'Europa-Park crowd forecast by day',
     'crowd.badge': 'Day-by-day crowd levels',
     'crowd.title': 'Europa-Park crowd calendar',
@@ -1028,13 +1037,13 @@ export const t: Record<Lang, Record<string, string>> = {
     'info.how_title': 'How does this tracker work?',
     'info.how_text': 'Our system checks the official MackInternational ticket shop every 15 minutes. Network errors, queues and protection pages remain unknown and create neither history nor alerts. Availability is confirmed twice.',
     'info.silver_title': 'ResortPass Silver',
-    'info.silver_desc': 'For one year, entry on more than 230 predefined Europa-Park opening days. A reservation is required; Rulantica is not included.',
+    'info.silver_desc': 'For one year, entry on predefined Europa-Park opening days. A reservation is required; Rulantica is not included.',
     'info.gold_title': 'ResortPass Gold',
     'info.gold_desc': 'For one year, entry on every Europa-Park opening day plus exactly two Rulantica day tickets. Reservations are required for both parks.',
     'info.answer_label': 'Official position',
     'info.tip_title': 'When will Europa-Park annual passes return?',
     'info.tip_text': 'Europa-Park currently gives neither a date nor a fixed release schedule. Predicting the next allocation would therefore be misleading. The tracker reports the real shop status as soon as it changes.',
-    'info.source_note': 'Product details and prices checked on July 18, 2026. ',
+    'info.source_note': 'Product details and prices checked on July 29, 2026. ',
     'history.title': 'Availability history',
     'history.desc': 'The history documents our real ticket-shop checks. It shows what was observed, but it does not predict future sales.',
     'history.tracking_since': 'Data collected since',
@@ -1127,14 +1136,26 @@ export const t: Record<Lang, Record<string, string>> = {
   },
 };
 
-export function getLangFromUrl(url: URL): Lang {
-  const segments = url.pathname.split('/').filter(Boolean);
-  if (segments[0] && languages.includes(segments[0] as Lang)) {
-    return segments[0] as Lang;
-  }
-  return defaultLang;
+const translatedLanguageSet = new Set<string>(languages);
+
+export function hasTranslations(locale: LocaleCode): locale is Lang {
+  return translatedLanguageSet.has(locale);
 }
 
-export function getTranslation(lang: Lang, key: string): string {
-  return t[lang]?.[key] || t[defaultLang]?.[key] || key;
+export function getTranslationLanguage(locale: LocaleCode): Lang {
+  return hasTranslations(locale) ? locale : defaultLang;
+}
+
+export function getLocaleFromUrl(url: URL): LocaleCode {
+  return getLocaleFromPathname(url.pathname);
+}
+
+/** Backwards-compatible helper for code that requires a fully translated locale. */
+export function getLangFromUrl(url: URL): Lang {
+  return getTranslationLanguage(getLocaleFromUrl(url));
+}
+
+export function getTranslation(lang: LocaleCode, key: string): string {
+  const translationLanguage = getTranslationLanguage(lang);
+  return t[translationLanguage]?.[key] || t[defaultLang]?.[key] || key;
 }

@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+import { getRoutePath } from '../i18n/routes';
 
 interface Props {
   lang?: Lang;
@@ -8,6 +9,46 @@ interface Props {
 
 const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
+const resourceCopy = {
+  de: {
+    title: 'ResortPass-Fragen direkt klären',
+    compare: 'Silver und Gold vergleichen',
+    prices: 'Preise und Tageskarten einordnen',
+    reservation: 'Reservierung verstehen',
+    rulantica: 'Rulantica-Leistungen prüfen',
+    open: 'Guide öffnen',
+  },
+  fr: {
+    title: 'Répondre directement à vos questions ResortPass',
+    compare: 'Comparer Silver et Gold',
+    prices: 'Comprendre les prix et billets journée',
+    reservation: 'Comprendre la réservation',
+    rulantica: 'Vérifier les avantages Rulantica',
+    open: 'Ouvrir le guide',
+  },
+  it: {
+    title: 'Risposte dirette alle domande sul ResortPass',
+    compare: 'Confronta Silver e Gold',
+    prices: 'Valuta prezzi e biglietti giornalieri',
+    reservation: 'Capire la prenotazione',
+    rulantica: 'Verifica i vantaggi Rulantica',
+    open: 'Apri la guida',
+  },
+  en: {
+    title: 'Answer your ResortPass question directly',
+    compare: 'Compare Silver and Gold',
+    prices: 'Put prices and day tickets in context',
+    reservation: 'Understand reservations',
+    rulantica: 'Check Rulantica benefits',
+    open: 'Open guide',
+  },
+}[lang];
+const resources = [
+  { route: 'resortPassCompare' as const, label: resourceCopy.compare, icon: 'tabler:scale' },
+  { route: 'resortPassPrices' as const, label: resourceCopy.prices, icon: 'tabler:receipt-euro' },
+  { route: 'resortPassReservation' as const, label: resourceCopy.reservation, icon: 'tabler:calendar-check' },
+  { route: 'resortPassRulantica' as const, label: resourceCopy.rulantica, icon: 'tabler:swimming' },
+];
 ---
 
 <section class="py-16 md:py-20" id="info" aria-labelledby="info-heading">
@@ -68,5 +109,21 @@ const tr = (key: string) => getTranslation(lang, key);
         <Icon name="tabler:external-link" class="h-3.5 w-3.5" aria-hidden="true" />
       </a>
     </p>
+
+    <nav class="mt-10" aria-label={resourceCopy.title}>
+      <h3 class="mb-5 text-center text-xl font-extrabold">{resourceCopy.title}</h3>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {resources.map((resource) => (
+          <a
+            href={getRoutePath(resource.route, lang)!}
+            class="group flex min-h-28 flex-col rounded-2xl border-[3px] border-border bg-white p-4 text-left shadow-[3px_3px_0_var(--color-border)] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-pink)]"
+          >
+            <Icon name={resource.icon} class="mb-3 h-6 w-6 text-accent" aria-hidden="true" />
+            <strong class="text-sm leading-snug">{resource.label}</strong>
+            <span class="mt-auto pt-3 text-xs font-bold text-accent group-hover:underline">{resourceCopy.open}</span>
+          </a>
+        ))}
+      </div>
+    </nav>
   </div>
 </section>

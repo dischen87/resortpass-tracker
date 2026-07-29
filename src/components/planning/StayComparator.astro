@@ -1,0 +1,770 @@
+---
+import { Icon } from 'astro-icon/components';
+import {
+  accommodationComparisonTypes,
+  accommodationScenarios,
+} from '../../data';
+import type {
+  AccommodationComparisonType,
+  AccommodationScenario,
+} from '../../data/accommodations';
+import type {
+  StayComparatorLocaleCopy,
+  StayComparisonState,
+  StayPriority,
+} from '../../content/planning-types';
+
+interface Props {
+  copy: StayComparatorLocaleCopy;
+  types?: readonly AccommodationComparisonType[];
+  scenarios?: readonly AccommodationScenario[];
+  toolId?: string;
+}
+
+const {
+  copy,
+  types = accommodationComparisonTypes,
+  scenarios = accommodationScenarios,
+  toolId = 'stay-comparator',
+} = Astro.props;
+
+const priorityOrder: readonly StayPriority[] = [
+  'operatorGuestBenefits',
+  'selfCatering',
+  'ownSleepingUnitRequired',
+  'groupFormats',
+  'walkingAccess',
+  'shuttleOrTransit',
+];
+const criteria = priorityOrder.map((key) => ({
+  key,
+  label: copy.priorities[key],
+}));
+
+const preparedTypes = types.map((entry) => ({
+  entry,
+  content: copy.typeContent[entry.id],
+  scenarioIds: scenarios
+    .filter((scenario) => scenario.candidateTypeIds.includes(entry.id))
+    .map((scenario) => scenario.id),
+  comparisonItems: criteria.map(({ key, label }) => ({
+    key,
+    label,
+    state: entry.comparison[key] as StayComparisonState,
+    stateLabel: copy.states[entry.comparison[key] as StayComparisonState],
+  })),
+}));
+---
+
+<section class="stay-tool" id={toolId} aria-labelledby={`${toolId}-title`}>
+  <header class="stay-tool__intro">
+    <span class="section-kicker">{copy.eyebrow}</span>
+    <h2 id={`${toolId}-title`} class="section-heading">{copy.title}</h2>
+    <p>{copy.intro}</p>
+  </header>
+
+  <p class="stay-tool__no-js" data-no-js>
+    <Icon name="tabler:info-circle" aria-hidden="true" />
+    {copy.noJs}
+  </p>
+
+  <form
+    class="stay-controls"
+    aria-label={copy.filtersLabel}
+    data-stay-form
+    hidden
+  >
+    <label class="stay-controls__scenario">
+      <span>{copy.scenarioLabel}</span>
+      <select name="scenario">
+        <option value="all">{copy.allScenarios}</option>
+        {scenarios.map((scenario) => (
+          <option value={scenario.id}>
+            {copy.scenarioLabels[scenario.id]}
+          </option>
+        ))}
+      </select>
+    </label>
+
+    <fieldset class="stay-priorities">
+      <legend>{copy.prioritiesLabel}</legend>
+      <div>
+        {criteria.map(({ key, label }) => (
+          <label>
+            <input type="checkbox" name="priority" value={key} />
+            <span>{label}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+
+    <button type="reset" class="stay-controls__reset">
+      <Icon name="tabler:refresh" aria-hidden="true" />
+      {copy.reset}
+    </button>
+  </form>
+
+  <div class="stay-results">
+    <div class="stay-results__head">
+      <div>
+        <p class="stay-results__eyebrow">{copy.resultsLabel}</p>
+        <p class="stay-results__count" aria-live="polite" aria-atomic="true">
+          <strong data-result-count>{preparedTypes.length}</strong>
+          <span data-result-label>
+            {preparedTypes.length === 1 ? copy.resultSingular : copy.resultPlural}
+          </span>
+        </p>
+      </div>
+      <p class="stay-results__ranking">
+        <Icon name="tabler:adjustments-horizontal" aria-hidden="true" />
+        {copy.notRanking}
+      </p>
+    </div>
+
+    <ul class="stay-results__list" data-stay-list>
+      {preparedTypes.map(({ entry, content, scenarioIds, comparisonItems }) => (
+        <li
+          data-stay-card
+          data-type-id={entry.id}
+          data-scenarios={scenarioIds.join('|')}
+          data-comparison={JSON.stringify(entry.comparison)}
+        >
+          <article class="stay-card">
+            <header class="stay-card__head">
+              <div>
+                <span class:list={[
+                  'stay-card__operator',
+                  entry.operatorRelation === 'resort_operated'
+                    ? 'stay-card__operator--resort'
+                    : 'stay-card__operator--independent',
+                ]}>
+                  {copy.operatorRelation[entry.operatorRelation]}
+                </span>
+                <h3>{content.label}</h3>
+              </div>
+              <Icon
+                name={entry.operatorRelation === 'resort_operated'
+                  ? 'tabler:building-castle'
+                  : 'tabler:home'}
+                class="stay-card__icon"
+                aria-hidden="true"
+              />
+            </header>
+
+            <p class="stay-card__definition">{content.definition}</p>
+
+            <dl class="stay-card__comparison">
+              {comparisonItems.map((item) => (
+                <div data-criterion={item.key} data-state={item.state}>
+                  <dt>{item.label}</dt>
+                  <dd>
+                    <span class={`stay-state stay-state--${item.state}`}>
+                      {item.stateLabel}
+                    </span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            <details class="stay-card__verify">
+              <summary>
+                <Icon name="tabler:list-check" aria-hidden="true" />
+                {copy.verifyTitle}
+                <Icon name="tabler:chevron-down" aria-hidden="true" />
+              </summary>
+              <ul>
+                {content.mustVerify.map((item) => <li>{item}</li>)}
+              </ul>
+            </details>
+
+            <footer class="stay-card__source">
+              <span>
+                <Icon name="tabler:calendar-check" aria-hidden="true" />
+                {copy.checkedAt}: <time datetime={entry.checkedAt}>{entry.checkedAt}</time>
+              </span>
+              <a
+                href={entry.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${copy.source}: ${content.label}`}
+              >
+                <Icon name="tabler:external-link" aria-hidden="true" />
+                {copy.source}
+              </a>
+            </footer>
+          </article>
+        </li>
+      ))}
+    </ul>
+
+    <div class="stay-results__empty" data-empty hidden>
+      <Icon name="tabler:zoom-cancel" aria-hidden="true" />
+      <div>
+        <h3>{copy.emptyTitle}</h3>
+        <p>{copy.emptyText}</p>
+      </div>
+    </div>
+
+    <aside class="stay-trust-note">
+      <Icon name="tabler:shield-check" aria-hidden="true" />
+      <div>
+        <h3>{copy.priceNoteTitle}</h3>
+        <p>{copy.priceNoteText}</p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<script is:inline define:vars={{ toolId, resultSingular: copy.resultSingular, resultPlural: copy.resultPlural }}>
+  (() => {
+    const root = document.getElementById(toolId);
+    const form = root?.querySelector('[data-stay-form]');
+    const noJsNotice = root?.querySelector('[data-no-js]');
+    const cards = Array.from(root?.querySelectorAll('[data-stay-card]') ?? []);
+    const count = root?.querySelector('[data-result-count]');
+    const countLabel = root?.querySelector('[data-result-label]');
+    const empty = root?.querySelector('[data-empty]');
+
+    const render = () => {
+      if (!(form instanceof HTMLFormElement)) return;
+
+      const formData = new FormData(form);
+      const scenario = String(formData.get('scenario') ?? 'all');
+      const priorities = formData.getAll('priority').map(String);
+      let visible = 0;
+
+      for (const card of cards) {
+        if (!(card instanceof HTMLElement)) continue;
+
+        const scenarioIds = (card.dataset.scenarios ?? '').split('|').filter(Boolean);
+        let comparison = {};
+        try {
+          comparison = JSON.parse(card.dataset.comparison ?? '{}');
+        } catch {
+          comparison = {};
+        }
+
+        const matchesScenario = scenario === 'all' || scenarioIds.includes(scenario);
+        const matchesPriorities = priorities.every(
+          (priority) => comparison[priority] !== undefined
+            && comparison[priority] !== 'not_applicable',
+        );
+        const isVisible = matchesScenario && matchesPriorities;
+
+        card.hidden = !isVisible;
+        if (isVisible) visible += 1;
+      }
+
+      if (count) count.textContent = String(visible);
+      if (countLabel) {
+        countLabel.textContent = visible === 1 ? resultSingular : resultPlural;
+      }
+      if (empty instanceof HTMLElement) empty.hidden = visible !== 0;
+    };
+
+    if (form instanceof HTMLFormElement) {
+      form.hidden = false;
+      if (noJsNotice instanceof HTMLElement) noJsNotice.hidden = true;
+      form.addEventListener('input', render);
+      form.addEventListener('change', render);
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        render();
+      });
+      form.addEventListener('reset', () => requestAnimationFrame(render));
+      render();
+    }
+  })();
+</script>
+
+<style>
+  .stay-tool {
+    overflow: hidden;
+    border: 3px solid var(--color-border);
+    border-radius: 1.5rem;
+    background: var(--color-surface);
+    box-shadow: 7px 7px 0 var(--shadow-violet);
+  }
+
+  .stay-tool__intro {
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+    border-bottom: 2px solid var(--color-border-light);
+    background:
+      radial-gradient(circle at 92% 15%, rgb(196 181 253 / 0.5), transparent 12rem),
+      var(--color-bg-light);
+  }
+
+  .stay-tool__intro .section-heading {
+    margin-top: 0.35rem;
+  }
+
+  .stay-tool__intro p {
+    max-width: 48rem;
+    margin-top: 0.75rem;
+    color: var(--color-text-secondary);
+    line-height: 1.65;
+  }
+
+  .stay-tool__no-js,
+  .stay-trust-note,
+  .stay-results__ranking {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .stay-tool__no-js {
+    margin: 1rem;
+    border: 2px solid var(--color-border-light);
+    border-radius: 0.9rem;
+    background: #fffbeb;
+    padding: 0.8rem 0.9rem;
+    color: var(--color-text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .stay-tool__no-js svg,
+  .stay-results__ranking svg,
+  .stay-trust-note > svg,
+  .stay-card__source svg,
+  .stay-card__verify summary svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: 0 0 auto;
+  }
+
+  .stay-controls {
+    display: grid;
+    gap: 1.25rem;
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+  }
+
+  .stay-controls[hidden],
+  [data-stay-card][hidden],
+  .stay-results__empty[hidden],
+  .stay-tool__no-js[hidden] {
+    display: none;
+  }
+
+  .stay-controls__scenario {
+    display: grid;
+    gap: 0.45rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+
+  .stay-controls select {
+    min-height: 3.25rem;
+    width: 100%;
+    border: 2px solid var(--color-border);
+    border-radius: 0.9rem;
+    background: white;
+    padding-block: 0.75rem;
+    padding-inline: 0.9rem 2.75rem;
+    color: var(--color-text-primary);
+    font: inherit;
+    font-weight: 700;
+  }
+
+  .stay-priorities {
+    min-width: 0;
+    border: 0;
+    padding: 0;
+  }
+
+  .stay-priorities legend {
+    margin-bottom: 0.55rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+
+  .stay-priorities > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .stay-priorities label {
+    position: relative;
+    min-width: 0;
+    cursor: pointer;
+  }
+
+  .stay-priorities input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+  }
+
+  .stay-priorities span {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    border: 2px solid var(--color-border-light);
+    border-radius: 999px;
+    background: white;
+    padding: 0.55rem 0.8rem;
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1.2;
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      background var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
+  }
+
+  .stay-priorities input:checked + span {
+    border-color: var(--color-border);
+    background: var(--color-accent);
+    color: white;
+  }
+
+  .stay-priorities input:focus-visible + span,
+  .stay-controls select:focus-visible,
+  .stay-controls__reset:focus-visible,
+  .stay-card a:focus-visible,
+  .stay-card summary:focus-visible {
+    outline: 3px solid var(--color-pink);
+    outline-offset: 3px;
+  }
+
+  .stay-controls__reset {
+    display: inline-flex;
+    min-height: 2.75rem;
+    width: fit-content;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border: 2px solid var(--color-border);
+    border-radius: 0.8rem;
+    background: white;
+    padding: 0.55rem 0.8rem;
+    color: var(--color-text-primary);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+
+  .stay-controls__reset svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .stay-results {
+    border-top: 3px solid var(--color-border);
+    background: #fffdf8;
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+  }
+
+  .stay-results__head {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .stay-results__eyebrow {
+    color: var(--color-accent-dark);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .stay-results__count {
+    margin-top: 0.15rem;
+    font-family: var(--font-heading);
+    font-size: 1.45rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .stay-results__ranking {
+    max-width: 32rem;
+    color: var(--color-muted);
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .stay-results__list {
+    display: grid;
+    gap: 1rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .stay-card {
+    height: 100%;
+    overflow: hidden;
+    border: 2px solid var(--color-border);
+    border-radius: 1.1rem;
+    background: white;
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+
+  .stay-card__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .stay-card__head h3 {
+    margin-top: 0.35rem;
+    font-size: 1.2rem;
+    line-height: 1.15;
+  }
+
+  .stay-card__operator {
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 0.28rem 0.55rem;
+    font-size: 0.68rem;
+    font-weight: 900;
+    line-height: 1.2;
+  }
+
+  .stay-card__operator--resort {
+    background: #ede9fe;
+    color: var(--color-accent-dark);
+  }
+
+  .stay-card__operator--independent {
+    background: #ecfdf5;
+    color: #166534;
+  }
+
+  .stay-card__icon {
+    width: 1.55rem;
+    height: 1.55rem;
+    flex: 0 0 auto;
+    color: var(--color-accent);
+  }
+
+  .stay-card__definition {
+    padding: 0 1rem 1rem;
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+
+  .stay-card__comparison {
+    margin: 0;
+    border-block: 1px solid var(--color-border-light);
+  }
+
+  .stay-card__comparison > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 0.35rem;
+    padding: 0.65rem 1rem;
+  }
+
+  .stay-card__comparison > div + div {
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  .stay-card__comparison dt {
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .stay-card__comparison dd {
+    margin: 0;
+    text-align: start;
+  }
+
+  .stay-state {
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.66rem;
+    font-weight: 900;
+    line-height: 1.25;
+  }
+
+  .stay-state--verified,
+  .stay-state--available_for_this_type {
+    background: var(--available-bg);
+    color: #166534;
+  }
+
+  .stay-state--varies_by_property,
+  .stay-state--must_verify {
+    background: #fffbeb;
+    color: #92400e;
+  }
+
+  .stay-state--not_applicable {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
+
+  .stay-card__verify {
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .stay-card__verify summary {
+    display: grid;
+    min-height: 3rem;
+    cursor: pointer;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    list-style: none;
+  }
+
+  .stay-card__verify summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .stay-card__verify summary svg:last-child {
+    transition: rotate var(--dur-2) var(--ease-out);
+  }
+
+  .stay-card__verify[open] summary svg:last-child {
+    rotate: 180deg;
+  }
+
+  .stay-card__verify ul {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0 1rem 1rem 2.2rem;
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+
+  .stay-card__source {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    padding: 0.8rem 1rem;
+    color: var(--color-muted);
+    font-size: 0.7rem;
+  }
+
+  .stay-card__source span,
+  .stay-card__source a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .stay-card__source a {
+    min-height: 2.25rem;
+    color: var(--color-accent-dark);
+    font-weight: 900;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+
+  .stay-results__empty {
+    margin-top: 1.25rem;
+    border: 2px dashed var(--color-border);
+    border-radius: 1rem;
+    background: white;
+    padding: 1.25rem;
+  }
+
+  .stay-results__empty:not([hidden]) {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .stay-results__empty > svg {
+    width: 1.4rem;
+    height: 1.4rem;
+    flex: 0 0 auto;
+    color: var(--color-pink);
+  }
+
+  .stay-results__empty h3 {
+    font-size: 1rem;
+  }
+
+  .stay-results__empty p {
+    margin-top: 0.2rem;
+    color: var(--color-text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .stay-trust-note {
+    margin-top: 1.25rem;
+    border: 2px solid var(--color-border);
+    border-radius: 1rem;
+    background: #f0fdf4;
+    padding: 1rem;
+  }
+
+  .stay-trust-note > svg {
+    color: var(--color-available);
+  }
+
+  .stay-trust-note h3 {
+    font-size: 0.95rem;
+  }
+
+  .stay-trust-note p {
+    margin-top: 0.2rem;
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  @media (min-width: 48rem) {
+    .stay-controls {
+      grid-template-columns: minmax(15rem, 0.7fr) minmax(0, 1.3fr) auto;
+      align-items: end;
+    }
+
+    .stay-results__head {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+    }
+
+    .stay-results__ranking {
+      justify-self: end;
+      text-align: end;
+    }
+
+    .stay-results__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 30rem) {
+    .stay-card__comparison > div {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .stay-card__comparison dd {
+      text-align: end;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stay-priorities span,
+    .stay-card__verify summary svg:last-child {
+      transition: none;
+    }
+  }
+</style>

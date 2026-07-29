@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, crowdCalendarPaths, getTranslation } from '../i18n/translations';
+import { getRoutePath } from '../i18n/routes';
 import LanguageSwitcher from './LanguageSwitcher.astro';
 
 interface Props {
@@ -21,6 +22,18 @@ const ctaTitle = {
   fr: 'Ne manquez pas la prochaine mise en vente',
   it: 'Non perdere la prossima vendita',
   en: 'Do not miss the next sale',
+}[lang];
+const planningLabel = {
+  de: 'Europa-Park planen',
+  fr: 'Planifier Europa-Park',
+  it: 'Pianificare Europa-Park',
+  en: 'Plan Europa-Park',
+}[lang];
+const passGuideLabel = {
+  de: 'ResortPass-Guide',
+  fr: 'Guide ResortPass',
+  it: 'Guida ResortPass',
+  en: 'ResortPass guide',
 }[lang];
 ---
 
@@ -63,6 +76,8 @@ const ctaTitle = {
         <ul class="space-y-2.5">
           <li><a href={waitTimesPath} class="text-sm text-muted hover:text-text-primary">{tr('nav.wait_times')}</a></li>
           <li><a href={crowdCalendarPath} class="text-sm text-muted hover:text-text-primary">{tr('nav.crowd_forecast')}</a></li>
+          <li><a href={getRoutePath('parkGuide', lang)!} class="text-sm text-muted hover:text-text-primary">{planningLabel}</a></li>
+          <li><a href={getRoutePath('resortPassGuide', lang)!} class="text-sm text-muted hover:text-text-primary">{passGuideLabel}</a></li>
           <li><a href={`${homePath}#benachrichtigung`} class="text-sm text-muted hover:text-text-primary">{tr('subscribe.sticky_cta')}</a></li>
           <li><a href={`${homePath}#info`} class="text-sm text-muted hover:text-text-primary">Info</a></li>
           <li><a href={`${homePath}#history`} class="text-sm text-muted hover:text-text-primary">{tr('history.title')}</a></li>

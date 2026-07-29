@@ -21,6 +21,7 @@ import {
 } from './db';
 import { localizedSiteUrl, sendConfirmationEmail, sendUnsubscribeConfirmation } from './email';
 import { buildRss, formatDailyDigest, normalizeFeedLanguage } from './feed';
+import { getApiCopy, getCommunityCopy } from './api-copy';
 import {
   getCrowdCalendar,
   getCrowdCalendarCacheHealth,
@@ -45,80 +46,6 @@ function statusFreshness(value: { available: boolean; lastCheck: string } | null
   const ageMinutes = Math.max(0, Math.round((Date.now() - timestamp) / 60000));
   return { lastCheck: value.lastCheck, ageMinutes, fresh: ageMinutes <= CHECKER_FRESH_MINUTES };
 }
-
-const apiCopy = {
-  de: {
-    rate: 'Zu viele Anfragen. Bitte versuche es später erneut.',
-    email: 'Bitte gib eine gültige E-Mail-Adresse ein.',
-    pass: 'Bitte wähle mindestens einen Pass-Typ aus.',
-    send: 'E-Mail konnte nicht gesendet werden. Bitte versuche es später.',
-    general: 'Ein Fehler ist aufgetreten.',
-    subscribed: 'Falls die Adresse noch nicht angemeldet war, haben wir eine Bestätigungs-E-Mail geschickt.',
-  },
-  fr: {
-    rate: 'Trop de demandes. Veuillez réessayer plus tard.',
-    email: 'Veuillez saisir une adresse e-mail valide.',
-    pass: 'Veuillez sélectionner au moins un type de pass.',
-    send: 'Impossible d’envoyer l’e-mail. Veuillez réessayer plus tard.',
-    general: 'Une erreur est survenue.',
-    subscribed: 'Si l’adresse n’était pas encore inscrite, nous avons envoyé un e-mail de confirmation.',
-  },
-  it: {
-    rate: 'Troppe richieste. Riprova più tardi.',
-    email: 'Inserisci un indirizzo e-mail valido.',
-    pass: 'Seleziona almeno un tipo di pass.',
-    send: 'Impossibile inviare l’e-mail. Riprova più tardi.',
-    general: 'Si è verificato un errore.',
-    subscribed: 'Se l’indirizzo non era ancora registrato, abbiamo inviato un’e-mail di conferma.',
-  },
-  en: {
-    rate: 'Too many requests. Please try again later.',
-    email: 'Please enter a valid email address.',
-    pass: 'Please select at least one pass type.',
-    send: 'The email could not be sent. Please try again later.',
-    general: 'Something went wrong.',
-    subscribed: 'If the address was not already subscribed, we sent a confirmation email.',
-  },
-} as const;
-
-const communityCopy = {
-  de: {
-    token: 'Ungültiger oder abgelaufener Community-Link.',
-    name: 'Bitte gib einen Namen mit höchstens 50 Zeichen ein.',
-    title: 'Bitte gib einen Titel mit 3 bis 100 Zeichen ein.',
-    body: 'Bitte gib einen Beitrag mit 10 bis 2.000 Zeichen ein.',
-    limit: 'Du hast heute schon 3 Beiträge eingereicht. Probier es morgen noch einmal.',
-    success: 'Danke für deinen Tipp! Er wird geprüft und erscheint bald auf der Seite.',
-    general: 'Ein Fehler ist aufgetreten.',
-  },
-  fr: {
-    token: 'Le lien communautaire est invalide ou expiré.',
-    name: 'Veuillez saisir un nom de 50 caractères maximum.',
-    title: 'Veuillez saisir un titre de 3 à 100 caractères.',
-    body: 'Veuillez saisir un texte de 10 à 2 000 caractères.',
-    limit: 'Vous avez déjà envoyé 3 contributions aujourd’hui. Réessayez demain.',
-    success: 'Merci pour votre conseil ! Il sera vérifié avant sa publication.',
-    general: 'Une erreur est survenue.',
-  },
-  it: {
-    token: 'Il link della community non è valido o è scaduto.',
-    name: 'Inserisci un nome di massimo 50 caratteri.',
-    title: 'Inserisci un titolo da 3 a 100 caratteri.',
-    body: 'Inserisci un testo da 10 a 2.000 caratteri.',
-    limit: 'Hai già inviato 3 contributi oggi. Riprova domani.',
-    success: 'Grazie per il consiglio! Verrà verificato prima della pubblicazione.',
-    general: 'Si è verificato un errore.',
-  },
-  en: {
-    token: 'The community link is invalid or expired.',
-    name: 'Please enter a name with no more than 50 characters.',
-    title: 'Please enter a title between 3 and 100 characters.',
-    body: 'Please enter a post between 10 and 2,000 characters.',
-    limit: 'You have already submitted 3 posts today. Please try again tomorrow.',
-    success: 'Thanks for your tip! It will be reviewed before publication.',
-    general: 'Something went wrong.',
-  },
-} as const;
 
 // Rate limiting
 const rateLimits = new Map<string, number[]>();
@@ -239,7 +166,8 @@ app.get('/api/history-stats', (c) => {
 app.get('/api/history/:type', (c) => {
   const type = c.req.param('type');
   if (type !== 'silver' && type !== 'gold') {
-    return c.json({ error: 'Ungültiger Pass-Typ. Erlaubt: silver, gold.' }, 400);
+    const lang = normalizeFeedLanguage(c.req.query('lang'));
+    return c.json({ error: getApiCopy(lang).invalidPassType }, 400);
   }
   const heatmap = getMonthlyHeatmap(type);
   return c.json(heatmap);
@@ -277,15 +205,15 @@ app.post('/api/subscribe', async (c) => {
 
   let lang = normalizeFeedLanguage(undefined);
 
-  if (isRateLimited(ip)) {
-    return c.json({ error: apiCopy[lang].rate }, 429);
-  }
-
   try {
     const body = await c.req.json();
     const { email, notify_silver, notify_gold } = body;
     lang = normalizeFeedLanguage(body.lang);
-    const copy = apiCopy[lang];
+    const copy = getApiCopy(lang);
+
+    if (isRateLimited(ip)) {
+      return c.json({ error: copy.rate }, 429);
+    }
 
     if (!email || typeof email !== 'string') {
       return c.json({ error: copy.email }, 400);
@@ -324,22 +252,24 @@ app.post('/api/subscribe', async (c) => {
     });
   } catch (err) {
     console.error('Subscribe error:', err);
-    return c.json({ error: apiCopy[lang].general }, 500);
+    return c.json({ error: getApiCopy(lang).general }, 500);
   }
 });
 
 // Confirm subscription
 app.get('/api/confirm', (c) => {
+  const lang = normalizeFeedLanguage(c.req.query('lang'));
+  const copy = getApiCopy(lang);
   const token = c.req.query('token');
   if (!token) {
-    return c.json({ error: 'Ungültiger Bestätigungslink.' }, 400);
+    return c.json({ error: copy.invalidConfirm }, 400);
   }
 
   const confirmed = confirmSubscriber(token);
   if (confirmed) {
-    return c.json({ success: true, message: 'E-Mail bestätigt!' });
+    return c.json({ success: true, message: copy.confirmed });
   }
-  return c.json({ error: 'Der Bestätigungslink ist ungültig oder wurde bereits verwendet.' }, 400);
+  return c.json({ error: copy.invalidConfirm }, 400);
 });
 
 // Unsubscribe is POST-only so mail-link scanners cannot delete subscriptions.
@@ -347,15 +277,16 @@ app.post('/api/unsubscribe', async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const token = typeof body.token === 'string' ? body.token : '';
   const lang = normalizeFeedLanguage(body.lang);
+  const copy = getApiCopy(lang);
   if (!token) {
-    return c.json({ error: 'Ungültiger Abmelde-Link.' }, 400);
+    return c.json({ error: copy.invalidUnsubscribe }, 400);
   }
 
   // Get email before deleting for confirmation email
   const db = getDb();
   const sub = db
     .query('SELECT email, lang FROM subscribers WHERE unsubscribe_token = ?')
-    .get(token) as { email: string; lang: 'de' | 'fr' | 'it' | 'en' } | null;
+    .get(token) as { email: string; lang: string } | null;
 
   const removed = unsubscribe(token);
   if (removed && sub) {
@@ -364,9 +295,9 @@ app.post('/api/unsubscribe', async (c) => {
     } catch {
       // Non-critical -- subscriber is already removed
     }
-    return c.json({ success: true, message: 'Erfolgreich abgemeldet.' });
+    return c.json({ success: true, message: copy.unsubscribed });
   }
-  return c.json({ error: 'Der Abmelde-Link ist ungültig.' }, 400);
+  return c.json({ error: copy.invalidUnsubscribe }, 400);
 });
 
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';
@@ -389,7 +320,7 @@ app.post('/api/community/submit', async (c) => {
     const body = await c.req.json();
     const { token, author_name, title, body: postBody } = body;
     lang = normalizeFeedLanguage(body.lang);
-    const copy = communityCopy[lang];
+    const copy = getCommunityCopy(lang);
 
     if (!token || typeof token !== 'string') {
       return c.json({ error: copy.token }, 401);
@@ -423,7 +354,7 @@ app.post('/api/community/submit', async (c) => {
     });
   } catch (err) {
     console.error('Community submit error:', err);
-    return c.json({ error: communityCopy[lang].general }, 500);
+    return c.json({ error: getCommunityCopy(lang).general }, 500);
   }
 });
 

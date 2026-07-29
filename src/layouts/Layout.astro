@@ -1,18 +1,34 @@
 ---
-import { type Lang, defaultLang, languages, getTranslation } from '../i18n/translations';
+import {
+  defaultLocale,
+  getLocaleDefinition,
+  type LocaleCode,
+} from '../i18n/locales';
+import {
+  resolveRouteAlternates,
+  type RouteKey,
+  type RoutePaths,
+} from '../i18n/routes';
+import { getTranslation } from '../i18n/translations';
 
 interface Props {
   title?: string;
   description?: string;
   canonical?: string;
-  lang?: Lang;
+  lang?: LocaleCode;
   noindex?: boolean;
   ogImage?: string;
   ogImageAlt?: string;
-  alternatePaths?: Partial<Record<Lang, string>>;
+  /** Semantic route identifier. Usually inferred from the current pathname. */
+  routeKey?: RouteKey;
+  /** Backwards-compatible explicit publication map for localized route variants. */
+  alternatePaths?: RoutePaths;
+  /** Localized skip-link label for pages outside the legacy four-language UI. */
+  skipLinkLabel?: string;
 }
 
-const lang = Astro.props.lang || defaultLang;
+const lang = Astro.props.lang || defaultLocale;
+const locale = getLocaleDefinition(lang);
 const tr = (key: string) => getTranslation(lang, key);
 
 const title = Astro.props.title || tr('meta.title');
@@ -24,38 +40,19 @@ const rawPath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro
 const currentUrl = Astro.props.canonical || `${siteUrl}${rawPath}`;
 const noindex = Astro.props.noindex || false;
 const alternatePaths = Astro.props.alternatePaths;
-
-const localeMap: Record<Lang, string> = {
-  de: 'de_CH',
-  fr: 'fr_CH',
-  it: 'it_CH',
-  en: 'en_US',
-};
-const hreflangMap: Record<Lang, string> = {
-  de: 'de',
-  fr: 'fr',
-  it: 'it',
-  en: 'en',
-};
-
-function getPathForLang(targetLang: Lang): string {
-  if (alternatePaths?.[targetLang]) return alternatePaths[targetLang];
-  const path = Astro.url.pathname;
-  let cleanPath = path;
-  for (const l of languages) {
-    if (l !== defaultLang && (path.startsWith(`/${l}/`) || path === `/${l}`)) {
-      cleanPath = path.slice(l.length + 1) || '/';
-      break;
-    }
-  }
-  if (!cleanPath.endsWith('/')) cleanPath += '/';
-  if (targetLang === defaultLang) return cleanPath;
-  return `/${targetLang}${cleanPath}`;
-}
+const resolvedRoute = resolveRouteAlternates({
+  pathname: Astro.url.pathname,
+  routeKey: Astro.props.routeKey,
+  explicitPaths: alternatePaths,
+});
+const alternateLinks = noindex ? [] : resolvedRoute.alternates;
+const xDefaultPath = noindex ? undefined : resolvedRoute.xDefaultPath;
+const rssLang = lang;
+const skipLinkLabel = Astro.props.skipLinkLabel || tr('nav.skip');
 ---
 
 <!DOCTYPE html>
-<html lang={lang}>
+<html lang={locale.bcp47} dir={locale.direction}>
 <head>
   <script is:inline>document.documentElement.classList.add('js');</script>
   <meta charset="UTF-8" />
@@ -69,12 +66,16 @@ function getPathForLang(targetLang: Lang): string {
   />
   <link rel="canonical" href={currentUrl} />
 
-  <!-- hreflang for all languages -->
-  {!noindex && languages.map((l) => (
-    <link rel="alternate" hreflang={hreflangMap[l]} href={`${siteUrl}${getPathForLang(l)}`} />
+  <!-- Only published, reciprocal language variants are advertised. -->
+  {alternateLinks.map(({ locale: alternateLocale, path }) => (
+    <link
+      rel="alternate"
+      hreflang={getLocaleDefinition(alternateLocale).hreflang}
+      href={`${siteUrl}${path}`}
+    />
   ))}
-  {!noindex && <link rel="alternate" hreflang="x-default" href={`${siteUrl}${getPathForLang(defaultLang)}`} />}
-  <link rel="alternate" type="application/rss+xml" title="ResortPass availability feed" href={`/api/feed.xml?lang=${lang}`} />
+  {xDefaultPath && <link rel="alternate" hreflang="x-default" href={`${siteUrl}${xDefaultPath}`} />}
+  <link rel="alternate" type="application/rss+xml" title="ResortPass availability feed" href={`/api/feed.xml?lang=${rssLang}`} />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
@@ -86,9 +87,9 @@ function getPathForLang(targetLang: Lang): string {
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content={ogImageAlt} />
   <meta property="og:site_name" content="ResortPass Tracker" />
-  <meta property="og:locale" content={localeMap[lang]} />
-  {languages.filter(l => l !== lang).map(l => (
-    <meta property="og:locale:alternate" content={localeMap[l]} />
+  <meta property="og:locale" content={locale.ogLocale} />
+  {alternateLinks.filter(link => link.locale !== lang).map(link => (
+    <meta property="og:locale:alternate" content={getLocaleDefinition(link.locale).ogLocale} />
   ))}
 
   <!-- Twitter Card -->
@@ -115,7 +116,7 @@ function getPathForLang(targetLang: Lang): string {
   <title>{title}</title>
 </head>
 <body class="min-h-screen bg-bg text-text-primary antialiased">
-  <a class="skip-link" href="#main-content">{tr('nav.skip')}</a>
+  <a class="skip-link" href="#main-content">{skipLinkLabel}</a>
   <div class="top-bar"></div>
   <slot />
 </body>

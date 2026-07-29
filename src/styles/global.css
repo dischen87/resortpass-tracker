@@ -86,7 +86,6 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text-primary);
   min-height: 100vh;
-  min-width: 20rem;
   overflow-x: clip;
   -webkit-font-smoothing: antialiased;
 }
@@ -794,6 +793,7 @@ input:focus-visible,
 button:focus-visible,
 a:focus-visible,
 select:focus-visible,
+summary:focus-visible,
 textarea:focus-visible {
   outline: 3px solid var(--color-pink);
   outline-offset: 3px;

@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test';
+import { Database } from 'bun:sqlite';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -70,6 +71,111 @@ test('subscriber community lifecycle keeps locale and removes related data', asy
       new Response(child.stderr).text(),
     ]);
     if (exitCode !== 0) throw new Error(stderr.trim() || `database test exited with ${exitCode}`);
+    expect(exitCode).toBe(0);
+  } finally {
+    rmSync(testDir, { recursive: true, force: true });
+  }
+});
+
+test('subscriber locale migration preserves rows and expands the existing CHECK constraint', async () => {
+  const testDir = mkdtempSync(join(tmpdir(), 'resortpass-db-locale-migration-'));
+  const databasePath = join(testDir, 'resortpass.db');
+
+  try {
+    const legacy = new Database(databasePath, { create: true });
+    legacy.exec(`
+      PRAGMA foreign_keys = ON;
+      CREATE TABLE subscribers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        notify_silver BOOLEAN DEFAULT 1,
+        notify_gold BOOLEAN DEFAULT 1,
+        confirmed BOOLEAN DEFAULT 0,
+        confirm_token TEXT,
+        unsubscribe_token TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        community_token TEXT,
+        lang TEXT NOT NULL DEFAULT 'de' CHECK(lang IN ('de', 'fr', 'it', 'en'))
+      );
+      CREATE UNIQUE INDEX idx_subscribers_community_token ON subscribers (community_token);
+      CREATE TABLE community_posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        subscriber_id INTEGER NOT NULL,
+        author_name TEXT NOT NULL,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL,
+        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (subscriber_id) REFERENCES subscribers(id)
+      );
+      INSERT INTO subscribers (
+        id, email, notify_silver, notify_gold, confirmed, unsubscribe_token, community_token, lang
+      ) VALUES (
+        7, 'legacy@example.test', 1, 0, 1, 'legacy-unsubscribe', 'legacy-community', 'fr'
+      );
+      INSERT INTO community_posts (
+        subscriber_id, author_name, title, body
+      ) VALUES (
+        7, 'Legacy fan', 'Existing post', 'This row must survive the migration.'
+      );
+    `);
+    legacy.close();
+
+    const child = Bun.spawn([process.execPath, '--eval', `
+      import assert from 'node:assert/strict';
+      import { addSubscriber, confirmSubscriber, getConfirmedSubscribers, getDb } from './db.ts';
+      import { supportedLanguages } from './locales.ts';
+
+      const db = getDb();
+      const legacySubscriber = db.query(
+        'SELECT id, email, lang, community_token FROM subscribers WHERE id = 7',
+      ).get();
+      assert.deepEqual(legacySubscriber, {
+        id: 7,
+        email: 'legacy@example.test',
+        lang: 'fr',
+        community_token: 'legacy-community',
+      });
+      assert.equal(
+        db.query('SELECT COUNT(*) AS count FROM community_posts WHERE subscriber_id = 7').get().count,
+        1,
+      );
+
+      const schema = db.query(
+        "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'subscribers'",
+      ).get().sql;
+      for (const lang of supportedLanguages) assert.ok(schema.includes("'" + lang + "'"));
+
+      for (const lang of supportedLanguages) {
+        const signup = addSubscriber(lang + '@example.test', true, true, lang);
+        assert.equal(confirmSubscriber(signup.confirmToken), true);
+      }
+
+      const fallback = addSubscriber('fallback@example.test', true, false, 'unsupported');
+      assert.equal(confirmSubscriber(fallback.confirmToken), true);
+      assert.equal(
+        db.query('SELECT lang FROM subscribers WHERE email = ?').get('fallback@example.test').lang,
+        'en',
+      );
+
+      const confirmedLanguages = new Set(
+        getConfirmedSubscribers('silver').map((subscriber) => subscriber.lang),
+      );
+      for (const lang of supportedLanguages) assert.ok(confirmedLanguages.has(lang));
+      assert.deepEqual(db.query('PRAGMA foreign_key_check').all(), []);
+      db.close();
+    `], {
+      cwd: import.meta.dir,
+      env: { ...process.env, DB_PATH: databasePath },
+      stdout: 'ignore',
+      stderr: 'pipe',
+    });
+
+    const [exitCode, stderr] = await Promise.all([
+      child.exited,
+      new Response(child.stderr).text(),
+    ]);
+    if (exitCode !== 0) throw new Error(stderr.trim() || `database migration test exited with ${exitCode}`);
     expect(exitCode).toBe(0);
   } finally {
     rmSync(testDir, { recursive: true, force: true });

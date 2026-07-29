@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, crowdCalendarPaths, getTranslation } from '../i18n/translations';
+import { getRoutePath } from '../i18n/routes';
 import LanguageSwitcher from './LanguageSwitcher.astro';
 
 interface Props {
@@ -17,10 +18,24 @@ const crowdCalendarPath = crowdCalendarPaths[lang];
 const isWaitTimesPage = Astro.url.pathname.endsWith('/wartezeiten/');
 const isCrowdCalendarPage = Object.values(crowdCalendarPaths).includes(Astro.url.pathname as (typeof crowdCalendarPaths)[Lang]);
 const menuLabel = { de: 'Menü', fr: 'Menu', it: 'Menu', en: 'Menu' }[lang];
+const planningLabel = {
+  de: 'Besuch planen',
+  fr: 'Planifier la visite',
+  it: 'Pianifica la visita',
+  en: 'Plan your visit',
+}[lang];
+const passGuideLabel = {
+  de: 'ResortPass-Guide',
+  fr: 'Guide ResortPass',
+  it: 'Guida ResortPass',
+  en: 'ResortPass guide',
+}[lang];
 
 const navItems = [
   { href: waitTimesPath, label: tr('nav.wait_times'), active: isWaitTimesPage },
   { href: crowdCalendarPath, label: tr('nav.crowd_short'), active: isCrowdCalendarPage },
+  { href: getRoutePath('parkGuide', lang)!, label: planningLabel, active: false },
+  { href: getRoutePath('resortPassGuide', lang)!, label: passGuideLabel, active: false },
   { href: `${homePath}#history`, label: tr('nav.history_short'), active: false },
   { href: `${homePath}#community`, label: 'Community', active: false },
 ];

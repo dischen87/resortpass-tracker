@@ -1,0 +1,36 @@
+---
+import PlanningGuidePage from '../components/planning/PlanningGuidePage.astro';
+import { planningPacks } from '../content/planning';
+import {
+  getRoutePath,
+  guideRouteKeys,
+  type GuideRouteKey,
+} from '../i18n/routes';
+import {
+  isLocaleCode,
+  type LocaleCode,
+} from '../i18n/locales';
+
+export function getStaticPaths() {
+  return Object.keys(planningPacks).flatMap((localeValue) => {
+    if (!isLocaleCode(localeValue)) return [];
+    return guideRouteKeys.map((pageKey) => {
+      const path = getRoutePath(pageKey, localeValue);
+      if (!path) throw new Error(`Missing route for ${pageKey}/${localeValue}`);
+      return {
+        params: { guide: path.replace(/^\/|\/$/g, '') },
+        props: { lang: localeValue, pageKey },
+      };
+    });
+  });
+}
+
+interface Props {
+  lang: LocaleCode;
+  pageKey: GuideRouteKey;
+}
+
+const { lang, pageKey } = Astro.props;
+---
+
+<PlanningGuidePage lang={lang} pageKey={pageKey} />

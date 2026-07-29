@@ -1,0 +1,389 @@
+---
+import { Icon } from 'astro-icon/components';
+
+export interface VisitPlannerCopy {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  dateLabel: string;
+  daysLabel: string;
+  days: [string, string, string];
+  groupLabel: string;
+  groups: {
+    balanced: string;
+    family: string;
+    thrill: string;
+    shows: string;
+  };
+  arrivalLabel: string;
+  arrivals: {
+    early: string;
+    opening: string;
+    late: string;
+  };
+  crowdLabel: string;
+  crowds: {
+    low: string;
+    medium: string;
+    high: string;
+  };
+  rulanticaLabel: string;
+  submit: string;
+  resultTitle: string;
+  resultLead: string;
+  resultDays: string;
+  routeLabel: string;
+  morning: string;
+  midday: string;
+  afternoon: string;
+  evening: string;
+  notes: {
+    early: string;
+    late: string;
+    busy: string;
+    rulantica: string;
+    family: string;
+    thrill: string;
+    shows: string;
+  };
+  routes: {
+    balanced: [string, string, string, string];
+    family: [string, string, string, string];
+    thrill: [string, string, string, string];
+    shows: [string, string, string, string];
+  };
+  disclaimer: string;
+  forecastCta: string;
+}
+
+interface Props {
+  copy: VisitPlannerCopy;
+  forecastPath?: string;
+  toolId?: string;
+}
+
+const { copy, forecastPath, toolId = 'visit-planner' } = Astro.props;
+---
+
+<section class="planner-card" id={toolId} aria-labelledby={`${toolId}-title`}>
+  <div class="planner-card__head">
+    <span class="section-kicker">{copy.eyebrow}</span>
+    <h2 id={`${toolId}-title`} class="section-heading mt-2">{copy.title}</h2>
+    <p class="mt-3 max-w-3xl text-text-secondary">{copy.intro}</p>
+  </div>
+
+  <form class="planner-form" data-visit-planner>
+    <div class="planner-form__grid">
+      <label class="planner-field">
+        <span>{copy.daysLabel}</span>
+        <select name="days">
+          <option value="1">{copy.days[0]}</option>
+          <option value="2" selected>{copy.days[1]}</option>
+          <option value="3">{copy.days[2]}</option>
+        </select>
+      </label>
+
+      <label class="planner-field">
+        <span>{copy.groupLabel}</span>
+        <select name="group">
+          <option value="balanced">{copy.groups.balanced}</option>
+          <option value="family">{copy.groups.family}</option>
+          <option value="thrill">{copy.groups.thrill}</option>
+          <option value="shows">{copy.groups.shows}</option>
+        </select>
+      </label>
+
+      <label class="planner-field">
+        <span>{copy.arrivalLabel}</span>
+        <select name="arrival">
+          <option value="opening">{copy.arrivals.opening}</option>
+          <option value="early">{copy.arrivals.early}</option>
+          <option value="late">{copy.arrivals.late}</option>
+        </select>
+      </label>
+
+      <label class="planner-field">
+        <span>{copy.crowdLabel}</span>
+        <select name="crowd">
+          <option value="low">{copy.crowds.low}</option>
+          <option value="medium" selected>{copy.crowds.medium}</option>
+          <option value="high">{copy.crowds.high}</option>
+        </select>
+      </label>
+
+      <label class="planner-check">
+        <input name="rulantica" type="checkbox" />
+        <span>
+          <Icon name="tabler:droplet-filled" class="h-5 w-5 text-accent" aria-hidden="true" />
+          {copy.rulanticaLabel}
+        </span>
+      </label>
+    </div>
+
+    <button class="btn-primary mt-6 w-full sm:w-auto" type="submit">
+      <Icon name="tabler:route" class="h-5 w-5" aria-hidden="true" />
+      {copy.submit}
+    </button>
+  </form>
+
+  <div class="planner-result" data-planner-result aria-live="polite">
+    <div class="planner-result__summary">
+      <span class="planner-result__icon" aria-hidden="true"><Icon name="tabler:map-2" class="h-7 w-7" /></span>
+      <div>
+        <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent">{copy.resultTitle}</p>
+        <h3 class="mt-1 text-2xl font-extrabold" data-result-heading>{copy.resultLead}</h3>
+        <p class="mt-1 text-sm text-text-secondary"><span data-result-days>2</span> {copy.resultDays}</p>
+      </div>
+    </div>
+
+    <div class="planner-route" data-route-list>
+      {copy.routes.balanced.map((item, index) => (
+        <article class="planner-route__item">
+          <span class="planner-route__time">{[copy.morning, copy.midday, copy.afternoon, copy.evening][index]}</span>
+          <p>{item}</p>
+        </article>
+      ))}
+    </div>
+
+    <ul class="planner-notes" data-planner-notes>
+      <li data-note="arrival">{copy.notes.early}</li>
+    </ul>
+
+    <div class="mt-5 flex flex-col gap-3 border-t-2 border-border-light pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted">{copy.disclaimer}</p>
+      {forecastPath && (
+        <a href={forecastPath} class="inline-flex shrink-0 items-center gap-1.5 font-bold text-accent underline decoration-2 underline-offset-4">
+          {copy.forecastCta}
+          <Icon name="tabler:arrow-up-right" class="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+        </a>
+      )}
+    </div>
+  </div>
+</section>
+
+<script is:inline define:vars={{ copy, toolId }}>
+  const root = document.getElementById(toolId);
+  const form = root?.querySelector('[data-visit-planner]');
+  const result = root?.querySelector('[data-planner-result]');
+  const heading = root?.querySelector('[data-result-heading]');
+  const daysValue = root?.querySelector('[data-result-days]');
+  const routeList = root?.querySelector('[data-route-list]');
+  const notesList = root?.querySelector('[data-planner-notes]');
+
+  const render = () => {
+    if (!(form instanceof HTMLFormElement) || !result || !routeList || !notesList) return;
+    const data = new FormData(form);
+    const group = String(data.get('group') || 'balanced');
+    const arrival = String(data.get('arrival') || 'opening');
+    const crowd = String(data.get('crowd') || 'medium');
+    const includesRulantica = data.get('rulantica') === 'on';
+    let days = Number(data.get('days') || 2);
+
+    if ((crowd === 'high' || arrival === 'late') && days === 1) days = 2;
+    if (includesRulantica && days < 2) days = 2;
+    if (includesRulantica && crowd === 'high' && days < 3) days = 3;
+
+    const route = copy.routes[group] || copy.routes.balanced;
+    const timeLabels = [copy.morning, copy.midday, copy.afternoon, copy.evening];
+    const routeItems = route.map((item, index) => {
+      const article = document.createElement('article');
+      article.className = 'planner-route__item';
+      const time = document.createElement('span');
+      time.className = 'planner-route__time';
+      time.textContent = timeLabels[index];
+      const text = document.createElement('p');
+      text.textContent = item;
+      article.append(time, text);
+      return article;
+    });
+    routeList.replaceChildren(...routeItems);
+
+    const notes = [];
+    notes.push(arrival === 'late' ? copy.notes.late : copy.notes.early);
+    if (crowd === 'high') notes.push(copy.notes.busy);
+    if (includesRulantica) notes.push(copy.notes.rulantica);
+    if (group === 'family') notes.push(copy.notes.family);
+    if (group === 'thrill') notes.push(copy.notes.thrill);
+    if (group === 'shows') notes.push(copy.notes.shows);
+    notesList.replaceChildren(...notes.map((note) => {
+      const item = document.createElement('li');
+      item.textContent = note;
+      return item;
+    }));
+
+    if (heading) heading.textContent = copy.resultLead;
+    if (daysValue) daysValue.textContent = String(days);
+    result.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
+  };
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    render();
+  });
+</script>
+
+<style>
+  .planner-card {
+    overflow: hidden;
+    border: 3px solid var(--color-border);
+    border-radius: 1.5rem;
+    background: var(--color-surface);
+    box-shadow: 7px 7px 0 var(--shadow-violet);
+  }
+
+  .planner-card__head,
+  .planner-form,
+  .planner-result {
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+  }
+
+  .planner-card__head {
+    border-bottom: 2px solid var(--color-border-light);
+    background:
+      radial-gradient(circle at 90% 20%, rgb(250 204 21 / 0.2), transparent 13rem),
+      var(--color-bg-light);
+  }
+
+  .planner-form__grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .planner-field {
+    display: grid;
+    gap: 0.45rem;
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+
+  .planner-field input,
+  .planner-field select {
+    min-height: 3.25rem;
+    width: 100%;
+    border: 2px solid var(--color-border);
+    border-radius: 0.9rem;
+    background: white;
+    padding-inline: 0.9rem;
+    color: var(--color-text-primary);
+    font: inherit;
+    font-weight: 700;
+  }
+
+  .planner-check {
+    display: flex;
+    min-height: 3.25rem;
+    cursor: pointer;
+    align-items: center;
+    gap: 0.75rem;
+    align-self: end;
+    border: 2px solid var(--color-border);
+    border-radius: 0.9rem;
+    background: var(--color-bg-light);
+    padding: 0.75rem 0.9rem;
+  }
+
+  .planner-check input {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .planner-check span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+
+  .planner-result {
+    border-top: 3px solid var(--color-border);
+    background: #fffdf8;
+  }
+
+  .planner-result__summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .planner-result__icon {
+    display: grid;
+    width: 3.25rem;
+    height: 3.25rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 2px solid var(--color-border);
+    border-radius: 1rem;
+    background: var(--color-yellow);
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+
+  .planner-route {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .planner-route__item {
+    display: grid;
+    gap: 0.35rem;
+    border: 2px solid var(--color-border-light);
+    border-radius: 1rem;
+    background: white;
+    padding: 1rem;
+  }
+
+  .planner-route__item p {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .planner-route__time {
+    color: var(--color-accent-dark);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .planner-notes {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+  }
+
+  .planner-notes li {
+    position: relative;
+    padding-inline-start: 1.5rem;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .planner-notes li::before {
+    position: absolute;
+    inset-inline-start: 0;
+    content: '✓';
+    color: var(--color-available);
+    font-weight: 900;
+  }
+
+  @media (min-width: 42rem) {
+    .planner-form__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .planner-route {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .planner-form__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

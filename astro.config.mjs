@@ -2,15 +2,14 @@ import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import icon from 'astro-icon';
+import {
+  findRouteKeyByPath,
+  getRouteAlternates,
+  getXDefaultPath,
+} from './src/i18n/routes.ts';
+import { getLocaleDefinition } from './src/i18n/locales.ts';
 
 const siteUrl = 'https://www.resortpass-europapark.ch';
-const crowdCalendarUrls = {
-  de: `${siteUrl}/besucherprognose/`,
-  fr: `${siteUrl}/fr/affluence/`,
-  it: `${siteUrl}/it/affluenza/`,
-  en: `${siteUrl}/en/crowd-calendar/`,
-};
-const crowdCalendarUrlSet = new Set(Object.values(crowdCalendarUrls));
 
 export default defineConfig({
   site: siteUrl,
@@ -21,15 +20,6 @@ export default defineConfig({
   integrations: [
     icon(),
     sitemap({
-      i18n: {
-        defaultLocale: 'de',
-        locales: {
-          de: 'de',
-          fr: 'fr',
-          it: 'it',
-          en: 'en',
-        },
-      },
       filter: (page) => {
         return !page.includes('/confirm')
           && !page.includes('/unsubscribe')
@@ -38,12 +28,18 @@ export default defineConfig({
           && !page.includes('/404');
       },
       serialize: (item) => {
-        if (!crowdCalendarUrlSet.has(item.url)) return item;
+        const routeKey = findRouteKeyByPath(new URL(item.url).pathname);
+        if (!routeKey) return item;
+        const alternates = getRouteAlternates(routeKey);
+        const xDefaultPath = getXDefaultPath(routeKey);
         return {
           ...item,
           links: [
-            ...Object.entries(crowdCalendarUrls).map(([lang, url]) => ({ lang, url })),
-            { lang: 'x-default', url: crowdCalendarUrls.de },
+            ...alternates.map(({ locale, path }) => ({
+              lang: getLocaleDefinition(locale).hreflang,
+              url: `${siteUrl}${path}`,
+            })),
+            ...(xDefaultPath ? [{ lang: 'x-default', url: `${siteUrl}${xDefaultPath}` }] : []),
           ],
         };
       },

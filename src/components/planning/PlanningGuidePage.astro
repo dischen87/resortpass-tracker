@@ -1,0 +1,471 @@
+---
+import { Icon } from 'astro-icon/components';
+import { getLocaleDefinition, type LocaleCode } from '../../i18n/locales';
+import {
+  getRoutePath,
+  type GuideRouteKey,
+} from '../../i18n/routes';
+import { getPlanningPack } from '../../content/planning';
+import { centralFacts, licensedMedia, verifiedFamilyAttractions } from '../../data';
+import PlanningPage from './PlanningPage.astro';
+import VisitPlanner from './VisitPlanner.astro';
+import CostCalculator from './CostCalculator.astro';
+import FamilyFinder from './FamilyFinder.astro';
+import RulanticaPlanner from './RulanticaPlanner.astro';
+import StayComparator from './StayComparator.astro';
+import RestaurantFinder from './RestaurantFinder.astro';
+import ResortPassTool from './ResortPassTool.astro';
+
+interface Props {
+  lang: LocaleCode;
+  pageKey: GuideRouteKey;
+}
+
+const { lang, pageKey } = Astro.props;
+const pack = getPlanningPack(lang);
+const page = pack.pages[pageKey];
+const checkedAt = '2026-07-29';
+const languageTag = getLocaleDefinition(lang).bcp47;
+
+const path = (key: GuideRouteKey) => getRoutePath(key, lang)!;
+const homePath = getRoutePath('home', lang) || path('parkGuide');
+const hubPath = path('parkGuide');
+
+const navigationKeys: GuideRouteKey[] = [
+  'parkGuide',
+  'visitPlanner',
+  'costCalculator',
+  'familyGuide',
+  'rulanticaGuide',
+  'stayGuide',
+  'restaurantGuide',
+  'resortPassGuide',
+];
+
+const navigation = navigationKeys.map((key) => ({
+  href: path(key),
+  label: pack.navigation[key],
+  icon: {
+    parkGuide: 'tabler:map-2',
+    visitPlanner: 'tabler:route',
+    costCalculator: 'tabler:calculator',
+    familyGuide: 'tabler:users',
+    rulanticaGuide: 'tabler:droplet-filled',
+    stayGuide: 'tabler:bed',
+    restaurantGuide: 'tabler:tools-kitchen-2',
+    resortPassGuide: 'tabler:ticket',
+  }[key],
+  active: key === pageKey,
+}));
+
+const sourceUrlByPage: Record<GuideRouteKey, string> = {
+  parkGuide: 'https://www.europapark.de/de/park',
+  visitPlanner: 'https://www.europapark.de/de/freizeitpark/planen-sie-ihren-europa-park-besuch',
+  costCalculator: 'https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote',
+  familyGuide: 'https://www.europapark.de/de/freizeitpark/infos/planen-sie-ihren-besuch/wir-sorgen-fuer-ihre-sicherheit-im-europa-park',
+  rulanticaGuide: 'https://www.europapark.de/de/rulantica/infos/planen-sie-ihren-besuch/rulantica-faq',
+  stayGuide: 'https://www.europapark.de/de/uebernachten',
+  restaurantGuide: 'https://www.rust.de/de-de/tourismus/gastronomie',
+  resortPassGuide: 'https://www.europapark.de/de/resortpass/europa-park-resortpass',
+  resortPassCompare: 'https://www.europapark.de/de/resortpass/europa-park-resortpass',
+  resortPassPrices: 'https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote',
+  resortPassReservation: 'https://www.europapark.de/de/resortpass/faq',
+  resortPassRulantica: 'https://www.europapark.de/de/resortpass/europa-park-resortpass',
+};
+
+const source = {
+  url: sourceUrlByPage[pageKey],
+  label: `${pageKey === 'restaurantGuide' ? 'Rust' : pageKey === 'rulanticaGuide' ? 'Rulantica' : 'Europa-Park'} — ${page.eyebrow}`,
+};
+
+const extraSources: Partial<Record<GuideRouteKey, { url: string; label: string }[]>> = {
+  costCalculator: [{
+    url: 'https://www.europapark.de/de/rulantica/tickets-angebote/tickets-angebote',
+    label: `Rulantica — ${pack.navigation.costCalculator}`,
+  }],
+  stayGuide: [{
+    url: 'https://www.rust.de/de-de/tourismus/uebernachten/unterkuenfte',
+    label: `Rust — ${pack.navigation.stayGuide}`,
+  }],
+  restaurantGuide: [{
+    url: 'https://www.rust.de/de-de/tourismus/gastronomie',
+    label: `Rust — ${pack.navigation.restaurantGuide}`,
+  }],
+  rulanticaGuide: [{
+    url: 'https://www.europapark.de/de/rulantica/tickets-angebote/tickets-angebote',
+    label: `Rulantica — ${pack.pages.rulanticaGuide.eyebrow}`,
+  }],
+};
+
+const relatedMap: Record<GuideRouteKey, GuideRouteKey[]> = {
+  parkGuide: ['visitPlanner', 'costCalculator', 'familyGuide'],
+  visitPlanner: ['costCalculator', 'rulanticaGuide', 'stayGuide'],
+  costCalculator: ['visitPlanner', 'stayGuide', 'resortPassGuide'],
+  familyGuide: ['visitPlanner', 'rulanticaGuide', 'stayGuide'],
+  rulanticaGuide: ['visitPlanner', 'costCalculator', 'resortPassRulantica'],
+  stayGuide: ['costCalculator', 'restaurantGuide', 'visitPlanner'],
+  restaurantGuide: ['stayGuide', 'visitPlanner', 'parkGuide'],
+  resortPassGuide: ['resortPassCompare', 'resortPassPrices', 'resortPassReservation'],
+  resortPassCompare: ['resortPassPrices', 'resortPassRulantica', 'resortPassGuide'],
+  resortPassPrices: ['resortPassCompare', 'costCalculator', 'resortPassGuide'],
+  resortPassReservation: ['resortPassGuide', 'resortPassCompare', 'resortPassRulantica'],
+  resortPassRulantica: ['rulanticaGuide', 'resortPassCompare', 'resortPassGuide'],
+};
+
+const related = relatedMap[pageKey].map((key) => ({
+  href: path(key),
+  eyebrow: pack.pages[key].eyebrow,
+  title: pack.pages[key].heading,
+  text: pack.pages[key].answer,
+  icon: {
+    parkGuide: 'tabler:map-2',
+    visitPlanner: 'tabler:route',
+    costCalculator: 'tabler:calculator',
+    familyGuide: 'tabler:users',
+    rulanticaGuide: 'tabler:droplet-filled',
+    stayGuide: 'tabler:bed',
+    restaurantGuide: 'tabler:tools-kitchen-2',
+    resortPassGuide: 'tabler:ticket',
+    resortPassCompare: 'tabler:scale',
+    resortPassPrices: 'tabler:receipt-euro',
+    resortPassReservation: 'tabler:calendar-check',
+    resortPassRulantica: 'tabler:swimming',
+  }[key],
+}));
+
+const toolPages = new Set<GuideRouteKey>([
+  'visitPlanner',
+  'costCalculator',
+  'familyGuide',
+  'rulanticaGuide',
+  'stayGuide',
+  'restaurantGuide',
+  'resortPassGuide',
+  'resortPassCompare',
+  'resortPassPrices',
+  'resortPassReservation',
+  'resortPassRulantica',
+]);
+
+const toc = [
+  { href: '#overview', label: pack.common.overview, icon: 'tabler:list-details' },
+  ...(toolPages.has(pageKey)
+    ? [{ href: '#tool', label: pack.common.tool, icon: 'tabler:adjustments-horizontal' }]
+    : []),
+  { href: '#decisions', label: pack.common.decisions, icon: 'tabler:bulb' },
+  { href: '#faq', label: pack.common.faq, icon: 'tabler:help-circle' },
+];
+
+const findFact = (id: string) => centralFacts.find((fact) => fact.id === id);
+const parseRange = (id: string) => {
+  const value = String(findFact(id)?.value || '0-0').split('-').map(Number);
+  return { min: value[0] || 0, max: value[1] || value[0] || 0 };
+};
+
+const costFacts = {
+  europaPark: {
+    oneDayAdult: parseRange('europa-park-one-day-adult-price-range-2026'),
+    oneDayChild: parseRange('europa-park-one-day-child-price-range-2026'),
+    twoDayAdult: parseRange('europa-park-two-day-adult-price-range-2026'),
+    twoDayChild: parseRange('europa-park-two-day-child-price-range-2026'),
+  },
+  rulantica: {
+    dayAdult: parseRange('rulantica-day-adult-price-range-2026'),
+    dayChild: parseRange('rulantica-day-child-price-range-2026'),
+    eveningAdult: parseRange('rulantica-evening-adult-price-range-2026'),
+    eveningChild: parseRange('rulantica-evening-child-price-range-2026'),
+    moonlightAdult: parseRange('rulantica-moonlight-price-range-2026'),
+    moonlightChild: parseRange('rulantica-moonlight-price-range-2026'),
+  },
+  parkingPerDay: Number(findFact('europa-park-standard-parking-price-2026')?.value || 10),
+};
+
+const applicationPages = new Set<GuideRouteKey>([
+  'visitPlanner',
+  'costCalculator',
+  'familyGuide',
+  'rulanticaGuide',
+  'stayGuide',
+  'restaurantGuide',
+  'resortPassGuide',
+  'resortPassCompare',
+  'resortPassPrices',
+  'resortPassReservation',
+  'resortPassRulantica',
+]);
+
+const heroMediaId = pageKey === 'rulanticaGuide' || pageKey === 'resortPassRulantica'
+  ? 'wikimedia-rulantica-wave-pool-2019'
+  : ['parkGuide', 'visitPlanner'].includes(pageKey)
+    ? 'wikimedia-ep-panorama-2023'
+    : undefined;
+const heroMedia = heroMediaId
+  ? licensedMedia.find((media) => media.id === heroMediaId && media.downloaded)
+  : undefined;
+const heroWidth = heroMedia?.id === 'wikimedia-ep-panorama-2023' ? 1800 : 1400;
+const localizedDerivativeDescription: Record<LocaleCode, string> = {
+  de: `Responsive WebP-Fassung, auf ${heroWidth} Pixel Breite verkleinert; Metadaten entfernt; keine Farbänderung.`,
+  fr: `Version WebP responsive, redimensionnée à ${heroWidth} px de large ; métadonnées supprimées ; aucune retouche des couleurs.`,
+  it: `Versione WebP responsiva, ridimensionata a ${heroWidth} px di larghezza; metadati rimossi; nessuna modifica ai colori.`,
+  en: `Responsive WebP version, resized to ${heroWidth} px wide; metadata removed; no colour edits.`,
+  nl: `Responsieve WebP-versie, verkleind tot ${heroWidth} px breed; metadata verwijderd; kleuren niet aangepast.`,
+  es: `Versión WebP adaptable, redimensionada a ${heroWidth} px de ancho; metadatos eliminados; sin cambios de color.`,
+  sv: `Responsiv WebP-version, storleksändrad till ${heroWidth} px bred; metadata borttagen; inga färgändringar.`,
+  ro: `Versiune WebP adaptivă, redimensionată la ${heroWidth} px lățime; metadate eliminate; fără modificări de culoare.`,
+  cs: `Responzivní verze WebP, zmenšená na šířku ${heroWidth} px; metadata odstraněna; bez úprav barev.`,
+  pl: `Responsywna wersja WebP, zmniejszona do szerokości ${heroWidth} px; metadane usunięto; bez zmian kolorystycznych.`,
+  tr: `Duyarlı WebP sürümü, ${heroWidth} piksel genişliğe yeniden boyutlandırıldı; meta veriler kaldırıldı; renkler değiştirilmedi.`,
+  da: `Responsiv WebP-version, ændret til ${heroWidth} px i bredden; metadata fjernet; ingen farveændringer.`,
+  el: `Αποκριτική έκδοση WebP, αλλαγή μεγέθους σε πλάτος ${heroWidth} px· αφαιρέθηκαν τα μεταδεδομένα· χωρίς χρωματικές αλλαγές.`,
+  pt: `Versão WebP responsiva, redimensionada para ${heroWidth} px de largura; metadados removidos; sem alterações de cor.`,
+  nb: `Responsiv WebP-versjon, skalert til ${heroWidth} piksler i bredden; metadata fjernet; ingen fargeendringer.`,
+  he: `גרסת WebP רספונסיבית, הוקטנה לרוחב ${heroWidth} פיקסלים; המטא־נתונים הוסרו; ללא שינויי צבע.`,
+  hu: `Reszponzív WebP-változat, ${heroWidth} px szélességre méretezve; metaadatok eltávolítva; színmódosítás nélkül.`,
+};
+const heroImage = heroMedia && 'localPath' in heroMedia
+  ? {
+      src: heroMedia.localPath!,
+      alt: '',
+      width: heroWidth,
+      height: heroMedia.id === 'wikimedia-ep-panorama-2023' ? 721 : 938,
+      attribution: heroMedia.attributionText,
+      filePageUrl: heroMedia.filePageUrl,
+      licenseUrl: heroMedia.licenseUrl,
+      modification: localizedDerivativeDescription[lang],
+    }
+  : undefined;
+---
+
+<PlanningPage
+  lang={lang}
+  routeKey={pageKey}
+  title={page.title}
+  description={page.description}
+  eyebrow={page.eyebrow}
+  heading={page.heading}
+  answer={page.answer}
+  checkedAt={checkedAt}
+  primarySource={source}
+  sources={extraSources[pageKey] || []}
+  copy={pack.common}
+  homePath={homePath}
+  hubPath={hubPath}
+  navItems={navigation}
+  toc={toc}
+  related={related}
+  faqs={page.faqs}
+  heroImage={heroImage}
+>
+  <section class="py-12 md:py-16" id="overview" aria-labelledby="overview-title">
+    <div class="section-shell">
+      <div class="planning-overview">
+        <div>
+          <span class="section-kicker">{page.eyebrow}</span>
+          <h2 id="overview-title" class="section-heading mt-2">{page.sectionTitle}</h2>
+        </div>
+        <p>{page.sectionIntro}</p>
+      </div>
+
+      {pageKey === 'parkGuide' && (
+        <div class="planning-action-grid mt-8">
+          {navigation.slice(1, 7).map((item) => (
+            <a href={item.href} class="planning-action card">
+              <span><Icon name={item.icon!} class="h-6 w-6" aria-hidden="true" /></span>
+              <h3>{item.label}</h3>
+              <p>{pack.pages[navigationKeys.find((key) => path(key) === item.href)!].answer}</p>
+              <Icon name="tabler:arrow-up-right" class="mt-auto h-5 w-5 text-accent rtl:-scale-x-100" aria-hidden="true" />
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+
+  {pageKey === 'visitPlanner' && (
+    <section class="pb-12 md:pb-16" id="tool">
+      <div class="section-shell">
+        <VisitPlanner copy={pack.visitPlanner} forecastPath={getRoutePath('crowdCalendar', lang)} />
+      </div>
+    </section>
+  )}
+
+  {pageKey === 'costCalculator' && (
+    <section class="pb-12 md:pb-16" id="tool">
+      <div class="section-shell">
+        <CostCalculator copy={pack.costCalculator} facts={costFacts} />
+      </div>
+    </section>
+  )}
+
+  {pageKey === 'familyGuide' && (
+    <section class="pb-12 md:pb-16" id="tool">
+      <div class="section-shell">
+        <FamilyFinder
+          copy={pack.familyFinder}
+          attractions={verifiedFamilyAttractions}
+          officialFilterUrl="https://www.europapark.de/de/freizeitpark/alle-attraktionen-des-europa-park"
+        />
+      </div>
+    </section>
+  )}
+
+  {pageKey === 'rulanticaGuide' && (
+    <section class="pb-12 md:pb-16" id="tool">
+      <div class="section-shell">
+        <RulanticaPlanner
+          copy={pack.rulanticaPlanner}
+          officialUrl="https://www.europapark.de/de/rulantica/infos/planen-sie-ihren-besuch/rulantica-faq"
+        />
+      </div>
+    </section>
+  )}
+
+  {pageKey === 'stayGuide' && (
+    <section class="pb-12 md:pb-16" id="tool">
+      <div class="section-shell">
+        <StayComparator copy={pack.stayComparator} />
+      </div>
+    </section>
+  )}
+
+  {pageKey === 'restaurantGuide' && (
+    <section class="pb-12 md:pb-16" id="tool">
+      <div class="section-shell">
+        <RestaurantFinder
+          copy={pack.restaurantFinder}
+          locale={lang}
+          asOfDate={checkedAt}
+        />
+      </div>
+    </section>
+  )}
+
+  {pageKey.startsWith('resortPass') && (
+    <section class="pb-12 md:pb-16" id="tool">
+      <div class="section-shell">
+        <ResortPassTool
+          copy={pack.resortPassTool}
+          mode={['resortPassReservation', 'resortPassRulantica'].includes(pageKey) ? 'compact' : 'full'}
+          paths={{
+            compare: path('resortPassCompare'),
+            prices: path('resortPassPrices'),
+            reservation: path('resortPassReservation'),
+            rulantica: path('resortPassRulantica'),
+          }}
+        />
+      </div>
+    </section>
+  )}
+
+  <section class="section-alt py-12 md:py-16" id="decisions" aria-labelledby="decisions-title">
+    <div class="section-shell">
+      <h2 id="decisions-title" class="section-heading">{pack.common.decisions}</h2>
+      <div class="mt-7 grid gap-5 md:grid-cols-3">
+        {page.points.map((point, index) => (
+          <article class="planning-point card" style={`--i:${index}`}>
+            <span class="planning-point__icon"><Icon name={point.icon} class="h-6 w-6" aria-hidden="true" /></span>
+            <h3>{point.title}</h3>
+            <p>{point.text}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {applicationPages.has(pageKey) && (
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: page.heading,
+      description: page.description,
+      applicationCategory: 'TravelApplication',
+      operatingSystem: 'Web',
+      inLanguage: languageTag,
+      isAccessibleForFree: true,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+    })} />
+  )}
+</PlanningPage>
+
+<style>
+  .planning-overview {
+    display: grid;
+    gap: 1rem;
+    align-items: end;
+  }
+
+  .planning-overview > p {
+    max-width: 48rem;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  .planning-action-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .planning-action {
+    display: flex;
+    min-height: 13rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 1.15rem;
+  }
+
+  .planning-action > span,
+  .planning-point__icon {
+    display: grid;
+    width: 2.9rem;
+    height: 2.9rem;
+    place-items: center;
+    border: 2px solid var(--color-border);
+    border-radius: 0.9rem;
+    background: var(--color-yellow);
+  }
+
+  .planning-action h3,
+  .planning-point h3 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  .planning-action p,
+  .planning-point p {
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+
+  .planning-point {
+    min-height: 14rem;
+    padding: 1.25rem;
+  }
+
+  .planning-point h3 {
+    margin-top: 1rem;
+  }
+
+  .planning-point p {
+    margin-top: 0.55rem;
+  }
+
+  @media (min-width: 42rem) {
+    .planning-action-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 58rem) {
+    .planning-overview {
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 3rem;
+    }
+
+    .planning-action-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

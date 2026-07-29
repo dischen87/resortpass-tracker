@@ -10,7 +10,8 @@
     "server": "bun run server/index.ts",
     "check": "bun run server/checker.ts",
     "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify:static": "bun scripts/verify-static-build.ts"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

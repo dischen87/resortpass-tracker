@@ -1,0 +1,284 @@
+---
+import { Icon } from 'astro-icon/components';
+
+export interface RulanticaPlannerCopy {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  parkDays: string;
+  parkDayOptions: [string, string, string];
+  children: string;
+  childOptions: [string, string, string];
+  waterPriority: string;
+  priorityOptions: [string, string, string];
+  energy: string;
+  energyOptions: [string, string, string];
+  submit: string;
+  resultLabel: string;
+  recommendations: {
+    day: { title: string; text: string };
+    evening: { title: string; text: string };
+    moonlight: { title: string; text: string };
+    separate: { title: string; text: string };
+  };
+  checklistTitle: string;
+  checklist: string[];
+  officialNote: string;
+  officialCta: string;
+}
+
+interface Props {
+  copy: RulanticaPlannerCopy;
+  officialUrl: string;
+  toolId?: string;
+}
+
+const { copy, officialUrl, toolId = 'rulantica-planner' } = Astro.props;
+---
+
+<section class="rulantica-tool" id={toolId} aria-labelledby={`${toolId}-title`}>
+  <div class="rulantica-tool__head">
+    <span class="section-kicker">{copy.eyebrow}</span>
+    <h2 id={`${toolId}-title`} class="section-heading mt-2">{copy.title}</h2>
+    <p class="mt-3 max-w-3xl text-text-secondary">{copy.intro}</p>
+  </div>
+
+  <div class="rulantica-tool__body">
+    <form class="rulantica-form" data-rulantica-form>
+      <label>
+        <span>{copy.parkDays}</span>
+        <select name="parkDays">
+          <option value="1">{copy.parkDayOptions[0]}</option>
+          <option value="2" selected>{copy.parkDayOptions[1]}</option>
+          <option value="3">{copy.parkDayOptions[2]}</option>
+        </select>
+      </label>
+      <label>
+        <span>{copy.children}</span>
+        <select name="children">
+          <option value="none">{copy.childOptions[0]}</option>
+          <option value="small">{copy.childOptions[1]}</option>
+          <option value="older">{copy.childOptions[2]}</option>
+        </select>
+      </label>
+      <label>
+        <span>{copy.waterPriority}</span>
+        <select name="priority">
+          <option value="low">{copy.priorityOptions[0]}</option>
+          <option value="medium" selected>{copy.priorityOptions[1]}</option>
+          <option value="high">{copy.priorityOptions[2]}</option>
+        </select>
+      </label>
+      <label>
+        <span>{copy.energy}</span>
+        <select name="energy">
+          <option value="relaxed">{copy.energyOptions[0]}</option>
+          <option value="normal" selected>{copy.energyOptions[1]}</option>
+          <option value="full">{copy.energyOptions[2]}</option>
+        </select>
+      </label>
+      <button type="submit" class="btn-primary w-full">
+        <Icon name="tabler:swimming" class="h-5 w-5" aria-hidden="true" />
+        {copy.submit}
+      </button>
+    </form>
+
+    <div class="rulantica-result" aria-live="polite">
+      <div class="rulantica-result__icon" aria-hidden="true">
+        <Icon name="tabler:droplet-filled" class="h-8 w-8" />
+      </div>
+      <div>
+        <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent">{copy.resultLabel}</p>
+        <h3 class="mt-1 text-2xl font-extrabold" data-result-title>{copy.recommendations.evening.title}</h3>
+        <p class="mt-2 leading-relaxed text-text-secondary" data-result-text>{copy.recommendations.evening.text}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="rulantica-checklist">
+    <h3 class="text-lg font-extrabold">{copy.checklistTitle}</h3>
+    <ul>
+      {copy.checklist.map((item) => (
+        <li><Icon name="tabler:check" class="h-4 w-4 shrink-0 text-available" aria-hidden="true" />{item}</li>
+      ))}
+    </ul>
+    <div class="rulantica-checklist__source">
+      <p>{copy.officialNote}</p>
+      <a href={officialUrl} target="_blank" rel="noopener noreferrer">
+        {copy.officialCta}
+        <Icon name="tabler:external-link" class="h-4 w-4" aria-hidden="true" />
+      </a>
+    </div>
+  </div>
+</section>
+
+<script is:inline define:vars={{ toolId, copy }}>
+  const root = document.getElementById(toolId);
+  const form = root?.querySelector('[data-rulantica-form]');
+  const title = root?.querySelector('[data-result-title]');
+  const text = root?.querySelector('[data-result-text]');
+
+  const render = () => {
+    if (!(form instanceof HTMLFormElement)) return;
+    const data = new FormData(form);
+    const parkDays = Number(data.get('parkDays') || 2);
+    const children = String(data.get('children') || 'none');
+    const priority = String(data.get('priority') || 'medium');
+    const energy = String(data.get('energy') || 'normal');
+
+    let recommendation = 'evening';
+    if (priority === 'high' || children === 'small') recommendation = 'day';
+    if (parkDays >= 3 && priority !== 'low') recommendation = 'separate';
+    if (priority === 'low' && energy === 'full' && children !== 'small') recommendation = 'moonlight';
+    if (energy === 'relaxed' && priority !== 'high') recommendation = 'separate';
+
+    const value = copy.recommendations[recommendation];
+    if (title) title.textContent = value.title;
+    if (text) text.textContent = value.text;
+  };
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    render();
+  });
+  form?.addEventListener('input', render);
+  render();
+</script>
+
+<style>
+  .rulantica-tool {
+    overflow: hidden;
+    border: 3px solid var(--color-border);
+    border-radius: 1.5rem;
+    background: white;
+    box-shadow: 7px 7px 0 #93c5fd;
+  }
+
+  .rulantica-tool__head {
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+    border-bottom: 2px solid var(--color-border-light);
+    background:
+      radial-gradient(circle at 88% 20%, rgb(147 197 253 / 0.45), transparent 14rem),
+      var(--color-bg-light);
+  }
+
+  .rulantica-tool__body {
+    display: grid;
+  }
+
+  .rulantica-form,
+  .rulantica-result,
+  .rulantica-checklist {
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+  }
+
+  .rulantica-form {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .rulantica-form label {
+    display: grid;
+    gap: 0.45rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+
+  .rulantica-form select {
+    min-height: 3.25rem;
+    width: 100%;
+    border: 2px solid var(--color-border);
+    border-radius: 0.9rem;
+    background: white;
+    padding-inline: 0.9rem;
+    color: var(--color-text-primary);
+    font: inherit;
+    font-weight: 700;
+  }
+
+  .rulantica-result {
+    display: flex;
+    gap: 1rem;
+    border-top: 3px solid var(--color-border);
+    background: #eff6ff;
+  }
+
+  .rulantica-result__icon {
+    display: grid;
+    width: 3.5rem;
+    height: 3.5rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 2px solid var(--color-border);
+    border-radius: 1rem;
+    background: #bfdbfe;
+    color: #1d4ed8;
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+
+  .rulantica-checklist {
+    border-top: 3px solid var(--color-border);
+    background: #fffdf8;
+  }
+
+  .rulantica-checklist ul {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 1rem;
+  }
+
+  .rulantica-checklist li {
+    display: flex;
+    gap: 0.55rem;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .rulantica-checklist__source {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-top: 1.25rem;
+    border: 2px solid var(--color-border-light);
+    border-radius: 1rem;
+    background: white;
+    padding: 1rem;
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .rulantica-checklist__source a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    align-self: flex-start;
+    color: var(--color-accent-dark);
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+
+  @media (min-width: 42rem) {
+    .rulantica-form {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .rulantica-form .btn-primary {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 60rem) {
+    .rulantica-tool__body {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .rulantica-result {
+      border-top: 0;
+      border-inline-start: 3px solid var(--color-border);
+    }
+  }
+</style>

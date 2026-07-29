@@ -17,7 +17,9 @@ Der Europa-Park ResortPass ist derzeit ausverkauft; ein neuer Verkaufstermin ist
 - **Besucherprognose** — kommende Öffnungstage mit Crowd-Index und gemeldeten Öffnungszeiten, stündlich aktualisiert
 - **E-Mail-Benachrichtigung** — Double Opt-In, sofortiger Alarm bei Verfügbarkeit
 - **Verlauf und Feed** — reale Prüfungen, tägliche Zusammenfassungen und RSS
-- **Mehrsprachig** — Deutsch, Englisch, Französisch, Italienisch
+- **Planungswissen in 17 Sprachen** — Deutsch, Englisch, Französisch, Italienisch, Niederländisch, Spanisch, Schwedisch, Rumänisch, Tschechisch, Polnisch, Türkisch, Dänisch, Griechisch, Portugiesisch, Norwegisch, Hebräisch und Ungarisch
+- **Interaktive Reiseplanung** — Besuchsdauer, Kosten, Familienattraktionen, Rulantica, Unterkunft, Restaurants und ResortPass-Entscheidung
+- **Saubere Suchmaschinen-Signale** — lokalisierte Canonicals und `hreflang`, strukturierte Daten, Sitemap sowie `llms.txt`/`llms-full.txt`
 - **Kein Nutzer-Tracking** — keine Tracking-Cookies, kein Analytics, keine Werbung; technische Server-Logs sind in der Datenschutzerklärung beschrieben
 - **Community** — moderierte Tipps von bestätigten Abonnenten
 - **Open Source** — 100% transparent
@@ -47,14 +49,18 @@ resortpass-tracker/
 │   ├── layouts/Layout.astro
 │   ├── pages/
 │   │   ├── index.astro           # Hauptseite (DE)
+│   │   ├── [...guide].astro      # 12 Ratgeber × 17 Sprachen
 │   │   ├── wartezeiten.astro     # Live-Wartezeiten (DE)
 │   │   ├── besucherprognose.astro # Besucherprognose (DE)
 │   │   ├── {en,fr,it}/            # Lokalisierte Seiten
+│   │   ├── llms.txt.ts            # KI-lesbarer Ratgeberindex
+│   │   ├── llms-full.txt.ts       # Vollständiger KI-Kontext
 │   │   ├── impressum.astro       # Impressum + Datenschutz
 │   │   ├── confirm.astro         # E-Mail-Bestätigung
 │   │   ├── unsubscribe.astro     # Abmeldebestätigung
 │   │   └── 404.astro
 │   ├── components/
+│   │   ├── planning/             # Ratgeber-Layouts und sieben Planungswerkzeuge
 │   │   ├── HomePage.astro        # Gemeinsame lokalisierte Startseite
 │   │   ├── WaitTimesPage.astro   # Gemeinsame Live-Wartezeiten-Seite
 │   │   ├── CrowdCalendarPage.astro # Gemeinsame Besucherprognose-Seite
@@ -64,8 +70,12 @@ resortpass-tracker/
 │   │   ├── SubscribeForm.astro
 │   │   ├── NewsSection.astro
 │   │   └── HistorySection.astro
-│   ├── i18n/translations.ts
+│   ├── content/                  # 17 native Ratgeberpakete + Inhalts-QA
+│   ├── data/                     # Geprüfte Fakten, Quellen und Bildlizenzen
+│   ├── i18n/                     # UI-Texte, Sprachregister und Routen
 │   └── styles/global.css
+├── scripts/
+│   └── verify-static-build.ts    # Prüft alle 204 Ratgeber-Ausgaben
 ├── server/                       # Backend (Bun + Hono)
 │   ├── index.ts                  # API Server
 │   ├── db.ts                     # SQLite Setup & Queries
@@ -133,10 +143,16 @@ bun run server
 # Checker einmalig ausführen
 bun run check
 
-# Tests und Typen
+# Tests, Typen, Produktions-Build und statische SEO-QA
 bun run test
 bun run typecheck
+bun run build
+bun run verify:static
 ```
+
+Die vollständige Benachrichtigungsoberfläche ist weiterhin auf Deutsch, Englisch, Französisch und Italienisch verfügbar. Die 13 zusätzlichen Sprachen veröffentlichen bewusst zuerst die vollständigen Planungsratgeber und Werkzeuge; dadurch führen E-Mail-Aktionen nie auf noch nicht vorhandene lokalisierte Konto-Seiten.
+
+Fakten mit Ablaufdatum liegen zentral mit Quelle, Prüfdatum und nächstem Review-Termin. Die eingesetzten Europa-Park- und Rulantica-Bilder stammen aus Wikimedia Commons; Autor, Lizenz und Lizenzlink werden direkt am Bild sowie als strukturierte Daten ausgegeben.
 
 ---
 

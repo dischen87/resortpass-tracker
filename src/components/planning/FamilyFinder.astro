@@ -1,0 +1,436 @@
+---
+import { Icon } from 'astro-icon/components';
+
+export interface FamilyAttraction {
+  name: string;
+  minAge: number;
+  minHeight: number;
+  accompaniedUntilAge?: number;
+  accompaniedUntilHeight?: number;
+  category: 'calm' | 'family' | 'thrill';
+  indoor?: boolean;
+  pregnancyAllowed?: boolean;
+  sourceUrl: string;
+}
+
+export interface FamilyFinderCopy {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  age: string;
+  height: string;
+  interest: string;
+  interests: {
+    all: string;
+    calm: string;
+    family: string;
+    thrill: string;
+    indoor: string;
+  };
+  submit: string;
+  resultTitle: string;
+  resultCount: string;
+  eligible: string;
+  accompanied: string;
+  notYet: string;
+  minimum: string;
+  years: string;
+  centimeters: string;
+  indoor: string;
+  source: string;
+  noResults: string;
+  disclaimer: string;
+  officialFilter: string;
+}
+
+interface Props {
+  copy: FamilyFinderCopy;
+  attractions: FamilyAttraction[];
+  officialFilterUrl: string;
+  toolId?: string;
+}
+
+const { copy, attractions, officialFilterUrl, toolId = 'family-finder' } = Astro.props;
+const stateFor = (attraction: FamilyAttraction, age = 6, height = 120) => {
+  const meetsMinimum = age >= attraction.minAge && height >= attraction.minHeight;
+  const needsAdult = meetsMinimum
+    && (
+      (Boolean(attraction.accompaniedUntilAge) && age < attraction.accompaniedUntilAge!)
+      || (Boolean(attraction.accompaniedUntilHeight) && height < attraction.accompaniedUntilHeight!)
+    );
+  return !meetsMinimum ? 'no' : needsAdult ? 'adult' : 'yes';
+};
+const stateLabel = {
+  yes: copy.eligible,
+  adult: copy.accompanied,
+  no: copy.notYet,
+};
+---
+
+<section class="family-tool" id={toolId} aria-labelledby={`${toolId}-title`}>
+  <div class="family-tool__intro">
+    <span class="section-kicker">{copy.eyebrow}</span>
+    <h2 id={`${toolId}-title`} class="section-heading mt-2">{copy.title}</h2>
+    <p class="mt-3 max-w-3xl text-text-secondary">{copy.intro}</p>
+  </div>
+
+  <form class="family-form" data-family-form>
+    <label>
+      <span>{copy.age}</span>
+      <input name="age" type="number" inputmode="numeric" min="0" max="99" value="6" />
+    </label>
+    <label>
+      <span>{copy.height}</span>
+      <div class="family-form__unit">
+        <input name="height" type="number" inputmode="numeric" min="40" max="230" value="120" />
+        <span aria-hidden="true">cm</span>
+      </div>
+    </label>
+    <label>
+      <span>{copy.interest}</span>
+      <select name="interest">
+        <option value="all">{copy.interests.all}</option>
+        <option value="calm">{copy.interests.calm}</option>
+        <option value="family">{copy.interests.family}</option>
+        <option value="thrill">{copy.interests.thrill}</option>
+        <option value="indoor">{copy.interests.indoor}</option>
+      </select>
+    </label>
+    <button type="submit" class="btn-primary">
+      <Icon name="tabler:ruler-measure" class="h-5 w-5" aria-hidden="true" />
+      {copy.submit}
+    </button>
+  </form>
+
+  <div class="family-results" aria-live="polite">
+    <div class="family-results__head">
+      <div>
+        <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent">{copy.resultTitle}</p>
+        <h3 class="mt-1 text-2xl font-extrabold"><span data-result-count>{attractions.length}</span> {copy.resultCount}</h3>
+      </div>
+      <div class="family-results__legend">
+        <span><i class="status-dot status-dot--yes" aria-hidden="true"></i>{copy.eligible}</span>
+        <span><i class="status-dot status-dot--adult" aria-hidden="true"></i>{copy.accompanied}</span>
+        <span><i class="status-dot status-dot--no" aria-hidden="true"></i>{copy.notYet}</span>
+      </div>
+    </div>
+
+    <div class="family-results__grid" data-attraction-list>
+      {attractions.map((attraction) => (
+        <article
+          class="family-attraction"
+          data-name={attraction.name}
+          data-min-age={attraction.minAge}
+          data-min-height={attraction.minHeight}
+          data-accompanied-age={attraction.accompaniedUntilAge || 0}
+          data-accompanied-height={attraction.accompaniedUntilHeight || 0}
+          data-category={attraction.category}
+          data-indoor={String(Boolean(attraction.indoor))}
+          data-state={stateFor(attraction)}
+        >
+          <div class="family-attraction__status" aria-hidden="true"></div>
+          <div>
+            <h4>{attraction.name}</h4>
+            <p class="sr-only" data-status-label>{stateLabel[stateFor(attraction)]}</p>
+            <p>
+              {copy.minimum}: {attraction.minAge ? `${attraction.minAge}+ ${copy.years}` : '–'}
+              · {attraction.minHeight ? `${attraction.minHeight}+ ${copy.centimeters}` : '–'}
+              {attraction.indoor && <span class="family-attraction__tag">{copy.indoor}</span>}
+            </p>
+          </div>
+          <a href={attraction.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`${copy.source}: ${attraction.name}`}>
+            <Icon name="tabler:external-link" class="h-4 w-4" aria-hidden="true" />
+          </a>
+        </article>
+      ))}
+    </div>
+    <p class="family-results__empty" data-empty hidden>{copy.noResults}</p>
+
+    <div class="family-results__notice">
+      <Icon name="tabler:shield-check" class="h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
+      <p>{copy.disclaimer}</p>
+      <a href={officialFilterUrl} target="_blank" rel="noopener noreferrer">{copy.officialFilter}</a>
+    </div>
+  </div>
+</section>
+
+<script is:inline define:vars={{
+  toolId,
+  statusLabels: {
+    yes: copy.eligible,
+    adult: copy.accompanied,
+    no: copy.notYet,
+  },
+}}>
+  const root = document.getElementById(toolId);
+  const form = root?.querySelector('[data-family-form]');
+  const cards = [...(root?.querySelectorAll('[data-min-age]') || [])];
+  const count = root?.querySelector('[data-result-count]');
+  const empty = root?.querySelector('[data-empty]');
+
+  const render = () => {
+    if (!(form instanceof HTMLFormElement)) return;
+    const data = new FormData(form);
+    const age = Number(data.get('age') || 0);
+    const height = Number(data.get('height') || 0);
+    const interest = String(data.get('interest') || 'all');
+    let visible = 0;
+
+    for (const card of cards) {
+      if (!(card instanceof HTMLElement)) continue;
+      const categoryMatches = interest === 'all'
+        || card.dataset.category === interest
+        || (interest === 'indoor' && card.dataset.indoor === 'true');
+      card.hidden = !categoryMatches;
+      if (!categoryMatches) continue;
+      visible += 1;
+
+      const minAge = Number(card.dataset.minAge || 0);
+      const minHeight = Number(card.dataset.minHeight || 0);
+      const accompaniedAge = Number(card.dataset.accompaniedAge || 0);
+      const accompaniedHeight = Number(card.dataset.accompaniedHeight || 0);
+      const meetsMinimum = age >= minAge && height >= minHeight;
+      const needsAdult = meetsMinimum
+        && ((accompaniedAge > 0 && age < accompaniedAge) || (accompaniedHeight > 0 && height < accompaniedHeight));
+      const state = !meetsMinimum ? 'no' : needsAdult ? 'adult' : 'yes';
+      card.dataset.state = state;
+      const statusLabel = card.querySelector('[data-status-label]');
+      if (statusLabel) statusLabel.textContent = statusLabels[state];
+    }
+
+    if (count) count.textContent = String(visible);
+    if (empty instanceof HTMLElement) empty.hidden = visible !== 0;
+  };
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    render();
+  });
+  form?.addEventListener('input', render);
+  render();
+</script>
+
+<style>
+  .family-tool {
+    overflow: hidden;
+    border: 3px solid var(--color-border);
+    border-radius: 1.5rem;
+    background: white;
+    box-shadow: 7px 7px 0 var(--shadow-pink);
+  }
+
+  .family-tool__intro {
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+    border-bottom: 2px solid var(--color-border-light);
+    background:
+      radial-gradient(circle at 90% 15%, rgb(196 181 253 / 0.45), transparent 13rem),
+      var(--color-bg-light);
+  }
+
+  .family-form {
+    display: grid;
+    gap: 1rem;
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+  }
+
+  .family-form label {
+    display: grid;
+    gap: 0.45rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+
+  .family-form input,
+  .family-form select {
+    min-height: 3.25rem;
+    width: 100%;
+    border: 2px solid var(--color-border);
+    border-radius: 0.9rem;
+    background: white;
+    padding-inline: 0.9rem;
+    color: var(--color-text-primary);
+    font: inherit;
+    font-weight: 700;
+  }
+
+  .family-form__unit {
+    position: relative;
+  }
+
+  .family-form__unit span {
+    position: absolute;
+    inset-inline-end: 0.9rem;
+    top: 50%;
+    translate: 0 -50%;
+    color: var(--color-muted);
+  }
+
+  .family-form .btn-primary {
+    align-self: end;
+    min-height: 3.25rem;
+  }
+
+  .family-results {
+    border-top: 3px solid var(--color-border);
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+    background: #fffdf8;
+  }
+
+  .family-results__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .family-results__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.85rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  .family-results__legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .status-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 999px;
+  }
+
+  .status-dot--yes { background: var(--color-available); }
+  .status-dot--adult { background: var(--color-gold); }
+  .status-dot--no { background: var(--color-unavailable); }
+
+  .family-results__grid {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .family-attraction {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.85rem;
+    border: 2px solid var(--color-border-light);
+    border-radius: 1rem;
+    background: white;
+    padding: 0.9rem;
+  }
+
+  .family-attraction__status {
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 999px;
+    background: var(--color-muted);
+    box-shadow: 0 0 0 4px rgb(107 94 140 / 0.12);
+  }
+
+  .family-attraction[data-state='yes'] .family-attraction__status {
+    background: var(--color-available);
+    box-shadow: 0 0 0 4px rgb(21 128 61 / 0.12);
+  }
+
+  .family-attraction[data-state='adult'] .family-attraction__status {
+    background: var(--color-gold);
+    box-shadow: 0 0 0 4px rgb(217 119 6 / 0.12);
+  }
+
+  .family-attraction[data-state='no'] {
+    opacity: 0.64;
+  }
+
+  .family-attraction[data-state='no'] .family-attraction__status {
+    background: var(--color-unavailable);
+    box-shadow: 0 0 0 4px rgb(190 24 93 / 0.1);
+  }
+
+  .family-attraction h4 {
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .family-attraction p {
+    margin-top: 0.2rem;
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+
+  .family-attraction__tag {
+    display: inline-flex;
+    margin-inline-start: 0.4rem;
+    border-radius: 999px;
+    background: var(--color-bg-light);
+    padding: 0.15rem 0.45rem;
+    color: var(--color-accent-dark);
+    font-weight: 800;
+  }
+
+  .family-attraction > a {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    border: 2px solid var(--color-border-light);
+    border-radius: 0.8rem;
+    color: var(--color-accent);
+  }
+
+  .family-results__empty {
+    margin-top: 1rem;
+    border: 2px dashed var(--color-border-light);
+    border-radius: 1rem;
+    padding: 1rem;
+    color: var(--color-muted);
+    text-align: center;
+  }
+
+  .family-results__notice {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.65rem;
+    margin-top: 1.25rem;
+    border: 2px solid var(--color-border);
+    border-radius: 1rem;
+    background: var(--color-bg-light);
+    padding: 1rem;
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+
+  .family-results__notice a {
+    grid-column: 2;
+    justify-self: start;
+    color: var(--color-accent-dark);
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+
+  @media (min-width: 42rem) {
+    .family-form {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .family-results__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .family-form {
+      grid-template-columns: 0.7fr 0.8fr 1.2fr auto;
+    }
+  }
+</style>

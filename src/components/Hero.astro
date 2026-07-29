@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, crowdCalendarPaths, getTranslation } from '../i18n/translations';
+import { getRoutePath } from '../i18n/routes';
 
 interface Props {
   lang?: Lang;
@@ -18,13 +19,25 @@ const [titleLead, titleHighlight] = titleLines[lang];
 const answerLabel = { de: 'Antwort', fr: 'Réponse', it: 'Risposta', en: 'Answer' }[lang];
 const howLabel = { de: "So funktioniert's", fr: 'Comment ça marche', it: 'Come funziona', en: 'How it works' }[lang];
 const exploreLabel = { de: 'Mehr entdecken', fr: 'À découvrir', it: 'Scopri di più', en: 'Explore' }[lang];
+const planningLabel = {
+  de: 'Besuch planen',
+  fr: 'Planifier la visite',
+  it: 'Pianifica la visita',
+  en: 'Plan your visit',
+}[lang];
+const compareLabel = {
+  de: 'Silver oder Gold?',
+  fr: 'Silver ou Gold ?',
+  it: 'Silver o Gold?',
+  en: 'Silver or Gold?',
+}[lang];
 
 const homePath = lang === defaultLang ? '/' : `/${lang}/`;
 const features = [
   { href: `${homePath}wartezeiten/`, icon: 'tabler:clock-hour-4', label: tr('nav.wait_times'), tint: 'accent', live: true },
   { href: crowdCalendarPaths[lang], icon: 'tabler:calendar-stats', label: tr('nav.crowd_forecast'), tint: 'gold', live: true },
-  { href: `${homePath}#history`, icon: 'tabler:chart-dots-3', label: tr('nav.history_short'), tint: 'pink', live: false },
-  { href: `${homePath}#community`, icon: 'tabler:messages', label: 'Community', tint: 'accent', live: false },
+  { href: getRoutePath('parkGuide', lang)!, icon: 'tabler:map-2', label: planningLabel, tint: 'pink', live: false },
+  { href: getRoutePath('resortPassCompare', lang)!, icon: 'tabler:scale', label: compareLabel, tint: 'accent', live: false },
 ];
 ---
 

@@ -1,0 +1,398 @@
+---
+import { Icon } from 'astro-icon/components';
+
+export interface TicketRange {
+  min: number;
+  max: number;
+}
+
+export interface CostFacts {
+  europaPark: {
+    oneDayAdult: TicketRange;
+    oneDayChild: TicketRange;
+    twoDayAdult: TicketRange;
+    twoDayChild: TicketRange;
+  };
+  rulantica: {
+    dayAdult: TicketRange;
+    dayChild: TicketRange;
+    eveningAdult: TicketRange;
+    eveningChild: TicketRange;
+    moonlightAdult: TicketRange;
+    moonlightChild: TicketRange;
+  };
+  parkingPerDay: number;
+}
+
+export interface CostCalculatorCopy {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  adults: string;
+  children: string;
+  days: string;
+  oneDay: string;
+  twoDays: string;
+  rulantica: string;
+  rulanticaOptions: {
+    none: string;
+    day: string;
+    evening: string;
+    moonlight: string;
+  };
+  parking: string;
+  nights: string;
+  lodgingPerNight: string;
+  calculate: string;
+  resultEyebrow: string;
+  total: string;
+  rangeConnector: string;
+  perPerson: string;
+  breakdown: string;
+  europaParkTickets: string;
+  rulanticaTickets: string;
+  parkingCost: string;
+  lodgingCost: string;
+  variableNote: string;
+  assumptionNote: string;
+  currency: string;
+}
+
+interface Props {
+  copy: CostCalculatorCopy;
+  facts: CostFacts;
+  toolId?: string;
+}
+
+const { copy, facts, toolId = 'cost-calculator' } = Astro.props;
+const defaultCost = {
+  epMin: facts.europaPark.twoDayAdult.min * 2 + facts.europaPark.twoDayChild.min,
+  epMax: facts.europaPark.twoDayAdult.max * 2 + facts.europaPark.twoDayChild.max,
+  parking: facts.parkingPerDay * 2,
+  lodging: 160,
+};
+const defaultTotalMin =
+  defaultCost.epMin + defaultCost.parking + defaultCost.lodging;
+const defaultTotalMax =
+  defaultCost.epMax + defaultCost.parking + defaultCost.lodging;
+const euro = (value: number) => `${value.toFixed(value % 1 ? 2 : 0)} €`;
+---
+
+<section class="cost-tool" id={toolId} aria-labelledby={`${toolId}-title`}>
+  <div class="cost-tool__intro">
+    <span class="section-kicker">{copy.eyebrow}</span>
+    <h2 class="section-heading mt-2" id={`${toolId}-title`}>{copy.title}</h2>
+    <p class="mt-3 max-w-3xl text-text-secondary">{copy.intro}</p>
+  </div>
+
+  <div class="cost-tool__layout">
+    <form class="cost-form" data-cost-form>
+      <div class="cost-form__grid">
+        <label>
+          <span>{copy.adults}</span>
+          <input name="adults" type="number" inputmode="numeric" min="0" max="20" value="2" />
+        </label>
+        <label>
+          <span>{copy.children}</span>
+          <input name="children" type="number" inputmode="numeric" min="0" max="20" value="1" />
+        </label>
+        <label>
+          <span>{copy.days}</span>
+          <select name="days">
+            <option value="1">{copy.oneDay}</option>
+            <option value="2" selected>{copy.twoDays}</option>
+          </select>
+        </label>
+        <label>
+          <span>{copy.rulantica}</span>
+          <select name="rulantica">
+            <option value="none">{copy.rulanticaOptions.none}</option>
+            <option value="day">{copy.rulanticaOptions.day}</option>
+            <option value="evening">{copy.rulanticaOptions.evening}</option>
+            <option value="moonlight">{copy.rulanticaOptions.moonlight}</option>
+          </select>
+        </label>
+        <label class="cost-toggle">
+          <input name="parking" type="checkbox" checked />
+          <span>{copy.parking}</span>
+        </label>
+        <label>
+          <span>{copy.nights}</span>
+          <input name="nights" type="number" inputmode="numeric" min="0" max="14" value="1" />
+        </label>
+        <label class="cost-form__wide">
+          <span>{copy.lodgingPerNight}</span>
+          <div class="cost-input-currency">
+            <input name="lodging" type="number" inputmode="decimal" min="0" max="5000" step="10" value="160" />
+            <span aria-hidden="true">€</span>
+          </div>
+        </label>
+      </div>
+      <button type="submit" class="btn-primary mt-6 w-full">
+        <Icon name="tabler:calculator" class="h-5 w-5" aria-hidden="true" />
+        {copy.calculate}
+      </button>
+    </form>
+
+    <aside class="cost-result" aria-live="polite">
+      <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent">{copy.resultEyebrow}</p>
+      <h3 class="mt-2 text-xl font-extrabold">{copy.total}</h3>
+      <p class="cost-result__total">
+        <strong data-total-min>{euro(defaultTotalMin)}</strong>
+        <span>{copy.rangeConnector}</span>
+        <strong data-total-max>{euro(defaultTotalMax)}</strong>
+      </p>
+      <p class="mt-1 text-sm text-muted">
+        <span data-per-person>{euro(defaultTotalMin / 3)}–{euro(defaultTotalMax / 3)}</span> {copy.perPerson}
+      </p>
+
+      <h4 class="mt-6 text-sm font-extrabold">{copy.breakdown}</h4>
+      <dl class="cost-breakdown">
+        <div><dt>{copy.europaParkTickets}</dt><dd data-ep-cost>{euro(defaultCost.epMin)}–{euro(defaultCost.epMax)}</dd></div>
+        <div><dt>{copy.rulanticaTickets}</dt><dd data-rulantica-cost>{euro(0)}</dd></div>
+        <div><dt>{copy.parkingCost}</dt><dd data-parking-cost>{euro(defaultCost.parking)}</dd></div>
+        <div><dt>{copy.lodgingCost}</dt><dd data-lodging-cost>{euro(defaultCost.lodging)}</dd></div>
+      </dl>
+
+      <p class="cost-result__note">
+        <Icon name="tabler:info-circle" class="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+        <span>{copy.variableNote} {copy.assumptionNote}</span>
+      </p>
+    </aside>
+  </div>
+</section>
+
+<script is:inline define:vars={{ facts, copy, toolId }}>
+  const root = document.getElementById(toolId);
+  const form = root?.querySelector('[data-cost-form]');
+  const money = new Intl.NumberFormat(document.documentElement.lang || 'de', {
+    style: 'currency',
+    currency: copy.currency,
+    maximumFractionDigits: 2,
+  });
+
+  const setText = (selector, value) => {
+    const element = root?.querySelector(selector);
+    if (element) element.textContent = value;
+  };
+
+  const rangeText = (min, max) => min === max
+    ? money.format(min)
+    : `${money.format(min)}–${money.format(max)}`;
+
+  const render = () => {
+    if (!(form instanceof HTMLFormElement)) return;
+    const data = new FormData(form);
+    const adults = Math.max(0, Number(data.get('adults') || 0));
+    const children = Math.max(0, Number(data.get('children') || 0));
+    const people = Math.max(1, adults + children);
+    const days = String(data.get('days') || '1');
+    const water = String(data.get('rulantica') || 'none');
+    const nights = Math.max(0, Number(data.get('nights') || 0));
+    const lodging = Math.max(0, Number(data.get('lodging') || 0)) * nights;
+    const parking = data.get('parking') === 'on' ? facts.parkingPerDay * Number(days) : 0;
+
+    const adultEp = days === '2' ? facts.europaPark.twoDayAdult : facts.europaPark.oneDayAdult;
+    const childEp = days === '2' ? facts.europaPark.twoDayChild : facts.europaPark.oneDayChild;
+    const epMin = adultEp.min * adults + childEp.min * children;
+    const epMax = adultEp.max * adults + childEp.max * children;
+
+    let waterAdult = { min: 0, max: 0 };
+    let waterChild = { min: 0, max: 0 };
+    if (water === 'day') {
+      waterAdult = facts.rulantica.dayAdult;
+      waterChild = facts.rulantica.dayChild;
+    } else if (water === 'evening') {
+      waterAdult = facts.rulantica.eveningAdult;
+      waterChild = facts.rulantica.eveningChild;
+    } else if (water === 'moonlight') {
+      waterAdult = facts.rulantica.moonlightAdult;
+      waterChild = facts.rulantica.moonlightChild;
+    }
+    const waterMin = waterAdult.min * adults + waterChild.min * children;
+    const waterMax = waterAdult.max * adults + waterChild.max * children;
+
+    const totalMin = epMin + waterMin + parking + lodging;
+    const totalMax = epMax + waterMax + parking + lodging;
+    setText('[data-total-min]', money.format(totalMin));
+    setText('[data-total-max]', money.format(totalMax));
+    setText('[data-per-person]', rangeText(totalMin / people, totalMax / people));
+    setText('[data-ep-cost]', rangeText(epMin, epMax));
+    setText('[data-rulantica-cost]', rangeText(waterMin, waterMax));
+    setText('[data-parking-cost]', money.format(parking));
+    setText('[data-lodging-cost]', money.format(lodging));
+  };
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    render();
+  });
+  form?.addEventListener('input', render);
+  render();
+</script>
+
+<style>
+  .cost-tool {
+    overflow: hidden;
+    border: 3px solid var(--color-border);
+    border-radius: 1.5rem;
+    background: white;
+    box-shadow: 7px 7px 0 var(--shadow-amber);
+  }
+
+  .cost-tool__intro {
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+    border-bottom: 2px solid var(--color-border-light);
+    background:
+      radial-gradient(circle at 92% 20%, rgb(236 72 153 / 0.14), transparent 12rem),
+      var(--color-bg-light);
+  }
+
+  .cost-tool__layout {
+    display: grid;
+  }
+
+  .cost-form,
+  .cost-result {
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+  }
+
+  .cost-form__grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .cost-form label:not(.cost-toggle) {
+    display: grid;
+    gap: 0.45rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+
+  .cost-form input,
+  .cost-form select {
+    min-height: 3.25rem;
+    width: 100%;
+    border: 2px solid var(--color-border);
+    border-radius: 0.9rem;
+    background: white;
+    padding-inline: 0.9rem;
+    color: var(--color-text-primary);
+    font: inherit;
+    font-weight: 700;
+  }
+
+  .cost-input-currency {
+    position: relative;
+  }
+
+  .cost-input-currency span {
+    position: absolute;
+    inset-inline-end: 1rem;
+    top: 50%;
+    translate: 0 -50%;
+    color: var(--color-muted);
+    font-weight: 800;
+  }
+
+  .cost-toggle {
+    display: flex;
+    min-height: 3.25rem;
+    cursor: pointer;
+    align-items: center;
+    gap: 0.7rem;
+    align-self: end;
+    border: 2px solid var(--color-border);
+    border-radius: 0.9rem;
+    background: var(--color-bg-light);
+    padding: 0.75rem 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+
+  .cost-toggle input {
+    width: 1.15rem;
+    min-height: 1.15rem;
+  }
+
+  .cost-result {
+    border-top: 3px solid var(--color-border);
+    background: #fffbeb;
+  }
+
+  .cost-result__total {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.6rem;
+    margin-top: 0.75rem;
+  }
+
+  .cost-result__total strong {
+    font-family: var(--font-heading);
+    font-size: clamp(1.85rem, 7vw, 2.75rem);
+    line-height: 1;
+  }
+
+  .cost-result__total span {
+    color: var(--color-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .cost-breakdown {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .cost-breakdown div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid rgb(46 16 101 / 0.14);
+    padding-bottom: 0.65rem;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .cost-breakdown dd {
+    color: var(--color-text-primary);
+    font-weight: 800;
+    text-align: end;
+  }
+
+  .cost-result__note {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    border: 2px solid var(--color-border);
+    border-radius: 0.9rem;
+    background: white;
+    padding: 0.85rem;
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  @media (min-width: 42rem) {
+    .cost-form__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cost-form__wide {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 62rem) {
+    .cost-tool__layout {
+      grid-template-columns: minmax(0, 1.15fr) minmax(19rem, 0.85fr);
+    }
+
+    .cost-result {
+      border-top: 0;
+      border-inline-start: 3px solid var(--color-border);
+    }
+  }
+</style>

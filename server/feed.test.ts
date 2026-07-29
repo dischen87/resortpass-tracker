@@ -7,6 +7,7 @@ import {
   type DailyAvailabilityAggregate,
 } from './db';
 import { buildRss, formatDailyDigest, normalizeFeedLanguage, type NewsDigest } from './feed';
+import { supportedLanguages } from './locales';
 
 const databases: Database[] = [];
 
@@ -54,7 +55,16 @@ describe('daily availability feed', () => {
         gold: { state: 'sold_out', availableChecks: 0, totalChecks: 4 },
       },
     });
-    expect(normalizeFeedLanguage('es')).toBe('de');
+    for (const lang of supportedLanguages) {
+      const digest = formatDailyDigest(row, lang);
+      expect(digest.title.length).toBeGreaterThan(10);
+      expect(digest.summary).toContain('ResortPass Silver');
+      expect(digest.summary).toContain('ResortPass Gold');
+    }
+    expect(normalizeFeedLanguage('es')).toBe('es');
+    expect(normalizeFeedLanguage('pt-BR')).toBe('pt');
+    expect(normalizeFeedLanguage('unsupported')).toBe('en');
+    expect(normalizeFeedLanguage(undefined)).toBe('de');
   });
 
   test('builds escaped RSS 2.0 with a stable guid', () => {
@@ -72,6 +82,12 @@ describe('daily availability feed', () => {
     expect(xml).toContain('<guid isPermaLink="false">urn:resortpass:availability-2026-07-18</guid>');
     expect(xml).toContain('<atom:link href="https://example.com/api/feed.xml?lang=en"');
     expect(xml).not.toContain('Silver & Gold <status>');
+
+    const hebrewXml = buildRss('he', [formatDailyDigest(row, 'he')], 'https://example.com/');
+    expect(hebrewXml).toContain('<language>he-IL</language>');
+    expect(hebrewXml).toContain('https://example.com/he/מדריך-resortpass/');
+    expect(hebrewXml).not.toContain('/he/#history');
+    expect(hebrewXml).toContain('lang=he');
   });
 });
 
