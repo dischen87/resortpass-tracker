@@ -61,6 +61,25 @@ describe('shared site header', () => {
     expect(siteHeaderSource).toContain('aria-controls="site-language-panel"');
   });
 
+  test('turns the desktop menu into a compact secondary-navigation popover', () => {
+    expect(siteHeaderSource).toContain("width: min(22rem, calc(100vw - 2rem))");
+    expect(siteHeaderSource).toContain(".site-header__mobile-primary {\n      display: none");
+    expect(siteHeaderSource).toContain('grid-template-columns: 1fr');
+    expect(siteHeaderSource).toContain('justify-content: flex-start');
+    expect(siteHeaderSource).toContain('border-radius: 1rem');
+  });
+
+  test('keeps responsive planning navigation reachable and reconciles open panels', () => {
+    expect(siteHeaderSource).toContain(".site-header__mobile-panel:has(.site-header__mobile-section)");
+    expect(siteHeaderSource).toContain("grid-template-columns: repeat(4, minmax(0, 1fr))");
+    expect(siteHeaderSource).toContain("window.matchMedia('(min-width: 64rem)')");
+    expect(siteHeaderSource).toContain("window.matchMedia('(min-width: 72rem)')");
+    expect(siteHeaderSource).toContain("closeAllPanels(true);\n    syncPlannerHeight()");
+    expect(siteHeaderSource).toContain("addEventListener('change', reconcileResponsivePanels)");
+    expect(siteHeaderSource).toContain("new ResizeObserver(syncPlannerHeight).observe(siteHeader)");
+    expect(siteHeaderSource).toContain("var(--site-header-planner-height, 0px)");
+  });
+
   test('keeps every locale reachable without polluting hreflang semantics', () => {
     expect(siteHeaderSource).toContain('fallbackRouteKey="parkGuide"');
     expect(siteHeaderSource).toContain('fallbackHint={languageFallbackCopy.hint}');
