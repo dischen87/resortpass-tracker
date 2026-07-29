@@ -1,0 +1,805 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { LocaleCode } from '../i18n/locales';
+import {
+  findRouteKeyByPath,
+  getRoutePath,
+  guideRouteKeys,
+  type RouteKey,
+} from '../i18n/routes';
+import { getTranslation, type Lang } from '../i18n/translations';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+import {
+  getCoreHeaderRoutes,
+  isCoreHeaderLocale,
+} from './site-header-model';
+
+export interface SiteHeaderPlanningItem {
+  href: string;
+  label: string;
+  icon?: string;
+  active?: boolean;
+}
+
+interface Props {
+  lang: LocaleCode;
+  routeKey?: RouteKey;
+  planningItems?: SiteHeaderPlanningItem[];
+  plannerLabel?: string;
+  menuLabel?: string;
+  languageLabel?: string;
+  showLanguageSwitcher?: boolean;
+}
+
+const {
+  lang,
+  planningItems = [],
+  plannerLabel,
+  menuLabel,
+  languageLabel,
+  showLanguageSwitcher = true,
+} = Astro.props;
+
+const currentRouteKey = Astro.props.routeKey || findRouteKeyByPath(Astro.url.pathname);
+const coreLocale: Lang = isCoreHeaderLocale(lang) ? lang : 'en';
+const tr = (key: string) => getTranslation(coreLocale, key);
+const coreRoutes = getCoreHeaderRoutes(lang);
+const parkGuidePath = getRoutePath('parkGuide', lang)!;
+const resortPassGuidePath = getRoutePath('resortPassGuide', lang)!;
+const planningFallbackLabel = {
+  de: 'Besuch planen',
+  fr: 'Planifier la visite',
+  it: 'Pianifica la visita',
+  en: 'Plan your visit',
+}[coreLocale];
+const resolvedPlannerLabel = plannerLabel || planningFallbackLabel;
+const resolvedMenuLabel = menuLabel || {
+  de: 'Menü',
+  fr: 'Menu',
+  it: 'Menu',
+  en: 'Menu',
+}[coreLocale];
+const resolvedLanguageLabel = languageLabel || tr('nav.language');
+const isPlanningRoute = currentRouteKey ? guideRouteKeys.includes(currentRouteKey as (typeof guideRouteKeys)[number]) : false;
+const fallbackSuffix = {
+  de: 'auf Englisch',
+  fr: 'en anglais',
+  it: 'in inglese',
+  en: 'in English',
+}[coreLocale];
+const englishBadge = (fallback: boolean) => fallback ? 'EN' : undefined;
+const withFallbackAria = (label: string, fallback: boolean) => fallback ? `${label} — ${fallbackSuffix}` : label;
+
+const primaryItems = [
+  {
+    href: coreRoutes.waitTimes.href,
+    label: tr('nav.wait_times'),
+    icon: 'tabler:clock',
+    active: currentRouteKey === 'waitTimes',
+    fallback: coreRoutes.waitTimes.fallbackToEnglish,
+  },
+  {
+    href: coreRoutes.crowdCalendar.href,
+    label: tr('nav.crowd_forecast'),
+    icon: 'tabler:calendar-stats',
+    active: currentRouteKey === 'crowdCalendar',
+    fallback: coreRoutes.crowdCalendar.fallbackToEnglish,
+  },
+  {
+    href: parkGuidePath,
+    label: resolvedPlannerLabel,
+    icon: 'tabler:map-2',
+    active: isPlanningRoute,
+    fallback: false,
+  },
+];
+
+const secondaryItems = [
+  {
+    href: resortPassGuidePath,
+    label: {
+      de: 'ResortPass-Guide',
+      fr: 'Guide ResortPass',
+      it: 'Guida ResortPass',
+      en: 'ResortPass guide',
+    }[coreLocale],
+    icon: 'tabler:ticket',
+    fallback: false,
+  },
+  {
+    href: `${coreRoutes.home.href}#history`,
+    label: tr('nav.history_short'),
+    icon: 'tabler:history',
+    fallback: coreRoutes.home.fallbackToEnglish,
+  },
+  {
+    href: `${coreRoutes.home.href}#community`,
+    label: 'Community',
+    icon: 'tabler:users-group',
+    fallback: coreRoutes.home.fallbackToEnglish,
+  },
+];
+---
+
+<header class="site-header" data-site-header>
+  <div class="site-header__main">
+    <div class="section-shell">
+      <nav class="site-header__nav" aria-label={tr('nav.main')}>
+        <a
+          href={coreRoutes.home.href}
+          class="site-header__brand"
+          aria-label={withFallbackAria('ResortPass Tracker', coreRoutes.home.fallbackToEnglish)}
+          lang={coreRoutes.home.fallbackToEnglish ? 'en' : undefined}
+        >
+          <img src="/favicon.svg" alt="" width="44" height="44" />
+          <span class="brand-wordmark">resortpass<span>tracker</span></span>
+        </a>
+
+        <div class="site-header__primary" aria-label={resolvedPlannerLabel}>
+          {primaryItems.map((item) => (
+            <a
+              href={item.href}
+              class:list={['site-header__primary-link', { active: item.active }]}
+              aria-current={item.active ? 'page' : undefined}
+              aria-label={withFallbackAria(item.label, item.fallback)}
+              lang={item.fallback ? 'en' : undefined}
+            >
+              <Icon name={item.icon} class="h-[1.05rem] w-[1.05rem]" aria-hidden="true" />
+              <span>{item.label}</span>
+              {englishBadge(item.fallback) && <span class="site-header__fallback-badge" aria-hidden="true">EN</span>}
+            </a>
+          ))}
+        </div>
+
+        <div class="site-header__actions">
+          {showLanguageSwitcher && (
+            <button
+              id="site-language-toggle"
+              class="site-header__language-toggle"
+              type="button"
+              aria-controls="site-language-panel"
+              aria-expanded="false"
+              aria-label={resolvedLanguageLabel}
+            >
+              <Icon name="tabler:language" class="h-5 w-5" aria-hidden="true" />
+              <span>{lang.toUpperCase()}</span>
+            </button>
+          )}
+
+          <a
+            href={`${coreRoutes.home.href}#benachrichtigung`}
+            class="site-header__alert"
+            aria-label={withFallbackAria(tr('nav.alert'), coreRoutes.home.fallbackToEnglish)}
+            lang={coreRoutes.home.fallbackToEnglish ? 'en' : undefined}
+          >
+            <Icon name="tabler:bell-ringing" class="h-[1.1rem] w-[1.1rem]" aria-hidden="true" />
+            <span>{tr('nav.alert')}</span>
+            {englishBadge(coreRoutes.home.fallbackToEnglish) && <span class="site-header__fallback-badge" aria-hidden="true">EN</span>}
+          </a>
+
+          <button
+            id="site-menu-toggle"
+            class="site-header__menu-toggle"
+            type="button"
+            aria-controls="site-mobile-panel"
+            aria-expanded="false"
+            aria-label={resolvedMenuLabel}
+          >
+            <Icon name="tabler:menu-2" class="site-header__menu-open h-6 w-6" aria-hidden="true" />
+            <Icon name="tabler:x" class="site-header__menu-close h-6 w-6" aria-hidden="true" />
+          </button>
+        </div>
+
+        {showLanguageSwitcher && (
+          <div id="site-language-panel" class="site-header__language-panel" hidden>
+            <p>{resolvedLanguageLabel}</p>
+            <LanguageSwitcher lang={lang} routeKey={currentRouteKey} label={resolvedLanguageLabel} />
+          </div>
+        )}
+
+        <div id="site-mobile-panel" class="site-header__mobile-panel" hidden>
+          <div class="section-shell">
+            <div class="site-header__mobile-inner">
+              <nav class="site-header__mobile-primary" aria-label={tr('nav.main')}>
+                {primaryItems.map((item) => (
+                  <a
+                    href={item.href}
+                    class:list={{ active: item.active }}
+                    aria-current={item.active ? 'page' : undefined}
+                    aria-label={withFallbackAria(item.label, item.fallback)}
+                    lang={item.fallback ? 'en' : undefined}
+                  >
+                    <Icon name={item.icon} class="h-5 w-5 shrink-0" aria-hidden="true" />
+                    <span>{item.label}</span>
+                    {englishBadge(item.fallback) && <span class="site-header__fallback-badge" aria-hidden="true">EN</span>}
+                  </a>
+                ))}
+              </nav>
+
+              {planningItems.length > 0 && (
+                <section class="site-header__mobile-section" aria-labelledby="site-planning-label">
+                  <p id="site-planning-label">{resolvedPlannerLabel}</p>
+                  <nav class="site-header__mobile-planning" aria-label={resolvedPlannerLabel}>
+                    {planningItems.map((item) => (
+                      <a href={item.href} aria-current={item.active ? 'page' : undefined} class:list={{ active: item.active }}>
+                        {item.icon && <Icon name={item.icon} class="h-[1.1rem] w-[1.1rem] shrink-0" aria-hidden="true" />}
+                        <span>{item.label}</span>
+                      </a>
+                    ))}
+                  </nav>
+                </section>
+              )}
+
+              <nav class="site-header__mobile-secondary" aria-label="ResortPass">
+                {secondaryItems.map((item) => (
+                  <a
+                    href={item.href}
+                    aria-label={withFallbackAria(item.label, item.fallback)}
+                    lang={item.fallback ? 'en' : undefined}
+                  >
+                    <Icon name={item.icon} class="h-[1.1rem] w-[1.1rem] shrink-0" aria-hidden="true" />
+                    <span>{item.label}</span>
+                    {englishBadge(item.fallback) && <span class="site-header__fallback-badge" aria-hidden="true">EN</span>}
+                  </a>
+                ))}
+              </nav>
+
+              {showLanguageSwitcher && (
+                <details class="site-header__mobile-languages">
+                  <summary>
+                    <Icon name="tabler:language" class="h-5 w-5" aria-hidden="true" />
+                    <span>{resolvedLanguageLabel}</span>
+                    <span class="site-header__current-language">{lang.toUpperCase()}</span>
+                    <Icon name="tabler:chevron-down" class="site-header__language-chevron h-5 w-5" aria-hidden="true" />
+                  </summary>
+                  <div>
+                    <LanguageSwitcher lang={lang} routeKey={currentRouteKey} label={resolvedLanguageLabel} />
+                  </div>
+                </details>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </div>
+
+  {planningItems.length > 0 && (
+    <div class="site-header__planner-bar">
+      <div class="section-shell">
+        <nav aria-label={resolvedPlannerLabel}>
+          <span class="site-header__planner-label">
+            <Icon name="tabler:map-2" class="h-[1.05rem] w-[1.05rem]" aria-hidden="true" />
+            {resolvedPlannerLabel}
+          </span>
+          {planningItems.map((item) => (
+            <a href={item.href} aria-current={item.active ? 'page' : undefined} class:list={{ active: item.active }}>
+              {item.icon && <Icon name={item.icon} class="h-4 w-4 shrink-0" aria-hidden="true" />}
+              <span>{item.label}</span>
+            </a>
+          ))}
+        </nav>
+      </div>
+    </div>
+  )}
+</header>
+
+<script>
+  const siteHeader = document.querySelector<HTMLElement>('[data-site-header]');
+  const menuToggle = siteHeader?.querySelector<HTMLButtonElement>('#site-menu-toggle');
+  const menuPanel = siteHeader?.querySelector<HTMLElement>('#site-mobile-panel');
+  const languageToggle = siteHeader?.querySelector<HTMLButtonElement>('#site-language-toggle');
+  const languagePanel = siteHeader?.querySelector<HTMLElement>('#site-language-panel');
+
+  const setPanel = (
+    toggle: HTMLButtonElement | null | undefined,
+    panel: HTMLElement | null | undefined,
+    open: boolean,
+  ) => {
+    if (!toggle || !panel) return;
+    toggle.setAttribute('aria-expanded', String(open));
+    panel.hidden = !open;
+  };
+
+  const closeAllPanels = (returnFocus = false) => {
+    const activeToggle = languageToggle?.getAttribute('aria-expanded') === 'true'
+      ? languageToggle
+      : menuToggle?.getAttribute('aria-expanded') === 'true'
+        ? menuToggle
+        : undefined;
+    setPanel(menuToggle, menuPanel, false);
+    setPanel(languageToggle, languagePanel, false);
+    siteHeader?.querySelector<HTMLDetailsElement>('.site-header__mobile-languages')?.removeAttribute('open');
+    if (returnFocus) activeToggle?.focus();
+  };
+
+  menuToggle?.addEventListener('click', () => {
+    const open = menuToggle.getAttribute('aria-expanded') !== 'true';
+    setPanel(languageToggle, languagePanel, false);
+    setPanel(menuToggle, menuPanel, open);
+  });
+
+  languageToggle?.addEventListener('click', () => {
+    const open = languageToggle.getAttribute('aria-expanded') !== 'true';
+    setPanel(menuToggle, menuPanel, false);
+    setPanel(languageToggle, languagePanel, open);
+  });
+
+  menuPanel?.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => closeAllPanels());
+  });
+  languagePanel?.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => closeAllPanels());
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeAllPanels(true);
+  });
+
+  document.addEventListener('click', (event) => {
+    if (siteHeader && !siteHeader.contains(event.target as Node)) closeAllPanels();
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 1152) setPanel(menuToggle, menuPanel, false);
+    if (window.innerWidth < 1024) setPanel(languageToggle, languagePanel, false);
+  });
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    z-index: 60;
+    top: 0;
+    color: var(--color-text-primary);
+  }
+
+  .site-header__main {
+    border-bottom: 1px solid color-mix(in srgb, var(--color-border-light) 72%, transparent);
+    background: rgb(255 249 240 / 0.96);
+    box-shadow: 0 0.35rem 1.25rem rgb(45 15 99 / 0.055);
+    backdrop-filter: blur(16px);
+  }
+
+  .site-header__nav {
+    position: relative;
+    display: flex;
+    min-height: 4.25rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .site-header__brand {
+    display: inline-flex;
+    min-width: max-content;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.65rem;
+    border-radius: 0.8rem;
+    outline-offset: 0.25rem;
+  }
+
+  .site-header__brand img {
+    width: 2.65rem;
+    height: 2.65rem;
+    flex: 0 0 auto;
+  }
+
+  .site-header__brand .brand-wordmark {
+    display: block;
+    overflow: visible;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    text-overflow: clip;
+  }
+
+  .site-header__primary {
+    display: none;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+
+  .site-header__primary-link {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    padding: 0.55rem 0.85rem;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 800;
+    white-space: nowrap;
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+
+  .site-header__primary-link:hover,
+  .site-header__primary-link.active {
+    background: #f0eafe;
+    color: var(--color-accent-dark);
+  }
+
+  .site-header__actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .site-header__language-toggle,
+  .site-header__menu-toggle,
+  .site-header__alert {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 900;
+  }
+
+  .site-header__language-toggle {
+    display: none;
+    gap: 0.35rem;
+    cursor: pointer;
+    border: 2px solid var(--color-border);
+    background: white;
+    padding-inline: 0.8rem;
+  }
+
+  .site-header__alert {
+    display: inline-flex;
+    gap: 0.4rem;
+    border: 2px solid var(--color-border);
+    background: var(--color-yellow);
+    padding-inline: 0.85rem;
+    box-shadow: 2px 2px 0 var(--color-border);
+    transition: transform 150ms ease, box-shadow 150ms ease;
+  }
+
+  .site-header__alert:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+
+  .site-header__menu-toggle {
+    display: inline-flex;
+    cursor: pointer;
+    border: 2px solid var(--color-border);
+    background: white;
+  }
+
+  .site-header__menu-close {
+    display: none;
+  }
+
+  .site-header__menu-toggle[aria-expanded='true'] .site-header__menu-open {
+    display: none;
+  }
+
+  .site-header__menu-toggle[aria-expanded='true'] .site-header__menu-close {
+    display: block;
+  }
+
+  .site-header__language-panel {
+    position: absolute;
+    inset-inline-end: 0;
+    top: calc(100% + 0.55rem);
+    width: min(20rem, calc(100vw - 2rem));
+    max-height: min(22rem, calc(100vh - 6rem));
+    overflow: auto;
+    border: 2px solid var(--color-border);
+    border-radius: 1rem;
+    background: white;
+    padding: 0.85rem;
+    box-shadow: 0 0.85rem 2rem rgb(45 15 99 / 0.15);
+  }
+
+  .site-header__language-panel > p {
+    margin-bottom: 0.55rem;
+    color: var(--color-muted);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .site-header__mobile-panel {
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    max-height: calc(100vh - 4.75rem);
+    overflow: auto;
+    border-top: 1px solid var(--color-border-light);
+    border-bottom: 2px solid var(--color-border);
+    background: rgb(255 255 255 / 0.985);
+    box-shadow: 0 1rem 2rem rgb(45 15 99 / 0.14);
+  }
+
+  .site-header__mobile-inner {
+    display: grid;
+    gap: 0.9rem;
+    padding-block: 0.9rem 1.1rem;
+  }
+
+  .site-header__mobile-primary,
+  .site-header__mobile-planning,
+  .site-header__mobile-secondary {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .site-header__mobile-primary a,
+  .site-header__mobile-planning a,
+  .site-header__mobile-secondary a {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.55rem;
+    border-radius: 0.75rem;
+    color: var(--color-text-secondary);
+    font-size: 0.86rem;
+    font-weight: 800;
+  }
+
+  .site-header__mobile-primary a {
+    border: 1px solid var(--color-border-light);
+    background: #fffaf5;
+    padding: 0.65rem 0.8rem;
+  }
+
+  .site-header__mobile-primary a:hover,
+  .site-header__mobile-primary a.active,
+  .site-header__mobile-planning a:hover,
+  .site-header__mobile-planning a.active {
+    background: #f0eafe;
+    color: var(--color-accent-dark);
+  }
+
+  .site-header__mobile-section {
+    border-top: 1px solid var(--color-border-light);
+    padding-top: 0.85rem;
+  }
+
+  .site-header__mobile-section > p {
+    margin-bottom: 0.5rem;
+    color: var(--color-accent-dark);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .site-header__mobile-planning {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .site-header__mobile-planning a {
+    border: 1px solid var(--color-border-light);
+    padding: 0.55rem 0.65rem;
+  }
+
+  .site-header__mobile-planning a span {
+    min-width: 0;
+  }
+
+  .site-header__mobile-secondary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--color-border-light);
+    padding-top: 0.7rem;
+  }
+
+  .site-header__mobile-secondary a {
+    justify-content: center;
+    padding: 0.45rem;
+    text-align: center;
+  }
+
+  .site-header__mobile-languages {
+    border-top: 1px solid var(--color-border-light);
+    padding-top: 0.7rem;
+  }
+
+  .site-header__mobile-languages summary {
+    display: flex;
+    min-height: 2.75rem;
+    cursor: pointer;
+    list-style: none;
+    align-items: center;
+    gap: 0.55rem;
+    border: 1px solid var(--color-border-light);
+    border-radius: 0.75rem;
+    background: white;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.86rem;
+    font-weight: 850;
+  }
+
+  .site-header__mobile-languages summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .site-header__mobile-languages > div {
+    padding-top: 0.65rem;
+  }
+
+  .site-header__current-language {
+    margin-inline-start: auto;
+    color: var(--color-accent);
+    font-size: 0.74rem;
+    font-weight: 900;
+  }
+
+  .site-header__language-chevron {
+    transition: transform 160ms ease;
+  }
+
+  .site-header__mobile-languages[open] .site-header__language-chevron {
+    transform: rotate(180deg);
+  }
+
+  .site-header__fallback-badge {
+    display: inline-flex;
+    min-width: 1.5rem;
+    height: 1.15rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #eee8ff;
+    color: var(--color-accent-dark);
+    font-size: 0.58rem;
+    font-weight: 950;
+    letter-spacing: 0.04em;
+  }
+
+  .site-header__planner-bar {
+    display: none;
+    border-bottom: 1px solid var(--color-border-light);
+    background: rgb(255 255 255 / 0.98);
+  }
+
+  .site-header__planner-bar nav {
+    display: flex;
+    min-height: 3.25rem;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    padding-block: 0.45rem;
+  }
+
+  .site-header__planner-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-inline-end: 0.35rem;
+    color: var(--color-accent-dark);
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.035em;
+    white-space: nowrap;
+  }
+
+  .site-header__planner-bar a {
+    display: inline-flex;
+    min-height: 2.35rem;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    padding: 0.42rem 0.62rem;
+    color: var(--color-text-secondary);
+    font-size: 0.74rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .site-header__planner-bar a:hover,
+  .site-header__planner-bar a.active {
+    background: #f0eafe;
+    color: var(--color-accent-dark);
+  }
+
+  @media (max-width: 32rem) {
+    .site-header__alert {
+      width: 2.75rem;
+      padding: 0;
+    }
+
+    .site-header__alert > span:not(.site-header__fallback-badge) {
+      display: none;
+    }
+
+    .site-header__mobile-secondary {
+      grid-template-columns: 1fr;
+    }
+
+    .site-header__mobile-secondary a {
+      justify-content: flex-start;
+      padding-inline: 0.75rem;
+    }
+  }
+
+  @media (max-width: 23rem) {
+    .site-header__brand .brand-wordmark {
+      display: none;
+    }
+
+    .site-header__mobile-planning {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .site-header__primary,
+    .site-header__language-toggle {
+      display: flex;
+    }
+  }
+
+  @media (min-width: 64rem) and (max-width: 71.999rem) {
+    .site-header__alert {
+      width: 2.75rem;
+      padding: 0;
+    }
+
+    .site-header__alert > span:not(.site-header__fallback-badge) {
+      display: none;
+    }
+
+    .site-header__mobile-panel {
+      inset-inline-start: auto;
+      width: min(44rem, calc(100vw - 4rem));
+      border: 1px solid var(--color-border-light);
+      border-top: 0;
+      border-radius: 0 0 1rem 1rem;
+    }
+
+    .site-header__mobile-panel .section-shell {
+      padding-inline: 1rem;
+    }
+
+    .site-header__mobile-inner {
+      gap: 0.65rem;
+      padding-block: 0.75rem 0.85rem;
+    }
+
+    .site-header__mobile-primary,
+    .site-header__mobile-languages {
+      display: none;
+    }
+
+    .site-header__mobile-planning {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .site-header__mobile-secondary {
+      padding-top: 0.55rem;
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .site-header:has(.site-header__planner-bar) .site-header__language-panel {
+      top: calc(100% + 3.85rem);
+    }
+
+    .site-header__menu-toggle {
+      display: none;
+    }
+
+    .site-header__planner-bar {
+      display: block;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-header__primary-link,
+    .site-header__alert,
+    .site-header__language-chevron {
+      transition: none;
+    }
+  }
+</style>

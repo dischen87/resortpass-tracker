@@ -1,7 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import Layout from '../../layouts/Layout.astro';
-import LanguageSwitcher from '../LanguageSwitcher.astro';
+import SiteHeader from '../SiteHeader.astro';
 import { getLocaleDefinition, type LocaleCode } from '../../i18n/locales';
 import type { RouteKey } from '../../i18n/routes';
 import SourceStamp from './SourceStamp.astro';
@@ -150,57 +150,14 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
   ogImageAlt={heading}
   skipLinkLabel={copy.skip}
 >
-  <header class="planning-header">
-    <div class="section-shell">
-      <div class="planning-header__bar">
-        <a href={homePath} class="planning-brand" aria-label="ResortPass Tracker">
-          <img src="/favicon.svg" alt="" width="42" height="42" />
-          <span class="brand-wordmark">resortpass<span>tracker</span></span>
-        </a>
-
-        <nav class="planning-header__desktop" aria-label={copy.plannerLabel}>
-          {navItems.slice(0, 5).map((item) => (
-            <a href={item.href} aria-current={item.active ? 'page' : undefined} class:list={{ active: item.active }}>
-              {item.label}
-            </a>
-          ))}
-          <details class="planning-more">
-            <summary class:list={{ active: navItems.slice(5).some((item) => item.active) }}>
-              <Icon name="tabler:dots" class="h-5 w-5" aria-hidden="true" />
-              {copy.menu}
-            </summary>
-            <div class="planning-more__panel">
-              {navItems.slice(5).map((item) => (
-                <a href={item.href} aria-current={item.active ? 'page' : undefined} class:list={{ active: item.active }}>
-                  {item.icon && <Icon name={item.icon} class="h-4 w-4 shrink-0" aria-hidden="true" />}
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          </details>
-        </nav>
-
-        <details class="planning-language">
-          <summary aria-label={copy.language}>
-            <Icon name="tabler:language" class="h-5 w-5" aria-hidden="true" />
-            <span class="hidden sm:inline">{lang.toUpperCase()}</span>
-          </summary>
-          <div class="planning-language__panel">
-            <LanguageSwitcher lang={lang} routeKey={routeKey} label={copy.language} />
-          </div>
-        </details>
-      </div>
-
-      <nav class="planning-header__mobile" aria-label={copy.plannerLabel}>
-        {navItems.map((item) => (
-          <a href={item.href} aria-current={item.active ? 'page' : undefined} class:list={{ active: item.active }}>
-            {item.icon && <Icon name={item.icon} class="h-4 w-4 shrink-0" aria-hidden="true" />}
-            {item.label}
-          </a>
-        ))}
-      </nav>
-    </div>
-  </header>
+  <SiteHeader
+    lang={lang}
+    routeKey={routeKey}
+    planningItems={navItems}
+    plannerLabel={copy.plannerLabel}
+    menuLabel={copy.menu}
+    languageLabel={copy.language}
+  />
 
   <main id="main-content">
     <section class="planning-hero">
@@ -430,165 +387,6 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
 </Layout>
 
 <style>
-  .planning-header {
-    position: relative;
-    z-index: 50;
-    border-bottom: 2px solid var(--color-border-light);
-    background: rgb(255 249 240 / 0.96);
-    padding-block: 0.65rem;
-    backdrop-filter: blur(14px);
-  }
-
-  .planning-header__bar {
-    display: flex;
-    min-height: 3.2rem;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .planning-brand {
-    display: inline-flex;
-    min-width: 0;
-    align-items: center;
-    gap: 0.55rem;
-    border-radius: 0.8rem;
-  }
-
-  .planning-brand img {
-    width: 2.4rem;
-    height: 2.4rem;
-    flex: 0 0 auto;
-  }
-
-  .planning-header__desktop {
-    display: none;
-    align-items: center;
-    gap: 0.15rem;
-  }
-
-  .planning-header__desktop a,
-  .planning-header__mobile a {
-    border-radius: 999px;
-    color: var(--color-text-secondary);
-    font-size: 0.8rem;
-    font-weight: 800;
-    white-space: nowrap;
-  }
-
-  .planning-header__desktop a {
-    padding: 0.55rem 0.75rem;
-  }
-
-  .planning-header__desktop a:hover,
-  .planning-header__desktop a.active,
-  .planning-header__mobile a.active {
-    background: var(--color-bg-light);
-    color: var(--color-accent-dark);
-  }
-
-  .planning-language {
-    position: relative;
-    flex: 0 0 auto;
-  }
-
-  .planning-language summary,
-  .planning-more summary {
-    display: inline-flex;
-    min-width: 2.75rem;
-    min-height: 2.75rem;
-    cursor: pointer;
-    list-style: none;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
-    border: 2px solid var(--color-border);
-    border-radius: 999px;
-    background: white;
-    padding-inline: 0.7rem;
-    font-size: 0.75rem;
-    font-weight: 900;
-  }
-
-  .planning-language summary::-webkit-details-marker,
-  .planning-more summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .planning-language__panel,
-  .planning-more__panel {
-    position: absolute;
-    inset-inline-end: 0;
-    top: calc(100% + 0.6rem);
-    width: min(22rem, calc(100vw - 2rem));
-    max-height: min(28rem, calc(100vh - 6rem));
-    overflow: auto;
-    border: 3px solid var(--color-border);
-    border-radius: 1rem;
-    background: white;
-    padding: 0.75rem;
-    box-shadow: 5px 5px 0 var(--color-pink);
-  }
-
-  .planning-more {
-    position: relative;
-  }
-
-  .planning-more summary {
-    padding-inline: 0.75rem;
-    color: var(--color-text-secondary);
-    font-size: 0.8rem;
-  }
-
-  .planning-more summary.active {
-    background: var(--color-bg-light);
-    color: var(--color-accent-dark);
-  }
-
-  .planning-more__panel {
-    display: grid;
-    gap: 0.35rem;
-    inset-inline-end: 0;
-    width: min(20rem, calc(100vw - 2rem));
-  }
-
-  .planning-more__panel a {
-    display: flex;
-    min-height: 2.75rem;
-    align-items: center;
-    gap: 0.5rem;
-    border: 2px solid transparent;
-    padding: 0.6rem 0.75rem;
-  }
-
-  .planning-more__panel a:hover,
-  .planning-more__panel a.active {
-    border-color: var(--color-border-light);
-  }
-
-  .planning-header__mobile {
-    display: flex;
-    gap: 0.4rem;
-    overflow-x: auto;
-    margin-top: 0.45rem;
-    padding-bottom: 0.2rem;
-    scrollbar-width: none;
-  }
-
-  .planning-header__mobile::-webkit-scrollbar {
-    display: none;
-  }
-
-  .planning-header__mobile a {
-    display: inline-flex;
-    min-height: 2.75rem;
-    align-items: center;
-    gap: 0.35rem;
-    border: 2px solid var(--color-border-light);
-    background: white;
-    padding-inline: 0.75rem;
-  }
-
   .planning-hero {
     position: relative;
     overflow: hidden;
@@ -856,19 +654,6 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
   }
 
   @media (min-width: 58rem) {
-    .planning-header {
-      position: sticky;
-      top: 0;
-    }
-
-    .planning-header__desktop {
-      display: flex;
-    }
-
-    .planning-header__mobile {
-      display: none;
-    }
-
     .planning-toc {
       grid-template-columns: auto 1fr;
       align-items: center;
