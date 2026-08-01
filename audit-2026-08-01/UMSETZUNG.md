@@ -49,6 +49,27 @@ Stand: 1. August 2026. Branch `audit-umsetzung`.
 - `scripts/verify-live.ts`: 19 Prüfungen gegen die laufende Seite.
 - Caddy: 404 liefert 404, HSTS, zstd vor gzip, Aufbewahrungsfrist für Logs.
 
+### Performance
+- Das 469-KB-Übersetzungsbundle (121 KB gzip) ist vollständig aus dem Browser verschwunden.
+  Vier Startseiten-Inseln zogen die vollständige 17-Sprachen-Tabelle, um 21 Strings
+  nachzuschlagen, und blockierten damit jeden API-Aufruf der Seite. Startseiten-JS: 480 KB -> 10,4 KB,
+  Build-JS gesamt: 490 KB -> 12,5 KB.
+
+### Inhalte und Startseite
+- Neue Route `/oeffnungszeiten/` in fünf Sprachen, mit vier Evergreen-Antworten, die auch
+  ohne die Live-Tabelle tragen.
+- Alle 36 Attraktionen mit echten Alters- und Grössengrenzen, von den offiziellen Seiten
+  extrahiert (`scripts/scrape-attraction-limits.ts`), nie geschätzt. Der Familien-Finder
+  kannte vorher 6 von über 100. Dabei gefunden und korrigiert: zwei Bahnen mit 130 cm
+  Mindestgrösse wurden als grenzenlos ausgewiesen, weil die Seite den Bereich
+  „120 bis 195 cm" statt „120+ cm" schreibt.
+- Silver Star liegt laut Betreiberseite in **Monaco**, dem 2026 eröffneten 18. Themenbereich,
+  nicht in Frankreich. Der Provider-Feed meldet noch den alten Bereich.
+- Sechs Planungswerkzeuge waren von der Startseite aus in keiner Sprache erreichbar. Neuer
+  Block „Besuch planen", gebaut aus den vorhandenen Ratgeber-Texten, also sofort in allen 17 Sprachen.
+- Die Community-Sektion beanspruchte im Leerzustand eine volle Sektion; sie klappt jetzt
+  auf eine Zeile zusammen, bis es echte Tipps gibt.
+
 ### Sonstiges
 - `DMSans-Bold.woff2` war ein Duplikat der Regular-Datei — jeder Fettdruck war synthetisch,
   Gewichte über 700 wirkungslos. Eine Variable-Datei, 59 KB weniger.
@@ -70,10 +91,17 @@ Stand: 1. August 2026. Branch `audit-umsetzung`.
 - **Lizenzbrief an ParkQueueTimes** (fünf Fragen im Masterplan, Abschnitt 3/F4). Blockiert
   Tagesverlauf, Heatmap und jede eigene Zeitreihe.
 
-**Nicht angefangen, bewusst:**
-- Startseiten-Umbau (K5) über den Status hinaus, Übersetzungsbundle aus dem Client-Graph (P1),
-  Entkannibalisierung der ResortPass-Seiten (M5), Slug-Korrektur en/fr/it (M6 — setzt den
-  ausgerollten 404-Fix voraus), `/oeffnungszeiten/` (M3), Attraktionsdatensatz von 6 auf 40+ (M11).
+**Blockiert durch den noch nicht ausgerollten 404-Fix:**
+- **Entkannibalisierung der ResortPass-Seiten (M5)** und **Slug-Korrektur en/fr/it (M6)**.
+  Beide entfernen oder verschieben bestehende URLs und brauchen dafür funktionierende
+  301-Weiterleitungen. Solange die Produktion für jede URL 200 liefert, lässt sich keine
+  einzige Weiterleitung verifizieren — der Masterplan nennt die Reihenfolge ausdrücklich
+  zwingend (Abschnitt 4.3, M6). Diese beiden Punkte gehören direkt nach dem ersten Deploy.
+
+**Nicht angefangen:**
+- Vollständiger Startseiten-Umbau auf die im Masterplan skizzierte Zielhöhe. Die drei
+  wirksamsten Teile sind umgesetzt (Status statisch, Werkzeuge sichtbar, leere Sektion
+  eingeklappt); die weitere Straffung ist Feinarbeit ohne Blocker.
 
 Reihenfolge und Begründung: [00-MASTERPLAN.md](00-MASTERPLAN.md), Abschnitt 4 und 10.
 

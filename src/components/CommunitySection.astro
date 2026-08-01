@@ -14,10 +14,15 @@ const formPath = getRoutePath('communityNew', lang)!;
 const localeTag = getLocaleDefinition(lang).bcp47;
 ---
 
-<section class="py-16 md:py-20" id="community">
+<!--
+  Starts collapsed. With no approved tips this section still rendered a full
+  heading, description, two skeletons and an empty-state line — 443px of
+  nothing on the way to the footer. Empty now means one slim invitation.
+-->
+<section class="community-section" id="community" data-state="empty">
   <div class="section-shell">
 
-    <div class="text-center mb-10">
+    <div class="text-center mb-10 community-section__head">
       <h2 class="section-heading mb-3">
         {tr('community.title')}
       </h2>
@@ -58,6 +63,17 @@ const localeTag = getLocaleDefinition(lang).bcp47;
   window.__communityEmpty = emptyText;
   window.__communityError = errorText;
 </script>
+
+<style>
+  .community-section { padding-block: 2.5rem; }
+  .community-section[data-state="filled"] { padding-block: 4rem; }
+  /* Collapsed: no heading, no skeletons, no reserved space — just the ask. */
+  .community-section[data-state="empty"] .community-section__head,
+  .community-section[data-state="empty"] .community-skeleton,
+  .community-section[data-state="empty"] #community-load-more-wrap { display: none; }
+  .community-section[data-state="empty"] #community-posts { margin-bottom: 0; }
+  .community-section[data-state="empty"] #community-status { padding-block: 0 1rem; }
+</style>
 
 <script>
   const lang = (window as any).__communityLang || 'de';
@@ -124,6 +140,7 @@ const localeTag = getLocaleDefinition(lang).bcp47;
           container.innerHTML = html;
         }
         offset += data.posts.length;
+        document.getElementById('community')?.setAttribute('data-state', 'filled');
         if (loadMoreWrap) loadMoreWrap.classList.toggle('hidden', offset >= total);
       } else if (offset === 0) {
         clearSkeleton(container);
