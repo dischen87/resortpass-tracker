@@ -126,12 +126,13 @@ const { copy, forecastPath, toolId = 'visit-planner' } = Astro.props;
     </button>
   </form>
 
-  <div class="planner-result" data-planner-result aria-live="polite">
+  <!-- Live region scoped to the headline figures. Announcing the whole container meant every keystroke re-read the entire result block; aria-atomic keeps the announcement a single coherent sentence. -->
+  <div class="planner-result" data-planner-result>
     <div class="planner-result__summary">
       <span class="planner-result__icon" aria-hidden="true"><Icon name="tabler:map-2" class="h-7 w-7" /></span>
       <div>
         <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent">{copy.resultTitle}</p>
-        <h3 class="mt-1 text-2xl font-extrabold" data-result-heading>{copy.resultLead}</h3>
+        <h3 class="mt-1 text-2xl font-extrabold" data-result-heading aria-live="polite" aria-atomic="true">{copy.resultLead}</h3>
         <p class="mt-1 text-sm text-text-secondary"><span data-result-days>2</span> {copy.resultDays}</p>
       </div>
     </div>

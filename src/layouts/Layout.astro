@@ -10,6 +10,8 @@ import {
   type RoutePaths,
 } from '../i18n/routes';
 import { getTranslation } from '../i18n/translations';
+import { getRoutePath } from '../i18n/routes';
+import { buildEntityGraph } from '../data/entity-graph';
 
 interface Props {
   title?: string;
@@ -49,6 +51,21 @@ const alternateLinks = noindex ? [] : resolvedRoute.alternates;
 const xDefaultPath = noindex ? undefined : resolvedRoute.xDefaultPath;
 const rssLang = lang;
 const skipLinkLabel = Astro.props.skipLinkLabel || tr('nav.skip');
+
+/*
+ * Entity anchors on every page.
+ *
+ * Before this the whole build contained not one `sameAs` and no Organization
+ * or author node at all — an answer engine had no machine-readable way to work
+ * out who is speaking, which is a precondition for being named as a source.
+ * It is also the clearest statement that this is not an Europa-Park channel:
+ * the park appears as a subject we write about, never as the publisher.
+ *
+ * Locales without their own methodology page point at the English one, which
+ * is the same convention the header already uses for unpublished routes.
+ */
+const methodologyPath = getRoutePath('methodology', lang) || getRoutePath('methodology', 'en')!;
+const entityGraph = buildEntityGraph(lang, methodologyPath);
 ---
 
 <!DOCTYPE html>
@@ -115,6 +132,11 @@ const skipLinkLabel = Astro.props.skipLinkLabel || tr('nav.skip');
   <meta name="author" content="Mathias Graf" />
 
   <title>{title}</title>
+
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify({ '@context': 'https://schema.org', '@graph': entityGraph })}
+  />
 </head>
 <body class="min-h-screen bg-bg text-text-primary antialiased">
   <a class="skip-link" href="#main-content">{skipLinkLabel}</a>

@@ -867,7 +867,7 @@ const clientCopy = {
   .park-band__dot {
     width: 0.6rem;
     height: 0.6rem;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--color-muted);
     flex: none;
   }
@@ -888,7 +888,7 @@ const clientCopy = {
     width: 2.75rem;
     height: 2.75rem;
     border: 2px solid var(--color-border);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-md);
     background: var(--color-surface);
     color: var(--color-text-primary);
     cursor: pointer;
@@ -913,7 +913,7 @@ const clientCopy = {
   .wait-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
   .stat {
     border: 2px solid var(--color-border);
-    border-radius: 0.85rem;
+    border-radius: var(--radius-lg);
     background: var(--color-surface);
     padding: 0.7rem 0.85rem;
   }
@@ -932,7 +932,7 @@ const clientCopy = {
   }
   .schedule-day {
     border: 2px solid var(--color-border-light);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-md);
     background: var(--color-surface);
     padding: 0.6rem 0.7rem;
   }
@@ -944,7 +944,7 @@ const clientCopy = {
   .wait-list-section { padding-block: 1rem 3rem; }
   .wait-notice {
     border: 2px solid var(--color-gold);
-    border-radius: 0.85rem;
+    border-radius: var(--radius-lg);
     background: #fffbeb;
     padding: 0.85rem 1rem;
     font-size: 0.9rem;
@@ -973,7 +973,7 @@ const clientCopy = {
     align-items: center;
     gap: 0.6rem;
     border: 2px solid var(--color-border);
-    border-radius: 0.85rem;
+    border-radius: var(--radius-lg);
     background: var(--color-surface);
     padding: 0.6rem 0.75rem;
     scroll-snap-align: start;
@@ -997,8 +997,8 @@ const clientCopy = {
     gap: 0.75rem;
     background: var(--color-surface);
     border: 3px solid var(--color-border);
-    border-radius: 1rem;
-    box-shadow: 3px 3px 0 var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elev-2);
     padding: 0.85rem;
     margin-bottom: 1.25rem;
   }
@@ -1007,7 +1007,7 @@ const clientCopy = {
   .wait-toolbar select {
     width: 100%;
     border: 3px solid var(--color-border);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-md);
     background: var(--color-bg);
     padding: 0.6rem 0.85rem;
     font-size: 1rem;
@@ -1069,8 +1069,8 @@ const clientCopy = {
    */
   .ride-directory {
     border: 3px solid var(--color-border);
-    border-radius: 1rem;
-    box-shadow: 3px 3px 0 var(--color-border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elev-1);
     background: var(--color-surface);
     overflow: hidden;
   }
@@ -1127,7 +1127,7 @@ const clientCopy = {
   .ride-row__body { display: grid; gap: 0.15rem; padding-block: 0.55rem; min-width: 0; }
   .ride-row__name { font-weight: 700; font-size: 0.98rem; line-height: 1.25; }
   .ride-row__meta { color: var(--color-muted); font-size: 0.78rem; min-height: 1em; }
-  .ride-row__bar { display: block; height: 5px; border-radius: 999px; background: var(--color-border-light); overflow: hidden; }
+  .ride-row__bar { display: block; height: 5px; border-radius: var(--radius-pill); background: var(--color-border-light); overflow: hidden; }
   .ride-row__bar-fill {
     display: block;
     height: 100%;
@@ -1185,7 +1185,7 @@ const clientCopy = {
     background: none;
     color: var(--color-border);
     cursor: pointer;
-    border-radius: 0.6rem;
+    border-radius: var(--radius-sm);
   }
   .ride-row__fav[aria-pressed="true"] { color: var(--color-gold); }
   .ride-row__fav[aria-pressed="true"] svg { fill: currentColor; }

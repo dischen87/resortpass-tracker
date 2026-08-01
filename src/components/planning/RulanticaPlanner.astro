@@ -83,13 +83,14 @@ const { copy, officialUrl, toolId = 'rulantica-planner' } = Astro.props;
       </button>
     </form>
 
-    <div class="rulantica-result" aria-live="polite">
+    <!-- Live region scoped to the headline figures. Announcing the whole container meant every keystroke re-read the entire result block; aria-atomic keeps the announcement a single coherent sentence. -->
+    <div class="rulantica-result">
       <div class="rulantica-result__icon" aria-hidden="true">
         <Icon name="tabler:droplet-filled" class="h-8 w-8" />
       </div>
       <div>
         <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent">{copy.resultLabel}</p>
-        <h3 class="mt-1 text-2xl font-extrabold" data-result-title>{copy.recommendations.evening.title}</h3>
+        <h3 class="mt-1 text-2xl font-extrabold" data-result-title aria-live="polite" aria-atomic="true">{copy.recommendations.evening.title}</h3>
         <p class="mt-2 leading-relaxed text-text-secondary" data-result-text>{copy.recommendations.evening.text}</p>
       </div>
     </div>

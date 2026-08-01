@@ -4,6 +4,7 @@ import type {
   SourcePriority,
   VerificationStatus,
 } from "./types";
+import { EDITORIAL_CHECKED_AT } from "./review-dates";
 
 export type RestaurantDirectoryId =
   | "gasthaus-adler-rust"
@@ -34,7 +35,7 @@ export interface RestaurantDirectoryEntry {
   uncertainties: readonly string[];
 }
 
-const CHECKED_AT = "2026-07-29" as const;
+const CHECKED_AT = EDITORIAL_CHECKED_AT;
 const NEXT_REVIEW = "2026-10-15" as const;
 const MUNICIPAL_DIRECTORY =
   "https://www.rust.de/de-de/tourismus/gastronomie" as const;

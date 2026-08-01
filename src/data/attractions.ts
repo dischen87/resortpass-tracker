@@ -1,4 +1,5 @@
 import type { HTTPSUrl, ISODate } from "./types";
+import { EDITORIAL_CHECKED_AT } from "./review-dates";
 
 export interface VerifiedFamilyAttraction {
   id: string;
@@ -34,7 +35,7 @@ export const verifiedFamilyAttractions = [
     pregnancyAllowed: true,
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/attraktionen/snorri-touren",
-    checkedAt: "2026-07-29",
+    checkedAt: EDITORIAL_CHECKED_AT,
     nextReviewAt: "2026-10-01",
   },
   {
@@ -48,7 +49,7 @@ export const verifiedFamilyAttractions = [
     pregnancyAllowed: false,
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/attraktionen/pegasus-die-youngstar-achterbahn",
-    checkedAt: "2026-07-29",
+    checkedAt: EDITORIAL_CHECKED_AT,
     nextReviewAt: "2026-10-01",
   },
   {
@@ -62,7 +63,7 @@ export const verifiedFamilyAttractions = [
     pregnancyAllowed: false,
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/attraktionen/arthur",
-    checkedAt: "2026-07-29",
+    checkedAt: EDITORIAL_CHECKED_AT,
     nextReviewAt: "2026-10-01",
   },
   {
@@ -76,7 +77,7 @@ export const verifiedFamilyAttractions = [
     pregnancyAllowed: false,
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/attraktionen/wodan-timburcoaster",
-    checkedAt: "2026-07-29",
+    checkedAt: EDITORIAL_CHECKED_AT,
     nextReviewAt: "2026-10-01",
   },
   {
@@ -88,7 +89,7 @@ export const verifiedFamilyAttractions = [
     pregnancyAllowed: false,
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/attraktionen/voltron-nevera-powered-rimac",
-    checkedAt: "2026-07-29",
+    checkedAt: EDITORIAL_CHECKED_AT,
     nextReviewAt: "2026-10-01",
   },
   {
@@ -100,7 +101,7 @@ export const verifiedFamilyAttractions = [
     pregnancyAllowed: false,
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/attraktionen/silver-star",
-    checkedAt: "2026-07-29",
+    checkedAt: EDITORIAL_CHECKED_AT,
     nextReviewAt: "2026-10-01",
   },
 ] as const satisfies readonly VerifiedFamilyAttraction[];

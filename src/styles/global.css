@@ -50,6 +50,40 @@
   --available-border: #86EFAC;
   --unavailable-bg: #FEF2F2;
   --unavailable-border: #FCA5A5;
+
+  /*
+   * Shape, elevation and spacing scale.
+   *
+   * The built CSS had grown to 48 distinct box-shadow values, 14 radii and 55
+   * font sizes, with three competing h1 scales — every new component adding
+   * another one-off. These are the sanctioned steps. Deliberately scoped: the
+   * existing components are not being rewritten in this pass, but anything new
+   * uses these, so the sprawl stops growing.
+   */
+  --radius-sm: 0.5rem;   /* chips, inline badges */
+  --radius-md: 0.75rem;  /* controls: inputs, buttons, filter segments */
+  --radius-lg: 1rem;     /* cards and panels */
+  --radius-xl: 1.5rem;   /* hero-scale surfaces */
+  --radius-pill: 999px;
+
+  /* Offset shadows. The direction is always down-right; only depth varies. */
+  --elev-1: 3px 3px 0 var(--color-border-light);
+  --elev-2: 3px 3px 0 var(--color-border);
+  --elev-3: 6px 6px 0 var(--shadow-violet);
+
+  /* Vertical rhythm between page sections. */
+  --space-section: clamp(2.5rem, 6vw, 4.5rem);
+  --space-block: clamp(1.25rem, 3vw, 2rem);
+
+  /* Type scale. Fluid where the step is large enough for it to matter. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: clamp(1.25rem, 2.5vw, 1.4rem);
+  --text-2xl: clamp(1.5rem, 3.2vw, 1.85rem);
+  --text-3xl: clamp(1.9rem, 4.5vw, 2.6rem);
+  --text-display: clamp(2.15rem, 5.5vw, 3.65rem);
 }
 
 /*
