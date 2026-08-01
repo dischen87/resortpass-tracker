@@ -1019,22 +1019,29 @@ async function loadSitemapLocations(
   return locations;
 }
 
-async function readLlmsFile(
+/**
+ * Reads both machine-readable files.
+ *
+ * llms.txt is a curated index, so it deliberately does not list all 204 guide
+ * pages; the exhaustive per-language listing lives in llms-full.txt. Checking
+ * completeness against the index would force the index to grow back into the
+ * 80 KB dump it used to be — four times larger than the file called "full".
+ */
+async function readLlmsFiles(
   issues: VerificationIssue[],
-): Promise<string | undefined> {
-  const path = join(DIST_DIR, 'llms.txt');
-  try {
-    return await readFile(path, 'utf8');
-  } catch (error) {
-    issues.push(
-      issue(
-        'llms',
-        'dist/llms.txt',
-        `could not read file: ${error instanceof Error ? error.message : String(error)}`,
-      ),
-    );
-    return undefined;
-  }
+): Promise<{ index?: string; full?: string }> {
+  const read = async (name: string) => {
+    try {
+      return await readFile(join(DIST_DIR, name), 'utf8');
+    } catch (error) {
+      issues.push(
+        issue('llms', `dist/${name}`, `could not read file: ${error instanceof Error ? error.message : String(error)}`),
+      );
+      return undefined;
+    }
+  };
+  const [index, full] = await Promise.all([read('llms.txt'), read('llms-full.txt')]);
+  return { index, full };
 }
 
 function buildExpectedPages(issues: VerificationIssue[]): ExpectedPage[] {
@@ -1151,10 +1158,10 @@ async function main(): Promise<void> {
   }
 
   const pages = buildExpectedPages(issues);
-  const [pageIssueGroups, sitemapLocations, llmsText] = await Promise.all([
+  const [pageIssueGroups, sitemapLocations, llms] = await Promise.all([
     Promise.all(pages.map((page) => validatePage(page))),
     loadSitemapLocations(issues),
-    readLlmsFile(issues),
+    readLlmsFiles(issues),
   ]);
   for (const pageIssues of pageIssueGroups) issues.push(...pageIssues);
 
@@ -1172,16 +1179,35 @@ async function main(): Promise<void> {
     }
   }
 
-  if (llmsText !== undefined) {
+  if (llms.full !== undefined) {
     for (const page of pages) {
       const expectedLink = `(${SITE_URL}${page.routePath})`;
-      if (!llmsText.includes(expectedLink)) {
+      if (!llms.full.includes(expectedLink)) {
         issues.push(
-          issue(
-            'llms',
-            pageContext(page),
-            `path is missing from llms.txt: ${page.routePath}`,
-          ),
+          issue('llms', pageContext(page), `path is missing from llms-full.txt: ${page.routePath}`),
+        );
+      }
+    }
+  }
+
+  if (llms.index !== undefined && llms.full !== undefined) {
+    // The naming has to mean something: the index must stay the smaller file.
+    if (llms.index.length >= llms.full.length) {
+      issues.push(
+        issue(
+          'llms',
+          'dist/llms.txt',
+          `index is not smaller than the full file (${llms.index.length} B vs ${llms.full.length} B) — move detail into llms-full.txt`,
+        ),
+      );
+    }
+    // An unresolved template slot in a file that exists only for machines is
+    // invisible in review and embarrassing in a citation.
+    for (const [name, content] of [['llms.txt', llms.index], ['llms-full.txt', llms.full]] as const) {
+      const unresolved = [...content.matchAll(/\{(year|count|page|total|from|to)\}/g)].map((m) => m[0]);
+      if (unresolved.length > 0) {
+        issues.push(
+          issue('llms', `dist/${name}`, `unresolved placeholders: ${[...new Set(unresolved)].join(', ')} (${unresolved.length} occurrences)`),
         );
       }
     }

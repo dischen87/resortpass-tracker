@@ -28,10 +28,29 @@ import {
   startCrowdCalendarPoller,
 } from './crowd-calendar';
 import { getWaitTimes, getWaitTimesCacheHealth, startWaitTimesPoller } from './wait-times';
+import { isSameOriginRequest } from './same-origin';
+import { buildParkNow } from './park-now';
 
 const app = new Hono();
 const SITE_URL = process.env.SITE_URL || 'https://www.resortpass-europapark.ch';
 const CHECKER_FRESH_MINUTES = 45;
+
+/**
+ * ParkQueueTimes forbids redistributing raw API data. These endpoints exist for
+ * our own pages; anyone else is pointed at the provider rather than served a
+ * copy of their feed.
+ */
+function providerDataForbidden(c: { header: (k: string, v: string) => void; json: (body: unknown, status: 403) => Response }) {
+  c.header('Cache-Control', 'no-store');
+  return c.json(
+    {
+      error: 'This endpoint serves this website only.',
+      detail:
+        'Wait time and crowd data are licensed from ParkQueueTimes.com and may not be redistributed. Please obtain your own access at https://parkqueuetimes.com.',
+    },
+    403,
+  );
+}
 
 app.use('/api/*', bodyLimit({
   maxSize: 64 * 1024,
@@ -130,6 +149,8 @@ app.get('/api/status', (c) => {
 app.get('/api/wait-times', async (c) => {
   c.header('X-Robots-Tag', 'noindex, nofollow');
   c.header('Cross-Origin-Resource-Policy', 'same-origin');
+  c.header('Vary', 'Sec-Fetch-Site, Origin');
+  if (!isSameOriginRequest(c.req.raw.headers, SITE_URL)) return providerDataForbidden(c);
   try {
     const waitTimes = await getWaitTimes();
     c.header('Cache-Control', 'private, max-age=60');
@@ -141,10 +162,41 @@ app.get('/api/wait-times', async (c) => {
   }
 });
 
+// Everything the wait-times page needs in one answer: the park's operating
+// state decided from the schedule, plus the ride feed when — and only when —
+// it actually means something. The client no longer interprets any of this.
+app.get('/api/park-now', async (c) => {
+  c.header('X-Robots-Tag', 'noindex, nofollow');
+  c.header('Cross-Origin-Resource-Policy', 'same-origin');
+  c.header('Vary', 'Sec-Fetch-Site, Origin');
+  if (!isSameOriginRequest(c.req.raw.headers, SITE_URL)) return providerDataForbidden(c);
+  // A missing calendar must not take the page down: buildParkNow degrades to
+  // the directory-only state rather than guessing an opening time.
+  const [calendar, waitTimes] = await Promise.all([
+    getCrowdCalendar().catch((error) => {
+      console.error('park-now: crowd calendar unavailable:', error);
+      return null;
+    }),
+    getWaitTimes().catch((error) => {
+      console.error('park-now: wait times unavailable:', error);
+      return null;
+    }),
+  ]);
+  const payload = buildParkNow(calendar, waitTimes);
+  // Repeated polling from the park's overloaded wifi should cost 304, not 5 KB.
+  const etag = `W/"${Bun.hash(JSON.stringify(payload)).toString(36)}"`;
+  c.header('ETag', etag);
+  if (c.req.header('if-none-match') === etag) return c.body(null, 304);
+  c.header('Cache-Control', 'private, max-age=60');
+  return c.json(payload);
+});
+
 // Normalized monthly crowd forecast and opening hours for visit planning.
 app.get('/api/crowd-calendar', async (c) => {
   c.header('X-Robots-Tag', 'noindex, nofollow');
   c.header('Cross-Origin-Resource-Policy', 'same-origin');
+  c.header('Vary', 'Sec-Fetch-Site, Origin');
+  if (!isSameOriginRequest(c.req.raw.headers, SITE_URL)) return providerDataForbidden(c);
   try {
     const calendar = await getCrowdCalendar();
     c.header('Cache-Control', 'private, max-age=300');

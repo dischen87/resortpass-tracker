@@ -2,11 +2,12 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from './Navbar.astro';
 import Footer from './Footer.astro';
-import ResponsiveIllustration from './ResponsiveIllustration.astro';
 import BrandSafeText from './BrandSafeText.astro';
 import { crowdCalendarPaths, type Lang, getTranslation } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
 import { getLocaleDefinition } from '../i18n/locales';
+import { rideLands, ridesByLand, rides, rideSearchTerms } from '../data/rides';
+import { landNameMap } from '../i18n/lands';
 import '../styles/global.css';
 
 interface Props {
@@ -20,12 +21,22 @@ const pagePath = getRoutePath('waitTimes', lang)!;
 const homePath = getRoutePath('home', lang)!;
 const crowdCalendarPath = crowdCalendarPaths[lang];
 const breadcrumbNames: [string, string] = [tr('nav.home'), tr('nav.wait_times')];
+
+/**
+ * Evergreen answers first. A crawler or answer engine never runs the live
+ * island, so every question here is answered from facts that hold regardless of
+ * what the feed currently says.
+ */
 const faqItems = [
   [tr('wait.faq_current_q'), tr('wait.faq_current_a')],
   [tr('wait.faq_popular_q'), tr('wait.faq_popular_a')],
+  [tr('wait.faq_closed_q'), tr('wait.faq_closed_a')],
+  [tr('wait.faq_best_time_q'), tr('wait.faq_best_time_a')],
   [tr('wait.faq_update_q'), tr('wait.faq_update_a')],
+  [tr('wait.faq_app_q'), tr('wait.faq_app_a')],
   [tr('wait.faq_official_q'), tr('wait.faq_official_a')],
 ];
+
 const officialAppUrls: Partial<Record<Lang, string>> = {
   de: 'https://www.europapark.de/de/freizeitpark/infos/media-unterhaltung/europa-park-rulantica-app',
   fr: 'https://www.europapark.de/fr/parc-de-loisirs/infos/medias-et-divertissements/appli-europa-park-rulantica',
@@ -34,21 +45,63 @@ const officialAppUrls: Partial<Record<Lang, string>> = {
 };
 const officialAppUrl = officialAppUrls[lang] || officialAppUrls.en!;
 const localeTag = getLocaleDefinition(lang).bcp47;
+
+const landNames = landNameMap(lang, rideLands);
+const landGroups = ridesByLand();
+const headliners = rides.filter((ride) => ride.headliner);
+
+/** Search index for the client, built once at build time. */
+const searchIndex = Object.fromEntries(
+  rides.map((ride) => [
+    ride.slug,
+    [...rideSearchTerms(ride), landNames[ride.land]].join(' ').toLocaleLowerCase(localeTag),
+  ]),
+);
+
 const clientCopy = {
-  updated: tr('wait.updated'),
   live: tr('wait.live'),
   stale: tr('wait.stale'),
-  open: tr('wait.open'),
-  closed: tr('wait.closed'),
+  updated: tr('wait.updated'),
   minutes: tr('wait.minutes'),
   openNow: tr('wait.open_now'),
+  closed: tr('wait.closed'),
   down: tr('wait.status_down'),
   refurbishment: tr('wait.status_refurbishment'),
+  noWaitReported: tr('wait.no_wait_reported'),
   results: tr('wait.results'),
   noResults: tr('wait.no_results'),
-  noData: tr('wait.no_data'),
-  unavailableTitle: tr('wait.error_title'),
-  unavailableText: tr('wait.error_text'),
+  open: tr('wait.open'),
+  average: tr('wait.average'),
+  longest: tr('wait.longest'),
+  rides: tr('wait.rides'),
+  stateOpen: tr('wait.state_open'),
+  stateOpensIn: tr('wait.state_opens_in'),
+  stateOpensToday: tr('wait.state_opens_today'),
+  stateClosedToday: tr('wait.state_closed_today'),
+  stateAfterClose: tr('wait.state_after_close'),
+  stateSeasonBreak: tr('wait.state_season_break'),
+  stateNextDay: tr('wait.state_next_day'),
+  closesAt: tr('wait.closes_at'),
+  crowdToday: tr('wait.crowd_today'),
+  seasonBreakText: tr('wait.season_break_text'),
+  unreliableTitle: tr('wait.unreliable_title'),
+  unreliableText: tr('wait.unreliable_text'),
+  errorTitle: tr('wait.error_title'),
+  errorText: tr('wait.error_text'),
+  opensAtShort: tr('wait.opens_at_short'),
+  shortestNow: tr('wait.shortest_now'),
+  groupSummary: tr('wait.group_summary'),
+  groupClosed: tr('wait.group_closed'),
+  favoritesTitle: tr('wait.favorites_title'),
+  favoriteAdd: tr('wait.favorite_add'),
+  favoriteRemove: tr('wait.favorite_remove'),
+  levels: [
+    tr('wait.level_very_short'),
+    tr('wait.level_short'),
+    tr('wait.level_normal'),
+    tr('wait.level_long'),
+    tr('wait.level_very_long'),
+  ],
 };
 ---
 
@@ -73,6 +126,7 @@ const clientCopy = {
         },
         isPartOf: { '@type': 'WebSite', name: 'ResortPass Tracker', url: siteUrl },
         breadcrumb: { '@id': `${siteUrl}${pagePath}#breadcrumb` },
+        about: { '@id': `${siteUrl}/#europa-park` },
       },
       {
         '@type': 'BreadcrumbList',
@@ -97,186 +151,156 @@ const clientCopy = {
   <Navbar lang={lang} />
 
   <main id="main-content">
-    <section class="relative overflow-hidden border-b-2 border-border-light bg-bg-light">
+    <section class="wait-hero">
       <div class="blob blob-blue w-72 h-72 -top-32 -right-28" aria-hidden="true"></div>
-      <div class="blob blob-white w-80 h-80 -bottom-48 -left-28" aria-hidden="true"></div>
-
-      <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10 md:pt-16 md:pb-14">
-        <div class="grid items-center gap-9 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,0.78fr)] lg:gap-12">
-          <div>
-            <div class="max-w-3xl">
-              <div class="mb-5 animate-fade-in-up">
-                <span class="badge">
-                  <span class="h-2.5 w-2.5 rounded-full bg-available" aria-hidden="true"></span>
-                  {tr('wait.badge')}
-                </span>
-              </div>
-              <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5 animate-fade-in-up-delay-1"><BrandSafeText text={tr('wait.title')} /></h1>
-              <p class="text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl animate-fade-in-up-delay-2">{tr('wait.subtitle')}</p>
-            </div>
-
-            <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 text-sm">
-              <div id="live-state" class="inline-flex w-fit items-center gap-2 rounded-full border-2 border-border bg-white px-3 py-1.5 font-bold" aria-live="polite">
-                <span class="h-2.5 w-2.5 rounded-full bg-muted" aria-hidden="true"></span>
-                <span>{tr('wait.loading')}</span>
-              </div>
-              <p class="text-muted">
-                <span id="updated-label">{tr('wait.updated')} —</span>
-                <button id="refresh-wait-times" type="button" class="ms-2 font-bold text-accent hover:underline cursor-pointer">
-                  {tr('wait.refresh')}
-                </button>
-              </p>
-            </div>
-            <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-sm font-bold text-text-secondary hover:text-accent hover:underline">
-              Powered by ParkQueueTimes.com
-            </a>
-            <div class="mt-5">
-              <a href={crowdCalendarPath} class="btn-secondary">{tr('wait.forecast_cta')}</a>
-            </div>
-          </div>
-          <ResponsiveIllustration
-            baseName="europa-park-wait-times-illustration"
-            alt={tr('wait.og_alt')}
-            class="w-full"
-            eager={true}
-            sizes="(max-width: 1023px) calc(100vw - 2rem), 28rem"
-          />
-        </div>
+      <div class="section-shell wait-hero__inner">
+        <h1 class="wait-hero__title"><BrandSafeText text={tr('wait.title')} /></h1>
+        <p class="wait-hero__sub">{tr('wait.subtitle')}</p>
       </div>
     </section>
 
-    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-1 py-8 md:py-10" aria-labelledby="wait-summary-title">
+    <!-- The state band replaces the old "Live-Daten" pill: it always says
+         something true, including at 03:00 and during the season break. -->
+    <div id="park-band" class="park-band" data-state="loading">
+      <div class="section-shell park-band__inner">
+        <p class="park-band__state">
+          <span class="park-band__dot" aria-hidden="true"></span>
+          <span id="park-band-text">{tr('wait.loading')}</span>
+        </p>
+        <p id="park-band-meta" class="park-band__meta"></p>
+        <button id="refresh-wait-times" type="button" class="park-band__refresh" aria-label={tr('wait.refresh')}>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 1 1-3.5-7.1" /><path d="M21 3v6h-6" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <section class="section-shell wait-stats-section" aria-labelledby="wait-summary-title">
       <h2 id="wait-summary-title" class="sr-only">{tr('wait.summary_title')}</h2>
-      <div class="grid grid-cols-3 gap-2 sm:gap-4">
-        <article class="summary-card">
-          <p class="text-sm font-bold text-muted mb-2">{tr('wait.open')}</p>
-          <p class="flex items-baseline gap-2"><strong id="open-rides" class="text-4xl font-bold">—</strong><span class="text-sm text-text-secondary">{tr('wait.rides')}</span></p>
-        </article>
-        <article class="summary-card">
-          <p class="text-sm font-bold text-muted mb-2">{tr('wait.average')}</p>
-          <p class="flex items-baseline gap-2"><strong id="average-wait" class="text-4xl font-bold">—</strong><span id="average-wait-unit" class="hidden text-sm text-text-secondary">{tr('wait.minutes')}</span></p>
-        </article>
-        <article class="summary-card summary-card-accent">
-          <p class="text-sm font-bold text-muted mb-2">{tr('wait.longest')}</p>
-          <p class="flex items-baseline gap-2"><strong id="longest-wait" class="text-4xl font-bold">—</strong><span id="longest-wait-unit" class="hidden text-sm text-text-secondary">{tr('wait.minutes')}</span></p>
-        </article>
+      <div id="wait-stats" class="wait-stats" hidden>
+        <article class="stat"><p class="stat__label">{tr('wait.open')}</p><p class="stat__value"><strong id="open-rides">—</strong> <span class="stat__unit">{tr('wait.rides')}</span></p></article>
+        <article class="stat"><p class="stat__label">{tr('wait.average')}</p><p class="stat__value"><strong id="average-wait">—</strong> <span id="average-wait-unit" class="stat__unit" hidden>{tr('wait.minutes')}</span></p></article>
+        <article class="stat"><p class="stat__label">{tr('wait.longest')}</p><p class="stat__value"><strong id="longest-wait">—</strong> <span id="longest-wait-unit" class="stat__unit" hidden>{tr('wait.minutes')}</span></p></article>
       </div>
+      <div id="wait-schedule" class="wait-schedule" hidden></div>
     </section>
 
-    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 md:pb-20" aria-labelledby="ride-list-title">
-      <div id="stale-warning" class="hidden mb-5 rounded-2xl border-2 border-gold bg-amber-50 p-4 text-sm text-text-secondary" role="status">
-        <strong class="text-text-primary">{tr('wait.stale_title')}</strong>
-        <span> {tr('wait.stale_text')}</span>
+    <section class="section-shell wait-list-section" aria-labelledby="ride-list-title">
+      <div id="wait-notice" class="wait-notice" role="status" hidden>
+        <strong id="wait-notice-title"></strong>
+        <span id="wait-notice-text"></span>
       </div>
 
-      <div class="wait-toolbar mb-7">
-        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto_auto] gap-4 lg:items-end">
-          <label class="block">
-            <span class="block text-sm font-bold mb-2">{tr('wait.search_label')}</span>
-            <input id="ride-search" type="search" autocomplete="off" placeholder={tr('wait.search_placeholder')} class="w-full rounded-xl border-[3px] border-border bg-bg px-4 py-3 text-base placeholder:text-muted focus:border-accent focus:outline-none" />
-          </label>
-
-          <fieldset>
-            <legend class="text-sm font-bold mb-2">{tr('wait.filter_label')}</legend>
-            <div class="filter-group" id="ride-filters">
-              <button type="button" data-filter="open" aria-pressed="true">{tr('wait.filter_open')}</button>
-              <button type="button" data-filter="quick" aria-pressed="false">{tr('wait.filter_quick')}</button>
-              <button type="button" data-filter="all" aria-pressed="false">{tr('wait.filter_all')}</button>
-            </div>
-          </fieldset>
-
-          <label class="block">
-            <span class="block text-sm font-bold mb-2">{tr('wait.sort_label')}</span>
-            <select id="ride-sort" class="w-full rounded-xl border-[3px] border-border bg-bg px-4 py-3 text-base focus:border-accent focus:outline-none">
-              <option value="longest">{tr('wait.sort_longest')}</option>
-              <option value="shortest">{tr('wait.sort_shortest')}</option>
-              <option value="name">{tr('wait.sort_name')}</option>
-            </select>
-          </label>
-        </div>
+      <div id="shortest-now" class="shortest" hidden>
+        <h2 class="shortest__title">{tr('wait.shortest_now')}</h2>
+        <ul id="shortest-list" class="shortest__list"></ul>
       </div>
 
-      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-5">
-        <div>
-          <h2 id="ride-list-title" class="text-2xl md:text-3xl font-bold">{tr('wait.list_title')}</h2>
-          <p class="text-text-secondary mt-1">{tr('wait.list_desc')}</p>
-        </div>
-        <p id="result-count" class="text-sm font-bold text-muted" aria-live="polite"></p>
-      </div>
-
-      <div id="wait-loading" class="space-y-3" aria-label={tr('wait.loading')}>
-        {[1, 2, 3, 4, 5].map(() => (
-          <div class="wait-skeleton" aria-hidden="true">
-            <div class="space-y-3 flex-1">
-              <div class="h-3 w-24 rounded bg-border-light"></div>
-              <div class="h-5 w-2/3 rounded bg-border-light"></div>
-            </div>
-            <div class="h-14 w-20 rounded-xl bg-border-light"></div>
+      <div class="wait-toolbar">
+        <label class="wait-toolbar__search">
+          <span class="wait-toolbar__label">{tr('wait.search_label')}</span>
+          <input id="ride-search" type="search" autocomplete="off" placeholder={tr('wait.search_placeholder')} />
+        </label>
+        <fieldset class="wait-toolbar__filters">
+          <legend class="wait-toolbar__label">{tr('wait.filter_label')}</legend>
+          <div class="filter-group" id="ride-filters">
+            <button type="button" data-filter="all" aria-pressed="true">{tr('wait.filter_all')} <span class="filter-count" data-count="all"></span></button>
+            <button type="button" data-filter="open" aria-pressed="false">{tr('wait.filter_open')} <span class="filter-count" data-count="open"></span></button>
+            <button type="button" data-filter="quick" aria-pressed="false">{tr('wait.filter_quick')} <span class="filter-count" data-count="quick"></span></button>
+            <button type="button" data-filter="favorites" aria-pressed="false">{tr('wait.filter_favorites')} <span class="filter-count" data-count="favorites"></span></button>
           </div>
+        </fieldset>
+        <label class="wait-toolbar__sort">
+          <span class="wait-toolbar__label">{tr('wait.sort_label')}</span>
+          <select id="ride-sort">
+            <option value="land">{tr('wait.sort_land')}</option>
+            <option value="longest">{tr('wait.sort_longest')}</option>
+            <option value="shortest">{tr('wait.sort_shortest')}</option>
+            <option value="name">{tr('wait.sort_name')}</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="wait-list-head">
+        <div>
+          <h2 id="ride-list-title">{tr('wait.directory_title')}</h2>
+          <p class="wait-list-head__desc">{tr('wait.directory_desc')}</p>
+        </div>
+        <p id="result-count" class="wait-list-head__count" role="status">{tr('wait.results').replace('{count}', String(rides.length))}</p>
+      </div>
+
+      <!--
+        The full directory is rendered at build time, grouped by themed area.
+        It is the page's substance when the park is closed, when the provider
+        fails, and for every crawler — none of which run the island below.
+      -->
+      <div id="ride-directory" class="ride-directory">
+        {landGroups.map((group) => (
+          <section class="land-group" data-land={group.land}>
+            <h3 class="land-group__head" id={`land-${group.land.toLowerCase().replace(/\s+/g, '-')}`}>
+              <span class="land-group__name">{landNames[group.land]}</span>
+              <span class="land-group__meta" data-land-meta={group.land}></span>
+            </h3>
+            <ul class="ride-rows">
+              {group.rides.map((ride) => (
+                <li class="ride-row" id={`ride-${ride.slug}`} data-slug={ride.slug} data-land={group.land} data-headliner={ride.headliner ? 'true' : undefined}>
+                  <span class="ride-row__stripe" data-level="idle" aria-hidden="true"></span>
+                  <span class="ride-row__body">
+                    <span class="ride-row__name">{ride.name}</span>
+                    <span class="ride-row__meta" data-role="status"></span>
+                    <span class="ride-row__bar" aria-hidden="true"><span class="ride-row__bar-fill" style="--pct:0"></span></span>
+                  </span>
+                  <span class="ride-row__wait" data-role="wait"></span>
+                  <button type="button" class="ride-row__fav" data-role="fav" data-slug={ride.slug} aria-pressed="false" hidden>
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round">
+                      <path d="m12 3.6 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.8l5.9-.9z" />
+                    </svg>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
         ))}
       </div>
 
-      <div id="wait-error" class="hidden card p-8 md:p-10 text-center" role="alert">
-        <h3 class="text-xl font-bold mb-2">{tr('wait.error_title')}</h3>
-        <p class="text-text-secondary mb-5">{tr('wait.error_text')}</p>
-        <button id="retry-wait-times" type="button" class="btn-primary">{tr('wait.retry')}</button>
-      </div>
+      <p id="wait-empty" class="wait-empty" hidden>{tr('wait.no_results')}</p>
+      <p id="favorites-note" class="favorites-note" hidden>{tr('wait.favorites_note')}</p>
 
-      <div id="wait-empty" class="hidden glass-card p-8 text-center text-text-secondary">{tr('wait.no_results')}</div>
-      <ul id="ride-list" class="hidden space-y-3" aria-busy="true"></ul>
-
-      <template id="ride-template">
-        <li class="wait-ride-card">
-          <div class="min-w-0">
-            <p class="ride-land text-xs font-bold uppercase tracking-wide text-muted"></p>
-            <h3 class="ride-name text-lg font-bold mt-1 leading-tight"></h3>
-            <p class="ride-status text-sm text-text-secondary mt-1"></p>
-          </div>
-          <div class="wait-badge" data-level="closed">
-            <strong class="ride-wait text-xl leading-none"></strong>
-            <span class="ride-unit text-xs font-bold mt-1"></span>
-          </div>
-        </li>
-      </template>
-
-      <noscript>
-        <style>#wait-loading { display: none; }</style>
-        <p class="glass-card p-5 text-text-secondary">{tr('wait.javascript')}</p>
-      </noscript>
-
-      <div class="mt-8 glass-card p-5 md:p-6 text-sm text-text-secondary leading-relaxed">
+      <div class="wait-source">
         <p>{tr('wait.source_note')}</p>
-        <p class="mt-2">
-          <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">Powered by ParkQueueTimes.com</a>
+        <p>
+          <a href="https://parkqueuetimes.com/" target="_blank" rel="noopener noreferrer">Powered by ParkQueueTimes.com</a>
           <span aria-hidden="true"> · </span>
-          <a href={officialAppUrl} target="_blank" rel="noopener noreferrer" class="font-bold text-accent hover:underline">{tr('wait.official_app')}</a>
+          <a href={officialAppUrl} target="_blank" rel="noopener noreferrer">{tr('wait.official_app')}</a>
         </p>
+        <p><a href={crowdCalendarPath} class="btn-secondary btn-secondary--inline">{tr('wait.forecast_cta')}</a></p>
       </div>
     </section>
 
-    <section class="border-y-2 border-border-light bg-surface-light py-14 md:py-18">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-2xl md:text-3xl font-bold mb-7">{tr('wait.explainer_title')}</h2>
-        <div class="grid md:grid-cols-2 gap-5">
+    <section class="wait-explainer">
+      <div class="section-shell section-shell--narrow">
+        <h2>{tr('wait.explainer_title')}</h2>
+        <div class="wait-explainer__grid">
           <article class="glass-card p-6">
-            <h3 class="text-lg font-bold mb-2">{tr('wait.explainer_live_title')}</h3>
-            <p class="text-text-secondary leading-relaxed">{tr('wait.explainer_live_text')}</p>
+            <h3>{tr('wait.explainer_live_title')}</h3>
+            <p>{tr('wait.explainer_live_text')}</p>
           </article>
           <article class="glass-card p-6">
-            <h3 class="text-lg font-bold mb-2">{tr('wait.explainer_use_title')}</h3>
-            <p class="text-text-secondary leading-relaxed">{tr('wait.explainer_use_text')}</p>
+            <h3>{tr('wait.explainer_use_title')}</h3>
+            <p>{tr('wait.explainer_use_text')}</p>
           </article>
         </div>
       </div>
     </section>
 
-    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-18" aria-labelledby="wait-faq-title">
-      <h2 id="wait-faq-title" class="text-2xl md:text-3xl font-bold mb-7">{tr('wait.faq_title')}</h2>
-      <div class="grid gap-4">
+    <section class="section-shell section-shell--narrow wait-faq" aria-labelledby="wait-faq-title">
+      <h2 id="wait-faq-title">{tr('wait.faq_title')}</h2>
+      <div class="wait-faq__grid">
         {faqItems.map(([question, answer]) => (
           <article class="glass-card p-6">
-            <h3 class="text-lg font-bold mb-2">{question}</h3>
-            <p class="text-text-secondary leading-relaxed">{answer}</p>
+            <h3>{question}</h3>
+            <p>{answer}</p>
           </article>
         ))}
       </div>
@@ -285,296 +309,913 @@ const clientCopy = {
 
   <Footer lang={lang} />
 
-  <script define:vars={{ lang, localeTag, clientCopy }}>
+  <script define:vars={{ localeTag, clientCopy, searchIndex, headlinerSlugs: headliners.map((r) => r.slug) }}>
     const locale = localeTag;
-    const regionCodes = {
-      Austria: 'AT', Croatia: 'HR', France: 'FR', Germany: 'DE', Greece: 'GR',
-      Iceland: 'IS', Ireland: 'IE', Italy: 'IT', Luxembourg: 'LU', Netherlands: 'NL',
-      Portugal: 'PT', Russia: 'RU', Spain: 'ES', Switzerland: 'CH',
-    };
-    const specialLands = {
-      de: { England: 'England', 'Minimoys Kingdom': 'Königreich der Minimoys', Scandinavia: 'Skandinavien' },
-      fr: { England: 'Angleterre', 'Minimoys Kingdom': 'Royaume des Minimoys', Scandinavia: 'Scandinavie' },
-      it: { England: 'Inghilterra', 'Minimoys Kingdom': 'Regno dei Minimei', Scandinavia: 'Scandinavia' },
-      en: { England: 'England', 'Minimoys Kingdom': 'Minimoys Kingdom', Scandinavia: 'Scandinavia' },
-    };
-    const regionNames = typeof Intl.DisplayNames === 'function' ? new Intl.DisplayNames([locale], { type: 'region' }) : null;
-    const timeFormat = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' });
-    const dateTimeFormat = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const FAVORITES_KEY = 'rp.fav.rides';
+    /** Shared 0–120 minute axis so bar lengths are comparable across rides. */
+    const BAR_SCALE_MAX = 120;
+    /** Five bands: the old three made a 35-minute queue look like a 120-minute one. */
+    const LEVEL_THRESHOLDS = [10, 25, 45, 70];
 
-    const list = document.querySelector('#ride-list');
-    const template = document.querySelector('#ride-template');
-    const loading = document.querySelector('#wait-loading');
-    const errorBox = document.querySelector('#wait-error');
-    const empty = document.querySelector('#wait-empty');
+    const timeFormat = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' });
+    const dayFormat = new Intl.DateTimeFormat(locale, { weekday: 'short', day: '2-digit', month: '2-digit' });
+
+    const band = document.querySelector('#park-band');
+    const bandText = document.querySelector('#park-band-text');
+    const bandMeta = document.querySelector('#park-band-meta');
+    const stats = document.querySelector('#wait-stats');
+    const schedule = document.querySelector('#wait-schedule');
+    const notice = document.querySelector('#wait-notice');
+    const noticeTitle = document.querySelector('#wait-notice-title');
+    const noticeText = document.querySelector('#wait-notice-text');
+    const shortest = document.querySelector('#shortest-now');
+    const shortestList = document.querySelector('#shortest-list');
+    const directory = document.querySelector('#ride-directory');
+    const emptyMessage = document.querySelector('#wait-empty');
+    const favoritesNote = document.querySelector('#favorites-note');
     const search = document.querySelector('#ride-search');
-    const sort = document.querySelector('#ride-sort');
+    const sortSelect = document.querySelector('#ride-sort');
     const filterButtons = [...document.querySelectorAll('#ride-filters button')];
     const resultCount = document.querySelector('#result-count');
-    const liveState = document.querySelector('#live-state');
-    const updatedLabel = document.querySelector('#updated-label');
-    const staleWarning = document.querySelector('#stale-warning');
-    const refreshButtons = [document.querySelector('#refresh-wait-times'), document.querySelector('#retry-wait-times')];
-    let rides = [];
-    let activeFilter = 'open';
+    const refreshButton = document.querySelector('#refresh-wait-times');
 
-    function localizedLand(name) {
-      if (!name) return '';
-      if (specialLands[lang]?.[name]) return specialLands[lang][name];
-      return regionCodes[name] && regionNames ? (regionNames.of(regionCodes[name]) || name) : name;
+    const rows = [...document.querySelectorAll('.ride-row')];
+    const rowBySlug = new Map(rows.map((row) => [row.dataset.slug, row]));
+    const groups = [...document.querySelectorAll('.land-group')];
+
+    /** provider name -> slug, filled from the payload so we never guess. */
+    let liveBySlug = new Map();
+    let parkState = 'loading';
+    let activeFilter = 'all';
+    let favorites = readFavorites();
+    let countdownTimer = null;
+
+    function readFavorites() {
+      try {
+        const raw = localStorage.getItem(FAVORITES_KEY);
+        return new Set(raw ? JSON.parse(raw) : []);
+      } catch {
+        return new Set();
+      }
     }
 
-    function waitLevel(ride) {
-      if (!ride.isOpen) return 'closed';
-      if (ride.waitTime === null) return 'unknown';
-      if (ride.waitTime <= 15) return 'low';
-      if (ride.waitTime <= 30) return 'medium';
-      return 'high';
+    function writeFavorites() {
+      try {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites]));
+      } catch {
+        // Private mode or a full quota. Favourites simply stay session-only.
+      }
+    }
+
+    function fill(template, values) {
+      return Object.entries(values).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, value), template);
+    }
+
+    function levelFor(minutes) {
+      if (minutes === null || minutes === undefined) return null;
+      let level = 0;
+      while (level < LEVEL_THRESHOLDS.length && minutes > LEVEL_THRESHOLDS[level]) level += 1;
+      return level;
+    }
+
+    function formatDuration(ms) {
+      const totalMinutes = Math.max(0, Math.round(ms / 60000));
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      if (hours === 0) return `${minutes} ${clientCopy.minutes}`;
+      if (minutes === 0) return `${hours} h`;
+      return `${hours} h ${minutes} ${clientCopy.minutes}`;
+    }
+
+    // ---------------------------------------------------------------- rows
+
+    function resetRow(row) {
+      row.dataset.live = 'none';
+      row.querySelector('.ride-row__stripe').dataset.level = 'idle';
+      row.querySelector('[data-role="wait"]').textContent = '';
+      row.querySelector('[data-role="wait"]').removeAttribute('data-level');
+      row.querySelector('.ride-row__bar-fill').style.setProperty('--pct', '0');
+    }
+
+    function applyLive(row, entry, state) {
+      const statusCell = row.querySelector('[data-role="status"]');
+      const waitCell = row.querySelector('[data-role="wait"]');
+      const stripe = row.querySelector('.ride-row__stripe');
+      const barFill = row.querySelector('.ride-row__bar-fill');
+
+      if (!entry) {
+        resetRow(row);
+        statusCell.textContent = '';
+        return;
+      }
+
+      row.dataset.live = entry.isOpen ? 'open' : 'closed';
+      row.dataset.wait = entry.waitTime === null ? '' : String(entry.waitTime);
+
+      if (entry.isOpen && entry.waitTime !== null) {
+        const level = levelFor(entry.waitTime);
+        stripe.dataset.level = String(level);
+        waitCell.dataset.level = String(level);
+        waitCell.innerHTML = `<strong>${entry.waitTime}</strong><span>${clientCopy.minutes}</span>`;
+        statusCell.textContent = clientCopy.levels[level];
+        barFill.style.setProperty('--pct', String(Math.min(100, Math.round((entry.waitTime / BAR_SCALE_MAX) * 100))));
+        return;
+      }
+
+      stripe.dataset.level = entry.isOpen ? 'unknown' : 'closed';
+      waitCell.dataset.level = entry.isOpen ? 'unknown' : 'closed';
+      waitCell.textContent = entry.isOpen ? clientCopy.openNow : '';
+      barFill.style.setProperty('--pct', '0');
+
+      // A per-ride cause is only meaningful while the park is running. Outside
+      // opening hours the provider reports maintenance for most of the park,
+      // which would otherwise be published as a factual claim.
+      if (state !== 'OPEN') {
+        statusCell.textContent = '';
+        return;
+      }
+      statusCell.textContent = entry.status === 'DOWN'
+        ? clientCopy.down
+        : entry.status === 'REFURBISHMENT'
+        ? clientCopy.refurbishment
+        : entry.isOpen ? clientCopy.noWaitReported : clientCopy.closed;
+    }
+
+    function setScheduleHint(text) {
+      for (const row of rows) {
+        const statusCell = row.querySelector('[data-role="status"]');
+        const waitCell = row.querySelector('[data-role="wait"]');
+        resetRow(row);
+        statusCell.textContent = '';
+        waitCell.textContent = text || '';
+        if (text) waitCell.dataset.level = 'soon';
+      }
+    }
+
+    // ---------------------------------------------------------------- render
+
+    function matchesFilter(row) {
+      if (activeFilter === 'favorites') return favorites.has(row.dataset.slug);
+      if (activeFilter === 'open') return row.dataset.live === 'open';
+      if (activeFilter === 'quick') {
+        const wait = row.dataset.wait;
+        return row.dataset.live === 'open' && wait !== '' && wait !== undefined && Number(wait) <= 15;
+      }
+      return true;
+    }
+
+    function counts() {
+      return {
+        all: rows.length,
+        open: rows.filter((row) => row.dataset.live === 'open').length,
+        quick: rows.filter((row) => row.dataset.live === 'open' && row.dataset.wait !== '' && row.dataset.wait !== undefined && Number(row.dataset.wait) <= 15).length,
+        favorites: favorites.size,
+      };
     }
 
     function render() {
       const query = search.value.trim().toLocaleLowerCase(locale);
-      const filtered = rides.filter((ride) => {
-        const matchesQuery = `${ride.name} ${localizedLand(ride.land)}`.toLocaleLowerCase(locale).includes(query);
-        const matchesFilter = activeFilter === 'all'
-          || (activeFilter === 'open' && ride.isOpen)
-          || (activeFilter === 'quick' && ride.isOpen && ride.waitTime !== null && ride.waitTime <= 15);
-        return matchesQuery && matchesFilter;
-      });
+      let visible = 0;
 
-      filtered.sort((a, b) => {
-        if (sort.value === 'name') return a.name.localeCompare(b.name, locale);
-        if (a.isOpen !== b.isOpen) return a.isOpen ? -1 : 1;
-        if (sort.value === 'shortest') {
-          const aWait = a.waitTime !== null ? a.waitTime : Number.POSITIVE_INFINITY;
-          const bWait = b.waitTime !== null ? b.waitTime : Number.POSITIVE_INFINITY;
-          return aWait - bWait || a.name.localeCompare(b.name, locale);
-        }
-        return (b.waitTime ?? -1) - (a.waitTime ?? -1) || a.name.localeCompare(b.name, locale);
-      });
+      for (const row of rows) {
+        const haystack = searchIndex[row.dataset.slug] || '';
+        const show = (!query || haystack.includes(query)) && matchesFilter(row);
+        row.hidden = !show;
+        if (show) visible += 1;
 
-      list.replaceChildren();
-      for (const ride of filtered) {
-        const card = template.content.firstElementChild.cloneNode(true);
-        const land = localizedLand(ride.land);
-        const landElement = card.querySelector('.ride-land');
-        landElement.textContent = land;
-        landElement.classList.toggle('hidden', !land);
-        card.querySelector('.ride-name').textContent = ride.name;
-        const statusText = ride.status === 'DOWN'
-          ? clientCopy.down
-          : ride.status === 'REFURBISHMENT'
-          ? clientCopy.refurbishment
-          : ride.isOpen ? clientCopy.openNow : clientCopy.closed;
-        card.querySelector('.ride-status').textContent = statusText;
-        const badge = card.querySelector('.wait-badge');
-        badge.dataset.level = waitLevel(ride);
-        card.querySelector('.ride-wait').textContent = ride.isOpen && ride.waitTime !== null ? String(ride.waitTime) : (ride.isOpen ? clientCopy.openNow : clientCopy.closed);
-        card.querySelector('.ride-unit').textContent = ride.isOpen && ride.waitTime !== null ? clientCopy.minutes : '';
-        list.append(card);
+        const favButton = row.querySelector('[data-role="fav"]');
+        const isFav = favorites.has(row.dataset.slug);
+        favButton.hidden = false;
+        favButton.setAttribute('aria-pressed', String(isFav));
+        favButton.setAttribute(
+          'aria-label',
+          fill(isFav ? clientCopy.favoriteRemove : clientCopy.favoriteAdd, { name: row.querySelector('.ride-row__name').textContent }),
+        );
       }
 
-      resultCount.textContent = clientCopy.results.replace('{count}', String(filtered.length));
-      empty.textContent = rides.length === 0 ? clientCopy.noData : clientCopy.noResults;
-      empty.classList.toggle('hidden', filtered.length > 0);
-      list.classList.toggle('hidden', filtered.length === 0);
-      list.setAttribute('aria-busy', 'false');
+      applySort();
+
+      for (const group of groups) {
+        const groupRows = [...group.querySelectorAll('.ride-row')];
+        const shown = groupRows.filter((row) => !row.hidden);
+        group.hidden = shown.length === 0;
+        const meta = group.querySelector('[data-land-meta]');
+        const openRows = shown.filter((row) => row.dataset.live === 'open');
+        const waits = openRows.map((row) => Number(row.dataset.wait)).filter((value) => Number.isFinite(value));
+        meta.textContent = parkState === 'OPEN' && openRows.length > 0
+          ? fill(clientCopy.groupSummary, {
+              open: String(openRows.length),
+              avg: String(Math.round(waits.reduce((sum, value) => sum + value, 0) / (waits.length || 1))),
+            })
+          : '';
+      }
+
+      const total = counts();
+      for (const button of filterButtons) {
+        const badge = button.querySelector('.filter-count');
+        if (badge) badge.textContent = String(total[button.dataset.filter] ?? 0);
+        button.disabled = button.dataset.filter !== 'all' && total[button.dataset.filter] === 0;
+      }
+
+      resultCount.textContent = fill(clientCopy.results, { count: String(visible) });
+      emptyMessage.hidden = visible > 0;
+      favoritesNote.hidden = favorites.size === 0 && activeFilter !== 'favorites';
     }
 
-    function updateLiveState(data) {
-      const stateText = data.stale ? clientCopy.stale : clientCopy.live;
-      const updatedAt = new Date(data.updatedAt);
-      const today = new Date();
-      const sameDay = updatedAt.getFullYear() === today.getFullYear()
-        && updatedAt.getMonth() === today.getMonth()
-        && updatedAt.getDate() === today.getDate();
-      liveState.dataset.state = data.stale ? 'stale' : 'live';
-      liveState.querySelector('span:last-child').textContent = stateText;
-      updatedLabel.textContent = `${clientCopy.updated} ${sameDay ? timeFormat.format(updatedAt) : dateTimeFormat.format(updatedAt)}`;
-      staleWarning.classList.toggle('hidden', !data.stale);
+    function applySort() {
+      const mode = sortSelect.value;
+      if (mode === 'land') {
+        for (const group of groups) {
+          const list = group.querySelector('.ride-rows');
+          const sorted = [...group.querySelectorAll('.ride-row')].sort(byWaitThenName(mode));
+          for (const row of sorted) list.append(row);
+        }
+        directory.dataset.flat = 'false';
+        return;
+      }
+      // Flat modes collapse the groups into the first list so a global order is
+      // actually global rather than per themed area.
+      const first = groups[0]?.querySelector('.ride-rows');
+      if (!first) return;
+      const sorted = rows.slice().sort(byWaitThenName(mode));
+      for (const row of sorted) first.append(row);
+      directory.dataset.flat = 'true';
     }
 
-    async function loadWaitTimes() {
-      refreshButtons.forEach((button) => { if (button) button.disabled = true; });
+    function byWaitThenName(mode) {
+      return (a, b) => {
+        const nameA = a.querySelector('.ride-row__name').textContent;
+        const nameB = b.querySelector('.ride-row__name').textContent;
+        if (mode === 'name') return nameA.localeCompare(nameB, locale);
+        const openA = a.dataset.live === 'open';
+        const openB = b.dataset.live === 'open';
+        if (openA !== openB) return openA ? -1 : 1;
+        const waitA = a.dataset.wait === '' || a.dataset.wait === undefined ? null : Number(a.dataset.wait);
+        const waitB = b.dataset.wait === '' || b.dataset.wait === undefined ? null : Number(b.dataset.wait);
+        if (mode === 'shortest') {
+          return (waitA ?? Number.POSITIVE_INFINITY) - (waitB ?? Number.POSITIVE_INFINITY) || nameA.localeCompare(nameB, locale);
+        }
+        if (mode === 'longest') {
+          return (waitB ?? -1) - (waitA ?? -1) || nameA.localeCompare(nameB, locale);
+        }
+        return nameA.localeCompare(nameB, locale);
+      };
+    }
+
+    function renderShortest() {
+      shortestList.replaceChildren();
+      if (parkState !== 'OPEN') {
+        shortest.hidden = true;
+        return;
+      }
+      /*
+       * Restricted to the headliners on purpose. Ranking all 36 rides by queue
+       * length surfaces whatever nobody wants to ride — a VR upcharge at zero
+       * minutes is not an answer to "where do I go now". The question worth
+       * answering is which of the big attractions is reachable right now.
+       */
+      const candidates = rows
+        .filter((row) => headlinerSlugs.includes(row.dataset.slug))
+        .filter((row) => row.dataset.live === 'open' && row.dataset.wait !== '' && row.dataset.wait !== undefined)
+        .sort((a, b) => Number(a.dataset.wait) - Number(b.dataset.wait))
+        .slice(0, 3);
+      if (candidates.length === 0) {
+        shortest.hidden = true;
+        return;
+      }
+      for (const row of candidates) {
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = `#${row.id}`;
+        link.className = 'shortest__card';
+        const minutes = Number(row.dataset.wait);
+        link.innerHTML =
+          `<span class="shortest__wait" data-level="${levelFor(minutes)}"><strong>${minutes}</strong><span>${clientCopy.minutes}</span></span>` +
+          `<span class="shortest__name"></span>`;
+        link.querySelector('.shortest__name').textContent = row.querySelector('.ride-row__name').textContent;
+        item.append(link);
+        shortestList.append(item);
+      }
+      shortest.hidden = false;
+    }
+
+    function renderSchedule(data) {
+      schedule.replaceChildren();
+      const upcoming = (data.upcoming || []).filter((day) => day.openingTime);
+      if (data.state === 'OPEN' || upcoming.length === 0) {
+        schedule.hidden = true;
+        return;
+      }
+      for (const day of upcoming.slice(0, 5)) {
+        const card = document.createElement('div');
+        card.className = 'schedule-day';
+        const date = document.createElement('p');
+        date.className = 'schedule-day__date';
+        date.textContent = dayFormat.format(new Date(day.openingTime));
+        const hours = document.createElement('p');
+        hours.className = 'schedule-day__hours';
+        hours.textContent = day.closingTime
+          ? `${timeFormat.format(new Date(day.openingTime))} – ${timeFormat.format(new Date(day.closingTime))}`
+          : timeFormat.format(new Date(day.openingTime));
+        card.append(date, hours);
+        if (day.crowdPercent !== null && day.crowdPercent !== undefined) {
+          const crowd = document.createElement('p');
+          crowd.className = 'schedule-day__crowd';
+          crowd.textContent = `${day.crowdPercent} %`;
+          card.append(crowd);
+        }
+        schedule.append(card);
+      }
+      schedule.hidden = false;
+    }
+
+    function renderBand(data) {
+      const state = data.state;
+      band.dataset.state = state;
+      band.dataset.quality = data.dataQuality;
+
+      const opensAt = data.today?.openingTime || data.next?.openingTime;
+      const metaParts = [];
+
+      if (state === 'OPEN') {
+        bandText.textContent = data.dataQuality === 'stale' ? clientCopy.stale : clientCopy.live;
+        if (data.today?.closingTime) metaParts.push(fill(clientCopy.closesAt, { time: timeFormat.format(new Date(data.today.closingTime)) }));
+      } else if (state === 'OPENING_SOON' && data.opensInMs !== null) {
+        bandText.textContent = fill(clientCopy.stateOpensIn, { duration: formatDuration(data.opensInMs) });
+      } else if (state === 'BEFORE_OPEN' && opensAt) {
+        bandText.textContent = fill(clientCopy.stateOpensToday, { time: timeFormat.format(new Date(opensAt)) });
+      } else if (state === 'AFTER_CLOSE') {
+        bandText.textContent = clientCopy.stateAfterClose;
+      } else if (state === 'CLOSED_TODAY') {
+        bandText.textContent = clientCopy.stateClosedToday;
+      } else {
+        bandText.textContent = clientCopy.stateSeasonBreak;
+      }
+
+      if (state !== 'OPEN' && data.next?.openingTime) {
+        metaParts.push(fill(clientCopy.stateNextDay, {
+          date: dayFormat.format(new Date(data.next.openingTime)),
+          time: timeFormat.format(new Date(data.next.openingTime)),
+        }));
+      }
+      if (data.today?.crowdPercent !== null && data.today?.crowdPercent !== undefined) {
+        metaParts.push(`${clientCopy.crowdToday} ${data.today.crowdPercent} %`);
+      }
+      if (state === 'OPEN' && data.waitTimes?.updatedAt) {
+        metaParts.push(`${clientCopy.updated} ${timeFormat.format(new Date(data.waitTimes.updatedAt))}`);
+      }
+      bandMeta.textContent = metaParts.join(' · ');
+
+      // Only OPENING_SOON needs a ticking countdown; everything else is static.
+      if (countdownTimer) window.clearInterval(countdownTimer);
+      countdownTimer = null;
+      if (state === 'OPENING_SOON' && data.opensInMs !== null) {
+        let remaining = data.opensInMs;
+        countdownTimer = window.setInterval(() => {
+          remaining -= 60000;
+          if (remaining <= 0) {
+            window.clearInterval(countdownTimer);
+            load();
+            return;
+          }
+          bandText.textContent = fill(clientCopy.stateOpensIn, { duration: formatDuration(remaining) });
+        }, 60000);
+      }
+    }
+
+    function renderNotice(data) {
+      if (data.dataQuality === 'unreliable') {
+        noticeTitle.textContent = clientCopy.unreliableTitle;
+        noticeText.textContent = ` ${clientCopy.unreliableText}`;
+        notice.dataset.tone = 'warn';
+        notice.hidden = false;
+        return;
+      }
+      if (data.state === 'SEASON_BREAK') {
+        noticeTitle.textContent = clientCopy.stateSeasonBreak;
+        noticeText.textContent = ` ${clientCopy.seasonBreakText}`;
+        notice.dataset.tone = 'info';
+        notice.hidden = false;
+        return;
+      }
+      notice.hidden = true;
+    }
+
+    function apply(data) {
+      parkState = data.state;
+      const usable = data.state === 'OPEN' && data.dataQuality !== 'unreliable' && data.waitTimes;
+
+      liveBySlug = new Map();
+      if (usable) {
+        // Match on the provider name via the build-time search index keys.
+        for (const entry of data.waitTimes.rides) {
+          const row = rows.find((candidate) => (searchIndex[candidate.dataset.slug] || '').includes(entry.name.toLocaleLowerCase(locale)));
+          if (row) liveBySlug.set(row.dataset.slug, entry);
+        }
+      }
+
+      if (usable) {
+        for (const row of rows) applyLive(row, liveBySlug.get(row.dataset.slug), data.state);
+        const summary = data.waitTimes.summary;
+        document.querySelector('#open-rides').textContent = String(summary.openRides);
+        document.querySelector('#average-wait').textContent = summary.averageWait === null ? '—' : String(summary.averageWait);
+        document.querySelector('#longest-wait').textContent = summary.longestWait === null ? '—' : String(summary.longestWait);
+        document.querySelector('#average-wait-unit').hidden = summary.averageWait === null;
+        document.querySelector('#longest-wait-unit').hidden = summary.longestWait === null;
+        stats.hidden = false;
+      } else {
+        stats.hidden = true;
+        const opensAt = data.today?.openingTime || data.next?.openingTime;
+        const hint = opensAt && data.state !== 'SEASON_BREAK'
+          ? fill(clientCopy.opensAtShort, { time: timeFormat.format(new Date(opensAt)) })
+          : '';
+        setScheduleHint(hint);
+      }
+
+      renderBand(data);
+      renderNotice(data);
+      renderSchedule(data);
+      renderShortest();
+      render();
+    }
+
+    function showError() {
+      band.dataset.state = 'error';
+      bandText.textContent = clientCopy.errorTitle;
+      bandMeta.textContent = clientCopy.errorText;
+      stats.hidden = true;
+      schedule.hidden = true;
+      shortest.hidden = true;
+      // The directory stays. An unreachable provider must not blank the page.
+      setScheduleHint('');
+      render();
+    }
+
+    let lastUpdatedAt = null;
+
+    async function load() {
+      refreshButton.disabled = true;
       try {
-        const response = await fetch('/api/wait-times', { cache: 'no-cache', headers: { Accept: 'application/json' } });
+        const response = await fetch('/api/park-now', { headers: { Accept: 'application/json' } });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        if (!Array.isArray(data.rides)) throw new Error('Invalid response');
-
-        rides = data.rides;
-        document.querySelector('#open-rides').textContent = String(data.summary.openRides);
-        document.querySelector('#average-wait').textContent = data.summary.averageWait === null ? '—' : String(data.summary.averageWait);
-        document.querySelector('#longest-wait').textContent = data.summary.longestWait === null ? '—' : String(data.summary.longestWait);
-        document.querySelector('#average-wait-unit').classList.toggle('hidden', data.summary.averageWait === null);
-        document.querySelector('#longest-wait-unit').classList.toggle('hidden', data.summary.longestWait === null);
-        if (data.summary.openRides === 0) activeFilter = 'all';
-        filterButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.filter === activeFilter)));
-        updateLiveState(data);
-        loading.classList.add('hidden');
-        errorBox.classList.add('hidden');
-        render();
+        lastUpdatedAt = data.waitTimes?.updatedAt || data.now;
+        apply(data);
       } catch {
-        loading.classList.add('hidden');
-        if (rides.length > 0) {
-          errorBox.classList.add('hidden');
-          staleWarning.classList.remove('hidden');
-          liveState.dataset.state = 'stale';
-          liveState.querySelector('span:last-child').textContent = clientCopy.stale;
-        } else {
-          list.classList.add('hidden');
-          empty.classList.add('hidden');
-          errorBox.classList.remove('hidden');
-          liveState.dataset.state = 'error';
-          liveState.querySelector('span:last-child').textContent = clientCopy.unavailableTitle;
-        }
+        showError();
       } finally {
-        refreshButtons.forEach((button) => { if (button) button.disabled = false; });
+        refreshButton.disabled = false;
       }
     }
 
-    search.addEventListener('input', render);
-    sort.addEventListener('change', render);
-    filterButtons.forEach((button) => button.addEventListener('click', () => {
-      activeFilter = button.dataset.filter;
-      filterButtons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
-      render();
-    }));
-    refreshButtons.forEach((button) => button?.addEventListener('click', loadWaitTimes));
+    // The band wraps to a second line on narrow screens, so the themed-area
+    // headings cannot assume a fixed offset for it.
+    const syncBandHeight = () => {
+      const height = `${Math.round(band.getBoundingClientRect().height)}px`;
+      if (document.documentElement.style.getPropertyValue('--wait-band-height') !== height) {
+        document.documentElement.style.setProperty('--wait-band-height', height);
+      }
+    };
+    new ResizeObserver(syncBandHeight).observe(band);
+    syncBandHeight();
 
-    loadWaitTimes();
-    window.setInterval(loadWaitTimes, 5 * 60 * 1000);
+    search.addEventListener('input', render);
+    sortSelect.addEventListener('change', render);
+    for (const button of filterButtons) {
+      button.addEventListener('click', () => {
+        activeFilter = button.dataset.filter;
+        for (const item of filterButtons) item.setAttribute('aria-pressed', String(item === button));
+        render();
+      });
+    }
+    directory.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-role="fav"]');
+      if (!button) return;
+      const slug = button.dataset.slug;
+      if (favorites.has(slug)) favorites.delete(slug);
+      else favorites.add(slug);
+      writeFavorites();
+      render();
+    });
+    refreshButton.addEventListener('click', load);
+
+    // iOS Safari freezes timers in background tabs, so a five-minute interval
+    // alone shows stale numbers under a "live" label after switching back.
+    window.setInterval(() => {
+      if (document.visibilityState === 'visible') load();
+    }, 5 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible' || !lastUpdatedAt) return;
+      if (Date.now() - new Date(lastUpdatedAt).getTime() > 5 * 60 * 1000) load();
+    });
+    window.addEventListener('online', load);
+
+    render();
+    load();
   </script>
 </Layout>
 
 <style is:global>
-  .summary-card {
-    background: var(--color-surface);
-    border: 3px solid var(--color-border);
-    border-radius: 1rem;
-    box-shadow: 3px 3px 0 var(--shadow-violet);
-    padding: 1.25rem;
-    transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+  /* ---------------------------------------------------------------- hero */
+  .wait-hero {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 2px solid var(--color-border-light);
+    background: var(--color-bg-light);
+  }
+  .wait-hero__inner { position: relative; padding-block: 2rem 1.5rem; }
+  .wait-hero__title {
+    font-size: clamp(1.65rem, 5vw, 3.25rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+  }
+  .wait-hero__sub {
+    margin-top: 0.65rem;
+    max-width: 46ch;
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+    line-height: 1.55;
   }
 
-  .summary-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 6px 6px 0 var(--shadow-violet);
-  }
-
-  .summary-card-accent {
-    border-color: var(--color-accent);
-    box-shadow: 3px 3px 0 var(--color-accent);
-  }
-
-  .summary-card-accent:hover {
-    box-shadow: 6px 6px 0 var(--color-accent);
-  }
-
-  .wait-toolbar {
+  /* ------------------------------------------------------------ state band */
+  .park-band {
     position: sticky;
-    top: 0.5rem;
-    z-index: 20;
-    background: rgb(255 255 255 / 96%);
+    top: calc(var(--site-header-height, 4.25rem));
+    z-index: 30;
+    border-bottom: 2px solid var(--color-border);
+    background: var(--color-surface);
+  }
+  /*
+   * Two rows, not a wrapping flex line. Letting the refresh button wrap pushed
+   * the band to ~120px on a phone — far too much for something that stays on
+   * screen the whole time you scroll 36 rides.
+   */
+  .park-band__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 0.75rem;
+    padding-block: 0.45rem;
+  }
+  .park-band__state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+  }
+  .park-band__dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 999px;
+    background: var(--color-muted);
+    flex: none;
+  }
+  .park-band__meta {
+    grid-column: 1;
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.35;
+    min-width: 0;
+  }
+  .park-band__meta:empty { display: none; }
+  .park-band__refresh {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 2px solid var(--color-border);
+    border-radius: 0.75rem;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    flex: none;
+  }
+  .park-band__refresh:disabled { opacity: 0.5; cursor: progress; }
+
+  .park-band[data-state="OPEN"] .park-band__dot { background: var(--color-available); }
+  /* The pulse means live data, and only that. */
+  .park-band[data-state="OPEN"][data-quality="fresh"] .park-band__dot { animation: park-pulse 2s ease-in-out infinite; }
+  .park-band[data-state="OPENING_SOON"] .park-band__dot { background: var(--color-accent); }
+  .park-band[data-state="error"] .park-band__dot,
+  .park-band[data-quality="unreliable"] .park-band__dot { background: var(--color-gold); }
+
+  @keyframes park-pulse { 50% { opacity: 0.35; } }
+  @media (prefers-reduced-motion: reduce) {
+    .park-band[data-state="OPEN"][data-quality="fresh"] .park-band__dot { animation: none; }
+  }
+
+  /* ---------------------------------------------------------------- stats */
+  .wait-stats-section { padding-block: 1rem; }
+  .wait-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+  .stat {
+    border: 2px solid var(--color-border);
+    border-radius: 0.85rem;
+    background: var(--color-surface);
+    padding: 0.7rem 0.85rem;
+  }
+  .stat__label { color: var(--color-muted); font-size: 0.75rem; font-weight: 700; }
+  .stat__value { display: flex; align-items: baseline; gap: 0.35rem; margin-top: 0.15rem; }
+  .stat__value strong { font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+  .stat__unit { color: var(--color-text-secondary); font-size: 0.8rem; }
+
+  .wait-schedule {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(7.5rem, 1fr);
+    gap: 0.6rem;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+  }
+  .schedule-day {
+    border: 2px solid var(--color-border-light);
+    border-radius: 0.75rem;
+    background: var(--color-surface);
+    padding: 0.6rem 0.7rem;
+  }
+  .schedule-day__date { font-weight: 700; font-size: 0.85rem; }
+  .schedule-day__hours { color: var(--color-text-secondary); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  .schedule-day__crowd { color: var(--color-muted); font-size: 0.78rem; font-weight: 700; }
+
+  /* -------------------------------------------------------------- notices */
+  .wait-list-section { padding-block: 1rem 3rem; }
+  .wait-notice {
+    border: 2px solid var(--color-gold);
+    border-radius: 0.85rem;
+    background: #fffbeb;
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 1rem;
+  }
+  .wait-notice[data-tone="info"] { border-color: var(--color-border-light); background: var(--color-surface-light); }
+  .wait-notice strong { color: var(--color-text-primary); }
+
+  /* ------------------------------------------------------- shortest right now */
+  .shortest { margin-bottom: 1.1rem; }
+  .shortest__title { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+  .shortest__list {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(9rem, 1fr);
+    gap: 0.6rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    list-style: none;
+    padding: 0 0 0.35rem;
+    margin: 0;
+  }
+  .shortest__card {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border: 2px solid var(--color-border);
+    border-radius: 0.85rem;
+    background: var(--color-surface);
+    padding: 0.6rem 0.75rem;
+    scroll-snap-align: start;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+  }
+  .shortest__wait { display: flex; align-items: baseline; gap: 0.15rem; font-variant-numeric: tabular-nums; }
+  .shortest__wait strong { font-size: 1.35rem; }
+  .shortest__wait span { font-size: 0.7rem; }
+  .shortest__name { font-size: 0.85rem; font-weight: 700; line-height: 1.2; }
+
+  /* -------------------------------------------------------------- toolbar */
+  /*
+   * Deliberately not sticky. On a phone this is three stacked controls; pinning
+   * it would eat a third of the viewport for something you set once. The state
+   * band and the themed-area headings are what you need while scrolling.
+   */
+  .wait-toolbar {
+    display: grid;
+    gap: 0.75rem;
+    background: var(--color-surface);
     border: 3px solid var(--color-border);
     border-radius: 1rem;
     box-shadow: 3px 3px 0 var(--color-border);
-    padding: 1rem;
-    backdrop-filter: blur(10px);
+    padding: 0.85rem;
+    margin-bottom: 1.25rem;
   }
-
-  .filter-group {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    border: 2px solid var(--color-border-light);
+  .wait-toolbar__label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .wait-toolbar input[type="search"],
+  .wait-toolbar select {
+    width: 100%;
+    border: 3px solid var(--color-border);
     border-radius: 0.75rem;
-    overflow: hidden;
+    background: var(--color-bg);
+    padding: 0.6rem 0.85rem;
+    font-size: 1rem;
   }
+  .wait-toolbar input[type="search"]:focus,
+  .wait-toolbar select:focus { border-color: var(--color-accent); outline: none; }
+  .wait-toolbar__filters { border: 0; padding: 0; margin: 0; min-width: 0; }
 
+  /*
+   * The filter group used to clip its own focus ring: rounded corners plus
+   * overflow:hidden on the container removed the 3px ring of the first button
+   * entirely (WCAG 2.4.7). The radii now live on the buttons.
+   */
+  .filter-group {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: none;
+  }
+  .filter-group::-webkit-scrollbar { display: none; }
   .filter-group button {
-    background: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--color-surface);
+    border: 2px solid var(--color-border-light);
     color: var(--color-text-secondary);
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     font-weight: 700;
-    padding: 0.75rem 0.9rem;
+    padding: 0.6rem 0.8rem;
+    min-height: 2.75rem;
     white-space: nowrap;
   }
+  .filter-group button + button { border-inline-start-width: 0; }
+  .filter-group button:first-child { border-start-start-radius: 0.75rem; border-end-start-radius: 0.75rem; }
+  .filter-group button:last-child { border-start-end-radius: 0.75rem; border-end-end-radius: 0.75rem; }
+  .filter-group button[aria-pressed="true"] { background: var(--color-accent); border-color: var(--color-accent); color: white; }
+  .filter-group button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .filter-count { font-variant-numeric: tabular-nums; opacity: 0.75; }
 
-  .filter-group button + button { border-left: 2px solid var(--color-border-light); }
-  .filter-group button[aria-pressed="true"] { background: var(--color-accent); color: white; }
-
-  .wait-ride-card,
-  .wait-skeleton {
+  .wait-list-head {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
+    align-items: end;
     justify-content: space-between;
-    gap: 1rem;
-    background: var(--color-surface);
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+  }
+  .wait-list-head h2 { font-size: 1.35rem; font-weight: 700; }
+  .wait-list-head__desc { color: var(--color-text-secondary); font-size: 0.9rem; margin-top: 0.15rem; max-width: 52ch; }
+  .wait-list-head__count { font-size: 0.85rem; font-weight: 700; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+
+  /* ------------------------------------------------------------- the list */
+  /*
+   * One frame around the whole directory rather than 36 heavy frames — the
+   * neo-brutalist signature stays, the zebra of identical boxes goes.
+   */
+  .ride-directory {
     border: 3px solid var(--color-border);
     border-radius: 1rem;
     box-shadow: 3px 3px 0 var(--color-border-light);
-    padding: 1rem 1rem 1rem 1.15rem;
+    background: var(--color-surface);
+    overflow: hidden;
   }
-
-  .wait-ride-card { transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
-  .wait-ride-card:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--shadow-violet); }
-  .wait-skeleton { min-height: 5.75rem; border-color: var(--color-border-light); box-shadow: none; animation: wait-pulse 1.5s ease-in-out infinite; }
-
-  .wait-badge {
-    align-items: center;
-    border: 2px solid;
-    border-radius: 0.85rem;
+  .land-group[hidden] { display: none; }
+  .land-group__head {
+    position: sticky;
+    /* Both offsets are measured at runtime: the header can grow a planner bar
+       and the band wraps to two lines on narrow screens. Guessing either one
+       puts the heading underneath them. */
+    top: calc(var(--site-header-height, 4.25rem) + var(--wait-band-height, 2.9rem));
+    z-index: 10;
     display: flex;
-    flex: 0 0 5rem;
-    flex-direction: column;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    background: var(--color-surface-light);
+    border-block: 1px solid var(--color-border-light);
+    padding: 0.5rem 0.9rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .land-group:first-child .land-group__head { border-block-start: 0; }
+  .land-group__meta { color: var(--color-muted); font-weight: 700; letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums; }
+  .ride-directory[data-flat="true"] .land-group__head { display: none; }
+
+  .ride-rows { list-style: none; margin: 0; padding: 0; }
+
+  .ride-row {
+    display: grid;
+    grid-template-columns: 6px minmax(0, 1fr) auto 2.75rem;
+    align-items: center;
+    gap: 0 0.7rem;
+    min-height: 4rem;
+    padding-inline-end: 0.35rem;
+    border-block-end: 1px solid var(--color-border-light);
+    content-visibility: auto;
+    contain-intrinsic-size: 0 4rem;
+  }
+  .ride-rows > .ride-row:last-child { border-block-end: 0; }
+  .ride-row[hidden] { display: none; }
+
+  .ride-row__stripe { align-self: stretch; background: var(--color-border-light); }
+  .ride-row__stripe[data-level="0"] { background: #15803D; }
+  .ride-row__stripe[data-level="1"] { background: #4D7C0F; }
+  .ride-row__stripe[data-level="2"] { background: #B45309; }
+  .ride-row__stripe[data-level="3"] { background: #C2410C; }
+  .ride-row__stripe[data-level="4"] { background: #BE185D; }
+  .ride-row__stripe[data-level="unknown"] { background: #6B5E8C; }
+  .ride-row__stripe[data-level="closed"],
+  .ride-row__stripe[data-level="idle"] { background: var(--color-border-light); }
+
+  .ride-row__body { display: grid; gap: 0.15rem; padding-block: 0.55rem; min-width: 0; }
+  .ride-row__name { font-weight: 700; font-size: 0.98rem; line-height: 1.25; }
+  .ride-row__meta { color: var(--color-muted); font-size: 0.78rem; min-height: 1em; }
+  .ride-row__bar { display: block; height: 5px; border-radius: 999px; background: var(--color-border-light); overflow: hidden; }
+  .ride-row__bar-fill {
+    display: block;
+    height: 100%;
+    width: calc(var(--pct, 0) * 1%);
+    background: currentColor;
+    color: var(--color-muted);
+    transition: width var(--dur-2, 200ms) var(--ease-out, ease);
+  }
+  .ride-row:has(.ride-row__stripe[data-level="0"]) .ride-row__bar-fill { color: #15803D; }
+  .ride-row:has(.ride-row__stripe[data-level="1"]) .ride-row__bar-fill { color: #4D7C0F; }
+  .ride-row:has(.ride-row__stripe[data-level="2"]) .ride-row__bar-fill { color: #B45309; }
+  .ride-row:has(.ride-row__stripe[data-level="3"]) .ride-row__bar-fill { color: #C2410C; }
+  .ride-row:has(.ride-row__stripe[data-level="4"]) .ride-row__bar-fill {
+    color: #BE185D;
+    /* A fourth, non-colour cue for the top band; survives forced-colors. */
+    background-image: repeating-linear-gradient(45deg, rgb(255 255 255 / 45%) 0 3px, transparent 3px 7px);
+  }
+  .ride-row__bar-fill[style*="--pct:0"] { background: transparent; }
+
+  /*
+   * The wait cell never word-breaks: it holds a number, or nothing. The old
+   * fixed-width badge broke "Geschlossen" into "Geschloss/en" 36 times a page,
+   * in all 17 languages.
+   */
+  .ride-row__wait {
+    display: flex;
+    align-items: baseline;
+    gap: 0.15rem;
+    justify-content: end;
+    min-width: 3.25rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+  .ride-row__wait strong { font-size: 1.4rem; line-height: 1; }
+  .ride-row__wait[data-level="0"] { color: #15803D; }
+  .ride-row__wait[data-level="1"] { color: #4D7C0F; }
+  .ride-row__wait[data-level="2"] { color: #B45309; }
+  .ride-row__wait[data-level="3"] { color: #C2410C; }
+  .ride-row__wait[data-level="4"] { color: #BE185D; }
+  .ride-row__wait[data-level="4"] strong { font-size: 1.65rem; }
+  .ride-row__wait[data-level="0"] strong { font-size: 1.25rem; }
+  .ride-row__wait[data-level="unknown"] { color: #6B5E8C; }
+  .ride-row__wait[data-level="soon"] { color: var(--color-muted); font-weight: 700; }
+
+  .ride-row__fav {
+    width: 2.75rem;
+    height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    min-height: 4.25rem;
-    padding: 0.5rem;
-    text-align: center;
+    border: 0;
+    background: none;
+    color: var(--color-border);
+    cursor: pointer;
+    border-radius: 0.6rem;
   }
+  .ride-row__fav[aria-pressed="true"] { color: var(--color-gold); }
+  .ride-row__fav[aria-pressed="true"] svg { fill: currentColor; }
 
-  /* Non-numeric badge labels (Offen / Geschlossen) must not overflow the fixed box */
-  .wait-badge[data-level="closed"] .ride-wait,
-  .wait-badge[data-level="unknown"] .ride-wait {
-    font-size: 0.72rem;
-    line-height: 1.1;
-    overflow-wrap: anywhere;
-  }
+  .wait-empty { padding: 2rem 1rem; text-align: center; color: var(--color-text-secondary); }
+  .favorites-note { margin-top: 0.6rem; font-size: 0.8rem; color: var(--color-muted); }
 
-  .wait-badge[data-level="low"] { background: #f0fdf4; border-color: #86efac; color: var(--color-available); }
-  .wait-badge[data-level="medium"] { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
-  .wait-badge[data-level="high"] { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
-  .wait-badge[data-level="unknown"] { background: #eff6ff; border-color: #93c5fd; color: var(--color-accent-dark); }
-  .wait-badge[data-level="closed"] { background: var(--color-surface-light); border-color: var(--color-border-light); color: var(--color-muted); }
+  .wait-source { margin-top: 1.25rem; display: grid; gap: 0.5rem; font-size: 0.85rem; color: var(--color-text-secondary); line-height: 1.6; }
+  .wait-source a { font-weight: 700; color: var(--color-accent); }
+  .wait-source a:hover { text-decoration: underline; }
+  .btn-secondary--inline { display: inline-flex; margin-top: 0.35rem; }
 
-  #live-state[data-state="live"] span:first-child { background: var(--color-available); }
-  #live-state[data-state="stale"] span:first-child { background: var(--color-gold); }
-  #live-state[data-state="error"] span:first-child { background: var(--color-unavailable); }
+  .wait-explainer { border-block: 2px solid var(--color-border-light); background: var(--color-surface-light); padding-block: 2.5rem; }
+  .wait-explainer h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.1rem; }
+  .wait-explainer__grid { display: grid; gap: 1rem; }
+  .wait-explainer h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .wait-explainer p { color: var(--color-text-secondary); line-height: 1.6; }
 
-  @keyframes wait-pulse { 50% { opacity: 0.45; } }
+  .wait-faq { padding-block: 2.5rem 3.5rem; }
+  .wait-faq h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.1rem; }
+  .wait-faq__grid { display: grid; gap: 0.85rem; }
+  .wait-faq h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .wait-faq p { color: var(--color-text-secondary); line-height: 1.6; }
 
-  @media (max-width: 640px) {
-    .summary-card {
-      box-shadow: 2px 2px 0 var(--color-border);
-      padding: 0.75rem 0.5rem;
-      text-align: center;
-    }
-    .summary-card-accent { box-shadow: 2px 2px 0 var(--color-accent); }
-    .summary-card > p:first-child {
-      font-size: 0.7rem;
-      line-height: 1.15;
-      margin-bottom: 0.5rem;
-      min-height: 2.3em;
-    }
-    .summary-card > p:last-child {
-      align-items: center;
-      flex-direction: column;
-      gap: 0.1rem;
-    }
-    .summary-card strong { font-size: 1.75rem; }
-    .wait-toolbar { position: static; }
-    .filter-group button { padding-inline: 0.3rem; }
-    .wait-ride-card { padding-left: 1rem; }
+  @media (min-width: 768px) {
+    .wait-hero__inner { padding-block: 3rem 2.25rem; }
+    .wait-toolbar { grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; }
+    .ride-row { grid-template-columns: 6px minmax(0, 1fr) auto 2.75rem; min-height: 4.5rem; contain-intrinsic-size: 0 4.5rem; }
+    .ride-row__name { font-size: 1.05rem; }
+    .wait-explainer__grid, .wait-faq__grid { grid-template-columns: repeat(2, 1fr); }
+    .stat__value strong { font-size: 2rem; }
   }
 </style>

@@ -3,6 +3,8 @@ import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, crowdCalendarPaths, getTranslation } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
 import BrandSafeText from './BrandSafeText.astro';
+import { getLocaleDefinition } from '../i18n/locales';
+import { getBuildTimeStatus } from '../data/status-snapshot';
 
 interface Props {
   lang?: Lang;
@@ -10,6 +12,21 @@ interface Props {
 
 const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
+
+/*
+ * The answer ships in the HTML. These pills used to read "Wird geprüft…" for
+ * anything that does not run JavaScript — which is every answer engine and, on
+ * the first paint, every visitor.
+ */
+const snapshot = await getBuildTimeStatus();
+const pillText = (state: 'available' | 'sold_out' | 'unknown') =>
+  state === 'available' ? tr('status.available')
+  : state === 'sold_out' ? tr('status.sold_out')
+  : tr('status.unknown_short');
+const lastCheckDate = snapshot.capturedAt ? new Date(snapshot.capturedAt) : null;
+const lastCheckLabel = lastCheckDate && !Number.isNaN(lastCheckDate.getTime())
+  ? `${tr('status.last_check')}: ${lastCheckDate.toLocaleString(getLocaleDefinition(lang).bcp47, { dateStyle: 'medium', timeStyle: 'short' })} · ${tr('status.updated_3x')}`
+  : tr('status.updated_3x');
 const titleLead = tr('hero.title_lead');
 const titleHighlight = tr('hero.title_highlight');
 const answerLabel = tr('hero.answer_label');
@@ -50,21 +67,21 @@ const features = [
 
       <div class="hero-status mx-auto mb-7 max-w-2xl animate-fade-in-up-delay-2">
         <p class="mb-2 font-mono text-[0.65rem] uppercase tracking-[0.14em] text-muted">
-          {answerLabel} · <span id="hero-status-time">{tr('status.updated_3x')}</span>
+          {answerLabel} · <span id="hero-status-time">{lastCheckLabel}</span>
         </p>
         <p class="mb-3 text-left text-[0.98rem] leading-relaxed text-text-secondary md:text-[1.05rem]">
           {tr('hero.subtitle')}
         </p>
         <div class="flex flex-wrap gap-2" role="status" aria-live="polite">
-          <span class="hero-pill" id="hero-pill-silver" data-state="unknown">
+          <span class="hero-pill" id="hero-pill-silver" data-state={snapshot.silver.state}>
             <span class="dot" aria-hidden="true"></span>
             <span class="hero-status-label">Silver</span>
-            <span class="hero-status-value" id="hero-status-silver">{tr('status.checking')}</span>
+            <span class="hero-status-value" id="hero-status-silver">{pillText(snapshot.silver.state)}</span>
           </span>
-          <span class="hero-pill" id="hero-pill-gold" data-state="unknown">
+          <span class="hero-pill" id="hero-pill-gold" data-state={snapshot.gold.state}>
             <span class="dot" aria-hidden="true"></span>
             <span class="hero-status-label">Gold</span>
-            <span class="hero-status-value" id="hero-status-gold">{tr('status.checking')}</span>
+            <span class="hero-status-value" id="hero-status-gold">{pillText(snapshot.gold.state)}</span>
           </span>
         </div>
       </div>

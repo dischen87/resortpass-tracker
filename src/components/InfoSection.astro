@@ -3,6 +3,7 @@ import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
 import { getPlanningPack } from '../content/planning';
+import { getAvailabilityAnswer } from '../data/availability-answer';
 
 interface Props {
   lang?: Lang;
@@ -11,6 +12,9 @@ interface Props {
 const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
 const planningPack = getPlanningPack(lang);
+// Follows the build-time snapshot instead of a frozen "Nein.", and carries its
+// own check timestamp so a later quote of it stays honest.
+const availabilityAnswer = await getAvailabilityAnswer(lang);
 const resourceCopy = {
   title: planningPack.common.relatedTitle,
   compare: planningPack.pages.resortPassCompare.eyebrow,
@@ -44,7 +48,7 @@ const resources = [
       <article class="card reveal p-6" style="--card-shadow:#FDE68A;--i:1">
         <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent mb-3">02</p>
         <h3 class="text-lg font-bold mb-3">{tr('info.why_title')}</h3>
-        <p class="text-sm text-text-secondary leading-relaxed">{tr('info.why_text')}</p>
+        <p class="text-sm text-text-secondary leading-relaxed">{availabilityAnswer}</p>
       </article>
 
       <article class="card reveal p-6" style="--card-shadow:#F9A8D4;--i:2">

@@ -13,6 +13,8 @@ import ResponsiveIllustration from './ResponsiveIllustration.astro';
 import '../styles/global.css';
 import { getTranslation, type Lang } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
+import { getBuildTimeStatus } from '../data/status-snapshot';
+import { getAvailabilityAnswer } from '../data/availability-answer';
 import { getLocaleDefinition } from '../i18n/locales';
 
 interface Props {
@@ -26,6 +28,17 @@ const homePath = getRoutePath('home', lang)!;
 const breadcrumbName = tr('nav.home');
 const localeTag = getLocaleDefinition(lang).bcp47;
 const socialImageUrl = `${siteUrl}/og-resortpass-v3.png`;
+
+/*
+ * Rendered into the HTML so the page states when it last knew something, rather
+ * than an indefinite "checking…". The island still refreshes it on load.
+ */
+const statusSnapshot = await getBuildTimeStatus();
+const availabilityAnswer = await getAvailabilityAnswer(lang);
+const snapshotDate = new Date(statusSnapshot.capturedAt);
+const staticLastCheck = Number.isNaN(snapshotDate.getTime())
+  ? tr('status.updated_3x')
+  : `${tr('status.last_check')}: ${snapshotDate.toLocaleString(localeTag, { dateStyle: 'medium', timeStyle: 'short' })} · ${tr('status.updated_3x')}`;
 ---
 
 <Layout lang={lang} routeKey="home">
@@ -49,7 +62,7 @@ const socialImageUrl = `${siteUrl}/og-resortpass-v3.png`;
         </div>
 
         <p class="mt-7 text-center font-mono text-xs text-muted" id="last-check" role="status" aria-live="polite">
-          <span id="last-check-text">{tr('status.loading')}</span>
+          <span id="last-check-text">{staticLastCheck}</span>
         </p>
       </div>
     </section>
@@ -136,7 +149,7 @@ const socialImageUrl = `${siteUrl}/og-resortpass-v3.png`;
     '@type': 'FAQPage',
     mainEntity: [
       [tr('info.what_title'), tr('info.what_text')],
-      [tr('info.why_title'), tr('info.why_text')],
+      [tr('info.why_title'), availabilityAnswer],
       [tr('info.how_title'), tr('info.how_text')],
       [tr('info.tip_title'), tr('info.tip_text')],
     ].map(([name, text]) => ({
@@ -177,6 +190,45 @@ const socialImageUrl = `${siteUrl}/og-resortpass-v3.png`;
 
     const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    /**
+     * Builds the "on sale now" panel on demand.
+     *
+     * The static HTML deliberately omits it, so nothing can be crawled or
+     * quoted as an active purchase link while the pass is sold out. The one
+     * moment this project exists for still has to work for someone who left
+     * the tab open, so the panel is created the first time the status flips.
+     */
+    function ensureAvailablePanel(card: HTMLElement) {
+      if (card.querySelector('.status-available')) return;
+      const shopUrl = 'https://tickets.mackinternational.de/de/resortpass/uebersicht';
+      const panel = document.createElement('div');
+      panel.className = 'status-available';
+      panel.setAttribute('role', 'status');
+
+      const banner = document.createElement('div');
+      banner.className = 'flex min-h-12 items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-available';
+      const dot = document.createElement('span');
+      dot.className = 'relative flex h-3 w-3 shrink-0';
+      dot.innerHTML = '<span class="ping-brand absolute inline-flex h-full w-full rounded-full bg-green-500"></span><span class="relative inline-flex h-3 w-3 rounded-full bg-available"></span>';
+      const label = document.createElement('span');
+      label.className = 'font-heading text-lg font-extrabold';
+      label.textContent = tr('status.available');
+      banner.append(dot, label);
+
+      const cta = document.createElement('a');
+      cta.href = shopUrl;
+      cta.target = '_blank';
+      cta.rel = 'noopener noreferrer';
+      cta.className = 'btn-primary mt-3 w-full bg-available py-3 text-base';
+      cta.textContent = tr('status.buy_now');
+
+      panel.append(banner, cta);
+      // Ahead of the price table, where the sold-out banner also sits.
+      const anchor = card.querySelector('.status-checking');
+      if (anchor) anchor.before(panel);
+      else card.append(panel);
+    }
+
     function updateCard(type: 'silver' | 'gold', status: PassStatus, didFetchFail = false) {
       const card = document.getElementById(`card-${type}`);
       if (!card) return;
@@ -188,6 +240,10 @@ const socialImageUrl = `${siteUrl}/og-resortpass-v3.png`;
         : 'checking';
 
       card.classList.remove('card-available', 'card-unavailable');
+      // The "on sale" panel is not shipped in the HTML — a hidden buy button
+      // for a sold-out product is what crawlers were reading. It is built here
+      // the moment the shop actually opens, so a page left open still updates.
+      if (visibleBlock === 'available') ensureAvailablePanel(card);
       for (const block of ['loading', 'available', 'unavailable', 'checking', 'error']) {
         card.querySelector(`.status-${block}`)?.classList.toggle('hidden', block !== visibleBlock);
       }

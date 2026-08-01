@@ -24,6 +24,18 @@ const transportConfig: any = {
   host: SMTP_HOST,
   port: SMTP_PORT,
   secure: SMTP_PORT === 465,
+  /*
+   * Pooled connections. Without this every alert opened its own SMTP session:
+   * connect, TLS handshake, auth, one message, close — repeated once per
+   * subscriber. With ~885 confirmed subscribers that handshake cost dominated
+   * the run on the one occasion the project exists for.
+   *
+   * Three connections stays well inside Brevo's relay limits while cutting the
+   * per-message overhead to almost nothing.
+   */
+  pool: true,
+  maxConnections: 3,
+  maxMessages: 100,
 };
 
 if (SMTP_USER && SMTP_PASS) {

@@ -108,8 +108,9 @@ const skipLinkLabel = Astro.props.skipLinkLabel || tr('nav.skip');
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.json" />
 
-  <!-- Font Preload (LCP) -->
-  <link rel="preload" href="/fonts/DMSans-Regular.woff2" as="font" type="font/woff2" crossorigin />
+  <!-- Font Preload (LCP). One variable file now serves every weight, so the
+       previously unpreloaded bold no longer causes a second-wave reflow. -->
+  <link rel="preload" href="/fonts/DMSans-Variable.woff2" as="font" type="font/woff2" crossorigin />
 
   <meta name="author" content="Mathias Graf" />
 

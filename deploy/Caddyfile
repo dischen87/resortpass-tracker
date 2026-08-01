@@ -26,18 +26,30 @@ www.resortpass-europapark.ch {
 		file_server
 	}
 
+	# Serve the 404 page with the 404 status.
+	#
+	# Without the `status` argument `file_server` answers 200, because as far as
+	# it is concerned it successfully served /404.html. Production is doing
+	# exactly that today: every invented URL returns 200 with the German home
+	# page and `index, follow`, which is an unbounded duplicate-content
+	# generator and makes redirects impossible to verify.
 	handle_errors 404 {
 		rewrite /404.html
-		file_server
+		file_server {
+			status {err.status_code}
+		}
 	}
 
 	# Security headers
 	header {
 		X-Content-Type-Options nosniff
 		X-Frame-Options DENY
-		X-XSS-Protection "1; mode=block"
 		Referrer-Policy strict-origin-when-cross-origin
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# X-XSS-Protection is deliberately absent: the filter it enabled has been
+		# removed from every current browser, and in its last versions it could
+		# itself be abused. Content-Type-Options plus a real CSP is the successor.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 	}
 
 	# Astro content-hashed bundles are safe to cache immutably.
@@ -61,12 +73,18 @@ www.resortpass-europapark.ch {
 	@status path /api/status.json
 	header @status Cache-Control "public, max-age=60"
 
-	encode gzip zstd
+	# zstd first: Caddy offers encodings in the order listed, and browsers that
+	# accept both were being handed gzip — a measurably larger payload.
+	encode zstd gzip
 
 	log {
 		output file /var/log/caddy/resortpass-access.log {
 			roll_size 10MiB
 			roll_keep 3
+			# Access logs contain IP addresses. A size-based cap alone is not a
+			# retention policy; this bounds how long they can exist at all and is
+			# what the privacy statement refers to.
+			roll_keep_for 14d
 		}
 	}
 }

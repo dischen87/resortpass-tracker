@@ -84,7 +84,7 @@ describe('translation compatibility', () => {
 
   test('keeps an identical, complete core key set in all 17 languages', () => {
     const expectedKeys = Object.keys(t.en).sort();
-    expect(expectedKeys).toHaveLength(284);
+    expect(expectedKeys).toHaveLength(324);
 
     for (const locale of localeCodes) {
       expect(Object.keys(t[locale]).sort()).toEqual(expectedKeys);
