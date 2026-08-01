@@ -24,6 +24,8 @@ const passGuideLabel = tr('nav.resortpass_guide');
 // convention the header uses. "Open Source" was claimed twice on the site
 // without the repository being linked anywhere.
 const methodologyPath = getRoutePath('methodology', lang) || getRoutePath('methodology', 'en')!;
+const openingHoursPath = getRoutePath('openingHours', lang) || getRoutePath('openingHours', 'en')!;
+const openingHoursLabel = { de: 'Öffnungszeiten', en: 'Opening hours', fr: 'Horaires d’ouverture', nl: 'Openingstijden', it: 'Orari di apertura' }[lang as string] || 'Opening hours';
 const methodologyLabel = { de: 'Methodik', en: 'Methodology', fr: 'Méthodologie', nl: 'Methodiek', it: 'Metodologia' }[lang as string] || 'Methodology';
 ---
 
@@ -66,6 +68,7 @@ const methodologyLabel = { de: 'Methodik', en: 'Methodology', fr: 'Méthodologie
         <ul class="space-y-2.5">
           <li><a href={waitTimesPath} class="text-sm text-muted hover:text-text-primary">{tr('nav.wait_times')}</a></li>
           <li><a href={crowdCalendarPath} class="text-sm text-muted hover:text-text-primary">{tr('nav.crowd_forecast')}</a></li>
+          <li><a href={openingHoursPath} class="text-sm text-muted hover:text-text-primary">{openingHoursLabel}</a></li>
           <li><a href={getRoutePath('parkGuide', lang)!} class="text-sm text-muted hover:text-text-primary">{planningLabel}</a></li>
           <li><a href={getRoutePath('resortPassGuide', lang)!} class="text-sm text-muted hover:text-text-primary">{passGuideLabel}</a></li>
           <li><a href={`${homePath}#benachrichtigung`} class="text-sm text-muted hover:text-text-primary">{tr('subscribe.sticky_cta')}</a></li>

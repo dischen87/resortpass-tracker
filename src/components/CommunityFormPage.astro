@@ -13,6 +13,16 @@ interface Props {
 const { lang } = Astro.props;
 const tr = (key: string) => getTranslation(lang, key);
 const homePath = getRoutePath('home', lang)!;
+/*
+ * Only what the island needs, serialised at build time — importing
+ * getTranslation would pull the whole 17-language table into the page.
+ */
+const clientCopy = {
+  'community.error': tr('community.error'),
+  'community.submit': tr('community.submit'),
+  'community.submitting': tr('community.submitting'),
+};
+
 ---
 
 <Layout lang={lang} routeKey="communityNew" title={tr('community.form_title')} noindex>
@@ -61,15 +71,15 @@ const homePath = getRoutePath('home', lang)!;
   </main>
   <Footer lang={lang} showLanguageSwitcher={false} />
 
-  <script define:vars={{ lang }}>
+  <script define:vars={{ lang, clientCopy }}>
     window.__communityFormLang = lang;
+    window.__communityFormCopy = clientCopy;
   </script>
 
   <script>
-    import { getTranslation, type Lang } from '../i18n/translations';
-
-    const lang = ((window as any).__communityFormLang || 'de') as Lang;
-    const tr = (key: string) => getTranslation(lang, key);
+    const lang = (window as any).__communityFormLang || 'de';
+    const clientCopy = (window as any).__communityFormCopy as Record<string, string>;
+    const tr = (key: string) => clientCopy?.[key] ?? key;
     const token = new URLSearchParams(window.location.search).get('token');
     const form = document.getElementById('community-form') as HTMLFormElement;
     const noToken = document.getElementById('form-no-token')!;

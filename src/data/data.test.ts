@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { rides } from "./rides";
+import type { VerifiedFamilyAttraction } from "./attractions";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -8,6 +10,7 @@ import {
   centralFacts,
   licensedMedia,
   restaurantDirectory,
+  verifiedFamilyAttractions,
 } from "./index";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -141,5 +144,74 @@ describe("media license registry", () => {
         expect(existsSync(join(import.meta.dir, "../..", "public", media.localPath!))).toBe(true);
       }
     }
+  });
+});
+
+describe('attraction limits are safe to publish', () => {
+  /**
+   * These numbers decide whether a family drives two hours to find their child
+   * cannot ride. They are scraped from the operator's own pages, never typed by
+   * hand, and these are the invariants that would catch a parser regression.
+   */
+  test('every entry cites the operator page it came from', () => {
+    for (const attraction of verifiedFamilyAttractions) {
+      expect(attraction.sourceUrl).toMatch(
+        /^https:\/\/www\.europapark\.de\/de\/freizeitpark\/attraktionen\/[a-z0-9-]+$/,
+      );
+      expect(attraction.checkedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(attraction.nextReviewAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  });
+
+  test('no ride claims an age limit while reporting no height limit', () => {
+    // The exact failure a "120 bis 195 cm" page produced before the range
+    // pattern existed: a 130 cm minimum published as none.
+    const suspicious = verifiedFamilyAttractions
+      .filter((a) => a.minAge >= 6 && a.minHeight === 0)
+      .map((a) => a.id);
+    expect(suspicious).toEqual([]);
+  });
+
+  test('limits stay inside physically plausible bounds', () => {
+    // `as const` gives each entry its own literal type, so the optional fields
+    // only exist on some members of the union. Read through the interface.
+    const all: VerifiedFamilyAttraction[] = [...verifiedFamilyAttractions];
+    for (const attraction of all) {
+      expect(attraction.minAge).toBeGreaterThanOrEqual(0);
+      expect(attraction.minAge).toBeLessThanOrEqual(18);
+      expect(attraction.minHeight).toBeGreaterThanOrEqual(0);
+      expect(attraction.minHeight).toBeLessThanOrEqual(200);
+      if (attraction.maxHeight !== undefined) {
+        expect(attraction.maxHeight).toBeGreaterThan(attraction.minHeight);
+      }
+      if (attraction.accompaniedUntilHeight !== undefined) {
+        // Being accompanied only matters above the hard minimum.
+        expect(attraction.accompaniedUntilHeight).toBeGreaterThanOrEqual(attraction.minHeight);
+      }
+    }
+  });
+
+  test('ids and names line up with the ride inventory', () => {
+    const slugs = new Set(rides.map((ride) => ride.slug));
+    for (const attraction of verifiedFamilyAttractions) {
+      expect(slugs.has(attraction.id)).toBe(true);
+    }
+  });
+
+  test('covers the whole inventory, not a handful', () => {
+    // It used to hold six of more than a hundred attractions, so the family
+    // finder answered nearly every question with the same six rides.
+    // Both arrays are `as const`, so their lengths are literal types; compare
+    // the widened values or TypeScript rejects the assertion outright.
+    const covered: number = verifiedFamilyAttractions.length;
+    const inventory: number = rides.length;
+    expect(covered).toBe(inventory);
+  });
+
+  test('the three hand-verified entries are unchanged by the scraper', () => {
+    const byId = Object.fromEntries(verifiedFamilyAttractions.map((a) => [a.id, a]));
+    expect(byId['snorri-touren']).toMatchObject({ minAge: 0, minHeight: 0, accompaniedUntilAge: 8, accompaniedUntilHeight: 130 });
+    expect(byId['pegasus']).toMatchObject({ minAge: 4, minHeight: 100, accompaniedUntilAge: 8, accompaniedUntilHeight: 130 });
+    expect(byId['arthur']).toMatchObject({ minAge: 4, minHeight: 100, accompaniedUntilAge: 6 });
   });
 });

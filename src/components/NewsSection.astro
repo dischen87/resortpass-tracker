@@ -8,6 +8,19 @@ interface Props {
 
 const lang = Astro.props.lang || defaultLang;
 const tr = (key: string) => getTranslation(lang, key);
+/*
+ * Only the strings this island actually uses, serialised at build time.
+ * Importing getTranslation pulled the whole 17-language table — 469 KB,
+ * 121 KB gzipped — into the page's module graph and blocked every API
+ * call behind it. The wait-times page already did it this way.
+ */
+const clientCopy = {
+  'news.empty': tr('news.empty'),
+  'status.available': tr('status.available'),
+  'status.error': tr('status.error'),
+  'status.sold_out': tr('status.sold_out')
+};
+
 ---
 
 <section class="py-16 md:py-20" id="news" aria-labelledby="news-heading">
@@ -42,16 +55,18 @@ const tr = (key: string) => getTranslation(lang, key);
   </div>
 </section>
 
-<script define:vars={{ lang }}>
+<script define:vars={{ lang, clientCopy }}>
   window.__newsLang = lang;
+  window.__newsLangCopy = clientCopy;
 </script>
 
 <script>
-  import { getTranslation, type Lang } from '../i18n/translations';
+  import type { Lang } from '../i18n/locales';
   import { getLocaleDefinition } from '../i18n/locales';
 
   const newsLang = ((window as any).__newsLang || 'de') as Lang;
-  const tr = (key: string) => getTranslation(newsLang, key);
+  const clientCopy = (window as any).__newsLangCopy as Record<string, string>;
+  const tr = (key: string) => clientCopy?.[key] ?? key;
   const locale = getLocaleDefinition(newsLang).bcp47;
 
   type NewsItem = {
