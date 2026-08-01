@@ -11,14 +11,26 @@ interface Props {
     reservation: string;
     rulantica: string;
   };
-  mode?: 'full' | 'compact';
+  /**
+   * Which blocks this page owns.
+   *
+   * The tool used to render whole or not at all, and "whole" was used on three
+   * pages at once — so the Silver/Gold comparison and the break-even
+   * calculator appeared verbatim on /resortpass-guide/, /resortpass-preise/
+   * and /resortpass-silver-oder-gold/. Three URLs competing with identical
+   * primary content is the cannibalisation; the pages themselves are fine.
+   *
+   * The live status and the links render everywhere: the status is the site's
+   * core answer and belongs on any page about the pass.
+   */
+  sections?: readonly ('comparison' | 'calculator')[];
   toolId?: string;
 }
 
 const {
   copy,
   paths,
-  mode = 'full',
+  sections = [],
   toolId = 'resortpass-tool',
 } = Astro.props;
 
@@ -59,11 +71,16 @@ const links = [
 ];
 ---
 
-<section class:list={['rp-tool', { 'rp-tool--compact': mode === 'compact' }]} id={toolId} aria-labelledby={`${toolId}-title`}>
+<section class:list={['rp-tool', { 'rp-tool--compact': sections.length === 0 }]} id={toolId} aria-labelledby={`${toolId}-title`}>
   <header class="rp-tool__intro">
     <span class="section-kicker">{copy.eyebrow}</span>
     <h2 id={`${toolId}-title`} class="section-heading">{copy.title}</h2>
-    <p>{copy.intro}</p>
+    {/*
+      The intro reads "the comparison and calculator then help you decide", so
+      it only belongs where one of them is. On the hub and the two prose pages
+      the links block below already points at both.
+    */}
+    {sections.length > 0 && <p>{copy.intro}</p>}
   </header>
 
   <section class="rp-status" aria-labelledby={`${toolId}-status-title`}>
@@ -86,8 +103,7 @@ const links = [
     <noscript><p class="rp-noscript">{copy.statusUnknown}</p></noscript>
   </section>
 
-  {mode === 'full' && (
-    <>
+  {sections.includes('comparison') && (
       <section class="rp-comparison" aria-labelledby={`${toolId}-comparison-title`}>
         <div class="rp-section-title">
           <Icon name="tabler:columns-3" aria-hidden="true" />
@@ -163,7 +179,9 @@ const links = [
           </table>
         </div>
       </section>
+  )}
 
+  {sections.includes('calculator') && (
       <section class="rp-calculator" aria-labelledby={`${toolId}-calculator-title`}>
         <div class="rp-section-title">
           <Icon name="tabler:calculator" aria-hidden="true" />
@@ -221,7 +239,6 @@ const links = [
         </p>
         <p class="rp-disclaimer">{copy.estimateDisclaimer}</p>
       </section>
-    </>
   )}
 
   <nav class="rp-links" aria-label={copy.linksTitle}>

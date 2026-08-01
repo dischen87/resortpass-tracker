@@ -422,7 +422,22 @@ const heroImage = heroMedia && 'localPath' in heroMedia
       <div class="section-shell">
         <ResortPassTool
           copy={pack.resortPassTool}
-          mode={['resortPassReservation', 'resortPassRulantica'].includes(pageKey) ? 'compact' : 'full'}
+          {/*
+            Each page owns exactly the block it exists to answer, so no two
+            URLs compete with the same primary content:
+              silver-oder-gold  the Silver/Gold comparison
+              preise            the break-even calculator
+              guide             neither — it is the hub and links to both
+              reservierung, rulantica  neither; their own prose is the answer
+            Everyone keeps the live status, which is the site's core answer.
+          */}
+          sections={
+            pageKey === 'resortPassCompare'
+              ? (['comparison'] as const)
+              : pageKey === 'resortPassPrices'
+                ? (['calculator'] as const)
+                : ([] as const)
+          }
           paths={{
             compare: path('resortPassCompare'),
             prices: path('resortPassPrices'),
