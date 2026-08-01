@@ -20,6 +20,11 @@ const isCrowdCalendarPage = Object.values(crowdCalendarPaths).includes(Astro.url
 const ctaTitle = tr('footer.cta_title');
 const planningLabel = tr('nav.plan_visit');
 const passGuideLabel = tr('nav.resortpass_guide');
+// Published in five languages; the rest link to the English edition, the same
+// convention the header uses. "Open Source" was claimed twice on the site
+// without the repository being linked anywhere.
+const methodologyPath = getRoutePath('methodology', lang) || getRoutePath('methodology', 'en')!;
+const methodologyLabel = { de: 'Methodik', en: 'Methodology', fr: 'Méthodologie', nl: 'Methodiek', it: 'Metodologia' }[lang as string] || 'Methodology';
 ---
 
 <section class="py-16 md:py-20" aria-label={tr('subscribe.title')}>
@@ -72,7 +77,16 @@ const passGuideLabel = tr('nav.resortpass_guide');
 
       <div>
         <h3 class="mb-3 text-sm font-extrabold">{tr('footer.imprint')}</h3>
-        <a href={imprintPath} class="text-sm text-muted hover:text-text-primary">{tr('footer.imprint')}</a>
+        <ul class="space-y-2.5">
+          <li><a href={imprintPath} class="text-sm text-muted hover:text-text-primary">{tr('footer.imprint')}</a></li>
+          <li><a href={methodologyPath} class="text-sm text-muted hover:text-text-primary">{methodologyLabel}</a></li>
+          <li>
+            <a href="https://github.com/dischen87/resortpass-tracker" rel="noopener noreferrer" target="_blank" class="inline-flex items-center gap-1.5 text-sm text-muted hover:text-text-primary">
+              GitHub
+              <Icon name="tabler:external-link" class="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          </li>
+        </ul>
         {showLanguageSwitcher && (
           <div class="mt-6">
             <LanguageSwitcher lang={lang} paths={isCrowdCalendarPage ? crowdCalendarPaths : undefined} />

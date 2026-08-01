@@ -1,7 +1,8 @@
 import { transform } from '@astrojs/compiler';
 import { describe, expect, test } from 'bun:test';
 import { localeCodes } from '../i18n/locales';
-import { getCoreHeaderRoutes } from './site-header-model';
+import { getTranslation } from '../i18n/translations';
+import { getCoreHeaderRoutes, navAccessibleName, violatesLabelInName } from './site-header-model';
 
 const siteHeaderPath = new URL('./SiteHeader.astro', import.meta.url);
 const languageSwitcherPath = new URL('./LanguageSwitcher.astro', import.meta.url);
@@ -88,5 +89,46 @@ describe('shared site header', () => {
     expect(languageSwitcherSource).toContain('data-language-equivalent');
     expect(languageSwitcherSource).not.toContain('hreflang');
     expect(languageSwitcherSource).not.toContain('rel="alternate"');
+  });
+});
+
+describe('WCAG 2.5.3 — label in name', () => {
+  /**
+   * A voice-control user activates a link by saying what they can see. The
+   * accessible name must therefore contain the visible text. The desktop
+   * navigation used to override it with a longer translation, which failed in
+   * six languages; this locks that shut for all seventeen.
+   */
+  test('every primary nav link is nameable by its visible text', () => {
+    const failures: string[] = [];
+    for (const locale of localeCodes) {
+      const routes = getCoreHeaderRoutes(locale);
+      const links = [
+        { visible: getTranslation(locale, 'nav.wait_short'), fallback: routes.waitTimes.fallbackToEnglish },
+        { visible: getTranslation(locale, 'nav.crowd_short'), fallback: routes.crowdCalendar.fallbackToEnglish },
+      ];
+      for (const link of links) {
+        const name = navAccessibleName(link.visible, link.fallback);
+        if (violatesLabelInName(link.visible, name)) {
+          failures.push(`${locale}: "${link.visible}" not contained in "${name}"`);
+        }
+      }
+    }
+    expect(failures).toEqual([]);
+  });
+
+  test('the English-fallback marker is appended, never substituted', () => {
+    expect(navAccessibleName('Attentes', true)).toBe('Attentes — English');
+    expect(navAccessibleName('Attentes', false)).toBe('Attentes');
+    expect(violatesLabelInName('Attentes', 'Attentes — English')).toBe(false);
+  });
+
+  test('detects the exact regression this replaced', () => {
+    // The old markup: visible "Attentes", accessible name "Temps d'attente".
+    expect(violatesLabelInName('Attentes', 'Temps d’attente')).toBe(true);
+    expect(violatesLabelInName('Waits', 'Wait times')).toBe(true);
+    expect(violatesLabelInName('Kolejki', 'Czasy oczekiwania')).toBe(true);
+    // Curly and straight apostrophes must not create a false positive.
+    expect(violatesLabelInName('Temps d’attente', "Temps d'attente")).toBe(false);
   });
 });

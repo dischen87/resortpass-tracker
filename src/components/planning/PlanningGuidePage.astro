@@ -7,6 +7,7 @@ import {
 } from '../../i18n/routes';
 import { getPlanningPack } from '../../content/planning';
 import { centralFacts, licensedMedia, verifiedFamilyAttractions } from '../../data';
+import { EDITORIAL_CHECKED_AT } from '../../data/review-dates';
 import PlanningPage from './PlanningPage.astro';
 import VisitPlanner from './VisitPlanner.astro';
 import CostCalculator from './CostCalculator.astro';
@@ -24,7 +25,7 @@ interface Props {
 const { lang, pageKey } = Astro.props;
 const pack = getPlanningPack(lang);
 const page = pack.pages[pageKey];
-const checkedAt = '2026-07-29';
+const checkedAt = EDITORIAL_CHECKED_AT;
 const languageTag = getLocaleDefinition(lang).bcp47;
 
 const path = (key: GuideRouteKey) => getRoutePath(key, lang)!;

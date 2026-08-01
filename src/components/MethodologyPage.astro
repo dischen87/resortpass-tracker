@@ -1,0 +1,192 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from './Navbar.astro';
+import Footer from './Footer.astro';
+import { getRoutePath } from '../i18n/routes';
+import { getLocaleDefinition } from '../i18n/locales';
+import { getTranslation } from '../i18n/translations';
+import { getMethodologyPack, type MethodologyLocale } from '../content/methodology';
+import { buildEntityGraph, ENTITY_IDS, REPO_URL, SITE_URL } from '../data/entity-graph';
+import '../styles/global.css';
+
+interface Props {
+  lang: MethodologyLocale;
+}
+
+const { lang } = Astro.props;
+const pack = getMethodologyPack(lang);
+const tr = (key: string) => getTranslation(lang, key);
+const pagePath = getRoutePath('methodology', lang)!;
+const homePath = getRoutePath('home', lang)!;
+const localeTag = getLocaleDefinition(lang).bcp47;
+
+const graph = [
+  ...buildEntityGraph(lang, pagePath),
+  {
+    // Both types: AboutPage is the precise one, WebPage is what every consumer
+    // (including our own build verifier) looks for.
+    '@type': ['WebPage', 'AboutPage'],
+    '@id': `${SITE_URL}${pagePath}#webpage`,
+    url: `${SITE_URL}${pagePath}`,
+    name: pack.metaTitle,
+    description: pack.metaDescription,
+    inLanguage: localeTag,
+    isPartOf: { '@id': ENTITY_IDS.website },
+    about: { '@id': ENTITY_IDS.organization },
+    publisher: { '@id': ENTITY_IDS.organization },
+    author: { '@id': ENTITY_IDS.author },
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: tr('nav.home'), item: `${SITE_URL}${homePath}` },
+        { '@type': 'ListItem', position: 2, name: pack.title, item: `${SITE_URL}${pagePath}` },
+      ],
+    },
+  },
+];
+---
+
+<Layout lang={lang} routeKey="methodology" title={pack.metaTitle} description={pack.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify({ '@context': 'https://schema.org', '@graph': graph })} />
+
+  <Navbar lang={lang} />
+
+  <main id="main-content" class="methodology">
+    <div class="section-shell section-shell--narrow">
+      <header class="methodology__header">
+        <p class="methodology__eyebrow">{pack.eyebrow}</p>
+        <h1>{pack.title}</h1>
+        <p class="methodology__intro">{pack.intro}</p>
+      </header>
+
+      {pack.sections.map((section) => (
+        <section class="methodology__section">
+          <h2>{section.heading}</h2>
+          {section.paragraphs.map((paragraph) => <p set:html={paragraph} />)}
+          {section.facts && (
+            /* A definition list, because a labelled value pair is the shape a
+               reader — human or machine — can lift without the surrounding
+               prose. */
+            <dl class="methodology__facts">
+              {section.facts.map((fact) => (
+                <div>
+                  <dt>{fact.term}</dt>
+                  <dd>{fact.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </section>
+      ))}
+
+      <section class="methodology__section methodology__corrections">
+        <h2>{pack.correctionsHeading}</h2>
+        {pack.corrections.map((correction) => (
+          <article class="correction">
+            <p class="correction__date"><time datetime="2026-03-19">{correction.date}</time></p>
+            <h3>{correction.title}</h3>
+            <p>{correction.text}</p>
+          </article>
+        ))}
+      </section>
+
+      <section class="methodology__section">
+        <h2>{pack.contactHeading}</h2>
+        <p>{pack.contactText}</p>
+        <p>
+          <a class="methodology__repo" href={REPO_URL} rel="noopener noreferrer" target="_blank">
+            {pack.sourceLinkLabel}
+          </a>
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <Footer lang={lang} />
+</Layout>
+
+<style is:global>
+  .methodology { padding-block: 2.5rem 4rem; }
+  .methodology__header { margin-bottom: 2.5rem; }
+  .methodology__eyebrow {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: 0.75rem;
+  }
+  .methodology h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+  .methodology__intro {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    max-width: 60ch;
+  }
+  .methodology__section { margin-bottom: 2.5rem; }
+  .methodology__section h2 {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.85rem;
+  }
+  .methodology__section p {
+    line-height: 1.68;
+    color: var(--color-text-secondary);
+    max-width: 68ch;
+  }
+  .methodology__section p + p { margin-top: 0.85rem; }
+  .methodology__section em { font-style: italic; color: var(--color-text-primary); }
+
+  .methodology__facts {
+    display: grid;
+    gap: 1px;
+    margin-top: 1.25rem;
+    background: var(--color-border-light);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .methodology__facts > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: baseline;
+    background: var(--color-surface);
+    padding: 0.7rem 0.95rem;
+  }
+  .methodology__facts dt { color: var(--color-text-secondary); font-size: 0.9rem; }
+  .methodology__facts dd { margin: 0; font-weight: 700; text-align: end; font-variant-numeric: tabular-nums; }
+
+  .correction {
+    border: 2px solid var(--color-border);
+    border-inline-start: 4px solid var(--color-gold);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    padding: 1.15rem 1.25rem;
+  }
+  .correction__date {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  .correction h3 { font-size: 1.05rem; font-weight: 700; margin-block: 0.35rem 0.5rem; }
+
+  .methodology__repo {
+    display: inline-flex;
+    margin-top: 0.5rem;
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+  .methodology__repo:hover { text-decoration: underline; }
+</style>

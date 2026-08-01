@@ -4,6 +4,7 @@ import type {
   SourcePriority,
   VerificationStatus,
 } from "./types";
+import { EDITORIAL_CHECKED_AT } from "./review-dates";
 
 export type AccommodationTypeId =
   | "official-themed-hotel"
@@ -54,7 +55,7 @@ export interface AccommodationComparisonType {
   pricePolicy: "no_unverified_prices";
 }
 
-const CHECKED_AT = "2026-07-29" as const;
+const CHECKED_AT = EDITORIAL_CHECKED_AT;
 
 export const accommodationComparisonTypes = [
   {

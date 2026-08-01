@@ -4,6 +4,7 @@ import type {
   SourcePriority,
   VerificationStatus,
 } from "./types";
+import { EDITORIAL_CHECKED_AT } from "./review-dates";
 
 export interface LicensedMediaEntry {
   id: string;
@@ -30,7 +31,7 @@ export interface LicensedMediaEntry {
   usageRisks: readonly string[];
 }
 
-const CHECKED_AT = "2026-07-29" as const;
+const CHECKED_AT = EDITORIAL_CHECKED_AT;
 const NEXT_REVIEW = "2027-07-01" as const;
 const LICENSE_URL =
   "https://creativecommons.org/licenses/by-sa/4.0/" as const;

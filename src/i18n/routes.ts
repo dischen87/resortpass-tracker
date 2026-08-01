@@ -137,6 +137,25 @@ export const routeRegistry = {
       hu: '/hu/jogi-nyilatkozat-es-adatvedelem/',
     },
   },
+  /**
+   * How the site knows what it publishes.
+   *
+   * "Where does this come from?" had no citable answer anywhere on the site —
+   * no author, no method, no correction log — while the whole value of a
+   * tracker is that its numbers can be trusted. Published in the five primary
+   * languages only, per the tiering rule: a methodology page that goes stale
+   * in twelve languages would undermine exactly what it exists to establish.
+   */
+  methodology: {
+    indexable: true,
+    paths: {
+      de: '/methodik/',
+      en: '/en/methodology/',
+      fr: '/fr/methodologie/',
+      nl: '/nl/methodiek/',
+      it: '/it/metodologia/',
+    },
+  },
   confirm: {
     indexable: false,
     paths: {

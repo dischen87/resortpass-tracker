@@ -102,11 +102,12 @@ const stateLabel = {
     </button>
   </form>
 
-  <div class="family-results" aria-live="polite">
+  <!-- Live region scoped to the headline figures. Announcing the whole container meant every keystroke re-read the entire result block; aria-atomic keeps the announcement a single coherent sentence. -->
+  <div class="family-results">
     <div class="family-results__head">
       <div>
         <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent">{copy.resultTitle}</p>
-        <h3 class="mt-1 text-2xl font-extrabold"><span data-result-count>{attractions.length}</span> {copy.resultCount}</h3>
+        <h3 class="mt-1 text-2xl font-extrabold" aria-live="polite" aria-atomic="true"><span data-result-count>{attractions.length}</span> {copy.resultCount}</h3>
       </div>
       <div class="family-results__legend">
         <span><i class="status-dot status-dot--yes" aria-hidden="true"></i>{copy.eligible}</span>

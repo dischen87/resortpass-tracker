@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+import { getBuildTimeStatus } from '../data/status-snapshot';
 
 interface Props {
   type: 'silver' | 'gold';
@@ -9,6 +10,13 @@ interface Props {
 
 const { type } = Astro.props;
 const lang = Astro.props.lang || defaultLang;
+/*
+ * Only the branch that is actually true gets rendered. The others used to ship
+ * as hidden markup, so the served HTML claimed both "sold out" and "on sale
+ * now — buy" at the same time.
+ */
+const snapshot = await getBuildTimeStatus();
+const state = snapshot[type].state;
 const tr = (key: string) => getTranslation(lang, key);
 const isGold = type === 'gold';
 const shopUrl = 'https://tickets.mackinternational.de/de/resortpass/uebersicht';
@@ -40,33 +48,44 @@ const tier = isGold ? 'Premium' : 'Classic';
     ]}>{tier}</span>
   </div>
 
-  <div class="status-loading" role="status">
-    <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-bg-light px-4 py-3">
-      <span class="dot-breathe h-3 w-3 shrink-0 rounded-full bg-muted"></span>
-      <span class="text-sm font-bold text-muted">{tr('status.loading')}</span>
+  {/* Only shipped when we genuinely do not know; otherwise the real answer
+      below is the first thing in the markup. */}
+  {state === 'unknown' && (
+    <div class="status-loading" role="status">
+      <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-bg-light px-4 py-3">
+        <span class="dot-breathe h-3 w-3 shrink-0 rounded-full bg-muted"></span>
+        <span class="text-sm font-bold text-muted">{tr('status.loading')}</span>
+      </div>
     </div>
-  </div>
+  )}
 
-  <div class="status-unavailable hidden" role="status">
+  <div class:list={['status-unavailable', state !== 'sold_out' && 'hidden']} role="status">
     <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-pink/10 px-4 py-3 text-unavailable">
       <span class="h-3 w-3 shrink-0 rounded-full bg-pink"></span>
       <span class="font-heading text-lg font-extrabold">{tr('status.sold_out')}</span>
     </div>
   </div>
 
-  <div class="status-available hidden" role="status">
-    <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-available">
-      <span class="relative flex h-3 w-3 shrink-0">
-        <span class="ping-brand absolute inline-flex h-full w-full rounded-full bg-green-500"></span>
-        <span class="relative inline-flex h-3 w-3 rounded-full bg-available"></span>
-      </span>
-      <span class="font-heading text-lg font-extrabold">{tr('status.available')}</span>
+  {/*
+    The purchase call to action only exists in the markup when the pass really
+    is on sale. Shipping it hidden meant every crawl recorded an active "buy
+    now" link for a product that had been unavailable for months.
+  */}
+  {state === 'available' && (
+    <div class="status-available" role="status">
+      <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-available">
+        <span class="relative flex h-3 w-3 shrink-0">
+          <span class="ping-brand absolute inline-flex h-full w-full rounded-full bg-green-500"></span>
+          <span class="relative inline-flex h-3 w-3 rounded-full bg-available"></span>
+        </span>
+        <span class="font-heading text-lg font-extrabold">{tr('status.available')}</span>
+      </div>
+      <a href={shopUrl} target="_blank" rel="noopener noreferrer" class="btn-primary mt-3 w-full bg-available py-3 text-base">
+        {tr('status.buy_now')}
+        <Icon name="tabler:arrow-right" class="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+      </a>
     </div>
-    <a href={shopUrl} target="_blank" rel="noopener noreferrer" class="btn-primary mt-3 w-full bg-available py-3 text-base">
-      {tr('status.buy_now')}
-      <Icon name="tabler:arrow-right" class="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
-    </a>
-  </div>
+  )}
 
   <div class="status-checking hidden" role="status">
     <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-bg-light px-4 py-3 text-muted">

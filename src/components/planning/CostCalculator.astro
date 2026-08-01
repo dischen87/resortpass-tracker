@@ -134,10 +134,11 @@ const euro = (value: number) => `${value.toFixed(value % 1 ? 2 : 0)} €`;
       </button>
     </form>
 
-    <aside class="cost-result" aria-live="polite">
+    <!-- Live region scoped to the headline figures. Announcing the whole container meant every keystroke re-read the entire result block; aria-atomic keeps the announcement a single coherent sentence. -->
+    <aside class="cost-result">
       <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent">{copy.resultEyebrow}</p>
       <h3 class="mt-2 text-xl font-extrabold">{copy.total}</h3>
-      <p class="cost-result__total">
+      <p class="cost-result__total" aria-live="polite" aria-atomic="true">
         <strong data-total-min>{euro(defaultTotalMin)}</strong>
         <span>{copy.rangeConnector}</span>
         <strong data-total-max>{euro(defaultTotalMax)}</strong>

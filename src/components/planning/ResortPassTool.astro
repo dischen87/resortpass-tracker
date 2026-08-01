@@ -71,7 +71,7 @@ const links = [
       <Icon name="tabler:activity-heartbeat" aria-hidden="true" />
       <h3 id={`${toolId}-status-title`}>{copy.statusTitle}</h3>
     </div>
-    <div class="rp-status__grid" aria-live="polite" aria-busy="true" data-status-grid>
+    <div class="rp-status__grid" aria-busy="true" data-status-grid>
       {(['silver', 'gold'] as const).map((pass) => (
         <article class={`rp-status-card rp-status-card--${pass}`} data-pass={pass} data-state="checking">
           <div>
@@ -195,7 +195,8 @@ const links = [
           </button>
         </form>
 
-        <div class="rp-results" aria-live="polite">
+        <!-- Live region scoped to the headline figures. Announcing the whole container meant every keystroke re-read the entire result block; aria-atomic keeps the announcement a single coherent sentence. -->
+        <div class="rp-results">
           <article data-result="tickets">
             <span>{copy.dayTicketsCost}</span>
             <strong>{euro(defaultTotals.tickets)}</strong>
@@ -209,7 +210,7 @@ const links = [
             <strong>{euro(defaultTotals.gold)}</strong>
           </article>
         </div>
-        <p class="rp-lowest" data-lowest>
+        <p class="rp-lowest" data-lowest aria-live="polite" aria-atomic="true">
           {copy.lowestCost}: {defaultLowestKeys
             .map((key) => ({
               tickets: copy.dayTicketsCost,

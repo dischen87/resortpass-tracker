@@ -1,50 +1,19 @@
+import { rides as rideInventory } from '../src/data/rides';
+
 const PARK_QUEUE_TIMES_URL = 'https://api.parkqueuetimes.com/v1/parks/31/live';
 const EUROPA_PARK_ID = 31;
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const PROVIDER_STALE_MS = 15 * 60 * 1000;
 const MAX_STALE_MS = 30 * 60 * 1000;
 
-// ParkQueueTimes park 31 also contains Rulantica and resort attractions. Keep a
-// conservative allowlist of Europa-Park rides that publish queue information so
-// water slides, pools and saunas cannot pollute the park summary.
-const EUROPA_PARK_RIDE_LANDS: Readonly<Record<string, string>> = {
-  "Alpine Express 'Enzian'": 'Austria',
-  'Josefina’s Magical Imperial Journey': 'Austria',
-  'Tirol Log Flume': 'Austria',
-  "Vienna Wave Swing - 'Glückspilz'": 'Austria',
-  'Voltron Nevera powered by Rimac': 'Croatia',
-  'Arena of Football - Be Part of It!': 'England',
-  'Euro-Tower': 'France',
-  'Eurosat - CanCan Coaster': 'France',
-  'Eurosat Coastiality': 'France',
-  'Madame Freudenreich Curiosités': 'France',
-  'Silver Star': 'France',
-  'Jim Button – Journey through Morrowland': 'Germany',
-  'Voletarium': 'Germany',
-  'Atlantis Adventure': 'Greece',
-  'Pegasus': 'Greece',
-  'Water rollercoaster Poseidon': 'Greece',
-  'blue fire Megacoaster': 'Iceland',
-  'Whale Adventures - Northern Lights': 'Iceland',
-  'WODAN - Timburcoaster': 'Iceland',
-  'Ba-a-a Express': 'Ireland',
-  'Dancing Dingie': 'Ireland',
-  "Old Mac Donald's Tractor Fun": 'Ireland',
-  'Castello dei Medici': 'Italy',
-  'Volo da Vinci': 'Italy',
-  'GRAND PRIX EDventure': 'Luxembourg',
-  'ARTHUR': 'Minimoys Kingdom',
-  'Poppy Towers': 'Minimoys Kingdom',
-  'Pirates in Batavia': 'Netherlands',
-  'Atlantica SuperSplash': 'Portugal',
-  'Euro-Mir': 'Russia',
-  'Fjord-Rafting': 'Scandinavia',
-  'Snorri Touren': 'Scandinavia',
-  'Vindjammer': 'Scandinavia',
-  'Kolumbusjolle': 'Spain',
-  'Matterhorn-Blitz': 'Switzerland',
-  'Swiss Bob Run': 'Switzerland',
-};
+// ParkQueueTimes park 31 also contains Rulantica and resort attractions. The
+// ride inventory in src/data/rides.ts is the single allowlist: a name absent
+// there is never published, so water slides, pools and saunas cannot pollute
+// the park summary. Keeping one list also means the statically rendered
+// directory and this feed can never disagree.
+const EUROPA_PARK_RIDE_LANDS: Readonly<Record<string, string>> = Object.fromEntries(
+  rideInventory.map((ride) => [ride.providerName, ride.land]),
+);
 
 export interface WaitTimeRide {
   id: number;

@@ -1,35 +1,47 @@
+# ---------------------------------------------------------------------------
+# AI crawler policy — deliberate, please read before changing.
+#
+# This is an open-source community project with no advertising, no paywall and
+# no affiliate content. There is nothing here worth withholding from a model,
+# and being known as an entity is precisely what the project needs. Retrieval
+# agents and training crawlers are therefore both welcome, and they are covered
+# by the User-agent: * group below rather than by per-bot groups.
+#
+# Why no per-bot "Allow: /" blocks: a crawler obeys only the single most
+# specific group that matches it. A group containing just "Allow: /" would
+# exempt that bot from the Disallow rules below, which is the opposite of what
+# such a block looks like it does. The previous version of this file had that
+# problem, and also listed two tokens that no longer exist (anthropic-ai,
+# Claude-Web).
+#
+# Explicitly welcome, all covered by User-agent: * —
+#   Retrieval and citation, fetched because a person is asking right now:
+#     OAI-SearchBot, ChatGPT-User, Claude-User, Claude-SearchBot,
+#     PerplexityBot, Perplexity-User, DuckAssistBot, MistralAI-User
+#   Index and training:
+#     GPTBot, ClaudeBot, Google-Extended, Google-CloudVertexBot,
+#     Applebot-Extended, Amazonbot, CCBot, meta-externalagent
+#
+# Note: Google-Extended controls Gemini training only. Blocking it would not
+# remove this site from AI Overviews or AI Mode, which are served from the
+# ordinary Google index.
+# ---------------------------------------------------------------------------
+
 User-agent: *
 Allow: /
+# Licensed provider data — see the ParkQueueTimes terms. Not content.
+Disallow: /api/
+# Per-visitor token pages. No index value, and they carry a token in the URL.
+Disallow: /confirm
+Disallow: /unsubscribe
+Disallow: /community/neu
 
-# AI Crawlers - explicitly allow
-User-agent: GPTBot
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: ChatGPT-User
-Allow: /
-
-User-agent: OAI-SearchBot
-Allow: /
-
-User-agent: CCBot
-Allow: /
-
-User-agent: anthropic-ai
-Allow: /
-
-User-agent: Claude-Web
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
+# ---------------------------------------------------------------------------
+# The one exception. Bytespider generates the heaviest crawl load of any AI
+# agent and there is no end product that cites the source, so the bandwidth
+# buys this project nothing.
+# ---------------------------------------------------------------------------
 User-agent: Bytespider
-Allow: /
+Disallow: /
 
 Sitemap: https://www.resortpass-europapark.ch/sitemap-index.xml

@@ -146,3 +146,47 @@ describe('planning tool Astro components', () => {
     expect(rulanticaSource).not.toContain('innerHTML');
   });
 });
+
+describe('live regions stay small', () => {
+  /**
+   * A live region wrapped around a whole result block re-announces everything
+   * on every keystroke, and the history card announced all twenty table rows
+   * per pagination click. The rule: aria-live belongs on the short summary that
+   * changed, together with aria-atomic so it is read as one sentence.
+   */
+  const componentsWithResults = [
+    'CostCalculator.astro',
+    'FamilyFinder.astro',
+    'RulanticaPlanner.astro',
+    'ResortPassTool.astro',
+    'RestaurantFinder.astro',
+    'StayComparator.astro',
+    'VisitPlanner.astro',
+  ];
+
+  test('no live region wraps a result container', async () => {
+    const offenders: string[] = [];
+    for (const name of componentsWithResults) {
+      const source = await Bun.file(new URL(`./${name}`, import.meta.url)).text();
+      for (const match of source.matchAll(/<div[^>]*aria-live[^>]*>/g)) {
+        const tag = match[0];
+        // A container is anything whose class ends in -results / -result / -grid.
+        if (/class="[^"]*(?:-results?|__grid|-grid)"/.test(tag)) {
+          offenders.push(`${name}: ${tag.slice(0, 90)}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  test('every live region is atomic', async () => {
+    const offenders: string[] = [];
+    for (const name of componentsWithResults) {
+      const source = await Bun.file(new URL(`./${name}`, import.meta.url)).text();
+      for (const match of source.matchAll(/<[a-z0-9]+[^>]*aria-live="polite"[^>]*>/g)) {
+        if (!match[0].includes('aria-atomic')) offenders.push(`${name}: ${match[0].slice(0, 90)}`);
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});

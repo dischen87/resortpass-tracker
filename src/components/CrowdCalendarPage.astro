@@ -4,7 +4,7 @@ import Navbar from './Navbar.astro';
 import Footer from './Footer.astro';
 import ResponsiveIllustration from './ResponsiveIllustration.astro';
 import BrandSafeText from './BrandSafeText.astro';
-import { crowdCalendarPaths, type Lang, getTranslation } from '../i18n/translations';
+import { crowdCalendarPaths, type Lang, getTranslation, fillTemplate } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
 import { getLocaleDefinition } from '../i18n/locales';
 import '../styles/global.css';
@@ -15,7 +15,7 @@ interface Props {
 
 const { lang } = Astro.props;
 const tr = (key: string) => getTranslation(lang, key);
-const pageTitle = tr('crowd.meta_title').replace('{year}', String(new Date().getFullYear()));
+const pageTitle = fillTemplate(tr('crowd.meta_title'));
 const siteUrl = 'https://www.resortpass-europapark.ch';
 const pagePath = crowdCalendarPaths[lang];
 const homePath = getRoutePath('home', lang)!;

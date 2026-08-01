@@ -12,11 +12,14 @@
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "verify:static": "bun scripts/verify-static-build.ts",
-    "verify:seo": "bun scripts/verify-seo-build.ts"
+    "verify:seo": "bun scripts/verify-seo-build.ts",
+    "verify:live": "bun scripts/verify-live.ts",
+    "deploy": "bash deploy/deploy.sh"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
     "@fontsource-variable/baloo-2": "^5.2.7",
+    "@fontsource-variable/dm-sans": "^5.3.0",
     "@iconify-json/tabler": "^1.2.36",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^6.4.8",

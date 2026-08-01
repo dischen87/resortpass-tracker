@@ -1,6 +1,8 @@
 import type { SourcedFact } from "./types";
+import { EDITORIAL_CHECKED_AT } from "./review-dates";
 
-const CHECKED_AT = "2026-07-29" as const;
+
+const CHECKED_AT = EDITORIAL_CHECKED_AT;
 
 /**
  * Facts suitable for reuse across guides, FAQ answers and structured data.

@@ -9,7 +9,7 @@ import {
 } from '../i18n/routes';
 import { getTranslation, type Lang } from '../i18n/translations';
 import LanguageSwitcher from './LanguageSwitcher.astro';
-import { getCoreHeaderRoutes } from './site-header-model';
+import { getCoreHeaderRoutes, navAccessibleName } from './site-header-model';
 
 export interface SiteHeaderPlanningItem {
   href: string;
@@ -125,7 +125,13 @@ const secondaryItems = [
               href={item.href}
               class:list={['site-header__primary-link', { active: item.active }]}
               aria-current={item.active ? 'page' : undefined}
-              aria-label={withFallbackAria(item.label, item.fallback)}
+              {/*
+                The name is built from the *visible* compact label, not the
+                longer translation. Overriding it broke WCAG 2.5.3 in six
+                languages — a link reading "Attentes" was named "Temps
+                d'attente", so voice control could not activate it by name.
+              */}
+              aria-label={item.fallback ? navAccessibleName(item.compactLabel, true) : undefined}
               lang={item.fallback ? 'en' : undefined}
             >
               <Icon name={item.icon} class="h-[1.05rem] w-[1.05rem]" aria-hidden="true" />
@@ -328,6 +334,15 @@ const secondaryItems = [
     const nextHeight = `${plannerHeight}px`;
     if (siteHeader?.style.getPropertyValue('--site-header-planner-height') !== nextHeight) {
       siteHeader?.style.setProperty('--site-header-planner-height', nextHeight);
+    }
+
+    // Published on the root so anything sticky further down the page can offset
+    // against the real, measured header instead of a hard-coded guess. Sticky
+    // elements that guessed used to slide underneath it.
+    const headerHeight = siteHeader ? siteHeader.getBoundingClientRect().height : 0;
+    const nextHeaderHeight = `${Math.round(headerHeight)}px`;
+    if (document.documentElement.style.getPropertyValue('--site-header-height') !== nextHeaderHeight) {
+      document.documentElement.style.setProperty('--site-header-height', nextHeaderHeight);
     }
   };
 

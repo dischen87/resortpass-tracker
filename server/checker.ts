@@ -197,23 +197,70 @@ async function checkAvailability(type: 'silver' | 'gold'): Promise<AvailabilityR
   return result;
 }
 
-async function sendAlerts(passType: 'silver' | 'gold') {
-  const subscribers = getConfirmedSubscribers(passType);
-  console.log(`[${passType}] Sending alerts to ${subscribers.length} subscribers`);
+/** Concurrent sends. Kept low so the relay is never the thing that breaks. */
+const ALERT_CONCURRENCY = Number(process.env.ALERT_CONCURRENCY || 3);
+/** Pacing between messages on one worker; the pool removes the handshake cost. */
+const ALERT_DELAY_MS = Number(process.env.ALERT_DELAY_MS || 150);
+/** Set to 1 to exercise the whole path without sending anything. */
+const ALERT_DRY_RUN = process.env.ALERT_DRY_RUN === '1';
 
-  for (const sub of subscribers) {
-    try {
-      const communityUrl = sub.community_token
-        ? `${localizedSiteUrl(sub.lang, 'community/neu')}?token=${encodeURIComponent(sub.community_token)}`
-        : undefined;
-      await sendAlertEmail(sub.email, passType, sub.unsubscribe_token, sub.lang, communityUrl);
-      console.log(`[${passType}] Alert sent to ${sub.email}`);
-    } catch (err) {
-      console.error(`[${passType}] Failed to send to ${sub.email}:`, err);
+/**
+ * Fans the alert out to every confirmed subscriber.
+ *
+ * This used to be strictly sequential with a fixed 500 ms pause, on an
+ * unpooled transport: 885 subscribers meant at least 442 seconds of pure
+ * waiting before the last person heard anything, plus a full SMTP handshake
+ * each. Worse, the checker awaits this call inside its polling loop, so the
+ * next availability check could not run until the whole run finished — during
+ * exactly the window where a sell-out is most likely.
+ *
+ * Returns a summary so the caller can log one line instead of one per address.
+ */
+export async function sendAlerts(passType: 'silver' | 'gold') {
+  const subscribers = getConfirmedSubscribers(passType);
+  const started = Date.now();
+  console.log(
+    `[${passType}] Sending alerts to ${subscribers.length} subscribers` +
+      (ALERT_DRY_RUN ? ' (dry run — nothing will be sent)' : ''),
+  );
+
+  let sent = 0;
+  const failed: string[] = [];
+  let cursor = 0;
+
+  const worker = async () => {
+    while (cursor < subscribers.length) {
+      const sub = subscribers[cursor++];
+      try {
+        const communityUrl = sub.community_token
+          ? `${localizedSiteUrl(sub.lang, 'community/neu')}?token=${encodeURIComponent(sub.community_token)}`
+          : undefined;
+        if (!ALERT_DRY_RUN) {
+          await sendAlertEmail(sub.email, passType, sub.unsubscribe_token, sub.lang, communityUrl);
+        }
+        sent += 1;
+      } catch (err) {
+        // One bad address must never stop the run — the remaining subscribers
+        // are the whole point.
+        failed.push(sub.email);
+        console.error(`[${passType}] Failed to send to ${sub.email}:`, err);
+      }
+      if (ALERT_DELAY_MS > 0) await new Promise((r) => setTimeout(r, ALERT_DELAY_MS));
     }
-    // Small delay between emails to avoid overwhelming SMTP
-    await new Promise((r) => setTimeout(r, 500));
+  };
+
+  await Promise.all(
+    Array.from({ length: Math.min(ALERT_CONCURRENCY, subscribers.length || 1) }, worker),
+  );
+
+  const seconds = Math.round((Date.now() - started) / 1000);
+  console.log(
+    `[${passType}] Alert run finished in ${seconds}s — ${sent} sent, ${failed.length} failed`,
+  );
+  if (failed.length > 0) {
+    console.error(`[${passType}] Addresses that failed: ${failed.join(', ')}`);
   }
+  return { total: subscribers.length, sent, failed: failed.length, seconds };
 }
 
 async function writeStatusJson() {
@@ -235,6 +282,15 @@ async function writeHistoryStatsJson() {
   await Bun.write(historyPath, statsJson);
   console.log(`History stats written to ${historyPath}`);
 }
+
+/**
+ * Alert runs still in flight.
+ *
+ * The checker must not block on the mail run, but the process must not exit
+ * while one is unfinished either — under systemd the unit would be torn down
+ * mid-send.
+ */
+const pendingAlertRuns: Promise<unknown>[] = [];
 
 async function run() {
   console.log(`[${new Date().toISOString()}] Starting availability check...`);
@@ -263,10 +319,19 @@ async function run() {
       logStatus(type, available);
       logHistory(type, available);
 
-      // If status changed from unavailable to available, send alerts
+      // If status changed from unavailable to available, send alerts.
+      //
+      // Deliberately not awaited: the mail run takes minutes, and blocking here
+      // would stall the next availability check during the one window where the
+      // shop state changes fastest. Failures are logged inside sendAlerts.
       if (available && previous === false) {
         console.log(`[${type}] STATUS CHANGE: Now available! Sending alerts...`);
-        await sendAlerts(type);
+        pendingAlertRuns.push(
+          sendAlerts(type).catch((err) => {
+            console.error(`[${type}] Alert run crashed:`, err);
+            return null;
+          }),
+        );
       }
     } catch (err) {
       console.error(`[${type}] Check failed:`, err);
@@ -276,6 +341,13 @@ async function run() {
   // Write status.json and history-stats.json
   await writeStatusJson();
   await writeHistoryStatsJson();
+
+  // Drain any alert run before the process is allowed to finish, so a one-shot
+  // invocation cannot exit halfway through the send.
+  if (pendingAlertRuns.length > 0) {
+    console.log(`Waiting for ${pendingAlertRuns.length} alert run(s) to finish…`);
+    await Promise.all(pendingAlertRuns.splice(0));
+  }
 
   console.log(`[${new Date().toISOString()}] Check complete.`);
 }
