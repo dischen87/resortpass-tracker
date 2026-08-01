@@ -23,6 +23,7 @@ export type RideLand =
   | 'Ireland'
   | 'Italy'
   | 'Luxembourg'
+  | 'Monaco'
   | 'Minimoys Kingdom'
   | 'Netherlands'
   | 'Portugal'
@@ -66,7 +67,11 @@ export const rides: readonly RideRecord[] = [
   { slug: 'eurosat-cancan-coaster', providerName: 'Eurosat - CanCan Coaster', name: 'Eurosat – CanCan Coaster', land: 'France', kind: 'coaster', headliner: true, aliases: ['Eurosat'] },
   { slug: 'eurosat-coastiality', providerName: 'Eurosat Coastiality', name: 'Eurosat Coastiality', land: 'France', kind: 'coaster', aliases: ['VR'] },
   { slug: 'madame-freudenreich-curiosites', providerName: 'Madame Freudenreich Curiosités', name: 'Madame Freudenreich Curiosités', land: 'France', kind: 'dark' },
-  { slug: 'silver-star', providerName: 'Silver Star', name: 'Silver Star', land: 'France', kind: 'coaster', headliner: true },
+
+  // Monaco — the eighteenth themed area, opened 2026. Silver Star moved here
+  // from France; the provider feed still reports the old area, ours follows
+  // the operator's own attraction page.
+  { slug: 'silver-star', providerName: 'Silver Star', name: 'Silver Star', land: 'Monaco', kind: 'coaster', headliner: true },
 
   // Germany
   { slug: 'jim-knopf', providerName: 'Jim Button – Journey through Morrowland', name: 'Jim Knopf – Reise durch Lummerland', land: 'Germany', kind: 'dark', aliases: ['Jim Button', 'Lummerland'] },
@@ -124,7 +129,7 @@ export const rides: readonly RideRecord[] = [
 export const rideLands: readonly RideLand[] = [
   'Germany', 'Italy', 'France', 'Switzerland', 'Scandinavia', 'Netherlands',
   'Spain', 'Russia', 'Austria', 'Greece', 'England', 'Ireland', 'Iceland',
-  'Portugal', 'Luxembourg', 'Croatia', 'Minimoys Kingdom',
+  'Portugal', 'Luxembourg', 'Croatia', 'Monaco', 'Minimoys Kingdom',
 ];
 
 export function ridesByLand(): { land: RideLand; rides: RideRecord[] }[] {
