@@ -94,10 +94,15 @@ async function checkRenderedContent() {
     /Ausverkauft|Jetzt verfügbar/.test(home.body),
     'answer present',
   );
+  // Scripts are stripped first on purpose. The island carries the label as a
+  // string so it can build the panel the moment the shop opens; what must not
+  // exist is a rendered, crawlable purchase link while the pass is sold out.
+  const homeMarkup = home.body.replace(/<script[\s\S]*?<\/script>/g, '');
+  const hasRenderedCta = /class="[^"]*status-available/.test(homeMarkup) || homeMarkup.includes('Jetzt kaufen');
   record(
-    'Home page does not ship a hidden purchase call to action',
-    !home.body.includes('Jetzt kaufen'),
-    home.body.includes('Jetzt kaufen') ? 'buy CTA found while sold out' : 'absent',
+    'Home page does not render a purchase call to action while sold out',
+    !hasRenderedCta,
+    hasRenderedCta ? 'buy CTA present in markup' : 'absent from markup',
   );
 }
 

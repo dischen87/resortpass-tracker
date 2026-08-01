@@ -17,6 +17,15 @@ const isConfirm = mode === 'confirm';
 const key = isConfirm ? 'confirm' : 'unsub';
 const initialTitleKey = isConfirm ? 'confirm.processing_title' : 'unsub.confirm_title';
 const homePath = getRoutePath('home', lang)!;
+/*
+ * Only what the island needs, serialised at build time — importing
+ * getTranslation would pull the whole 17-language table into the page.
+ */
+const clientCopy = {
+  'unsub.processing': tr('unsub.processing'),
+  'unsub.submit': tr('unsub.submit'),
+};
+
 ---
 
 <Layout
@@ -54,15 +63,13 @@ const homePath = getRoutePath('home', lang)!;
     </div>
   </main>
 
-  <script define:vars={{ lang, mode }}>
-    window.__tokenPage = { lang, mode };
+  <script define:vars={{ lang, mode, clientCopy }}>
+    window.__tokenPage = { lang, mode, copy: clientCopy };
   </script>
 
   <script>
-    import { getTranslation, type Lang } from '../i18n/translations';
-
-    const config = (window as any).__tokenPage as { lang: Lang; mode: 'confirm' | 'unsubscribe' };
-    const tr = (key: string) => getTranslation(config.lang, key);
+    const config = (window as any).__tokenPage as { lang: string; mode: 'confirm' | 'unsubscribe'; copy: Record<string, string> };
+    const tr = (key: string) => config.copy?.[key] ?? key;
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     const message = document.getElementById('token-message')!;

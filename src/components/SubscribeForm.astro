@@ -14,6 +14,19 @@ const benefits = [
   tr('subscribe.benefit_availability'),
   tr('subscribe.benefit_privacy'),
 ];
+/*
+ * Only the strings this island actually uses, serialised at build time.
+ * Importing getTranslation pulled the whole 17-language table — 469 KB,
+ * 121 KB gzipped — into the page's module graph and blocked every API
+ * call behind it. The wait-times page already did it this way.
+ */
+const clientCopy = {
+  'subscribe.error': tr('subscribe.error'),
+  'subscribe.select_one': tr('subscribe.select_one'),
+  'subscribe.sending': tr('subscribe.sending'),
+  'subscribe.submit': tr('subscribe.submit')
+};
+
 ---
 
 <section class="border-y-[3px] border-border bg-white py-16 md:py-20" id="benachrichtigung">
@@ -111,15 +124,17 @@ const benefits = [
   </div>
 </section>
 
-<script define:vars={{ lang }}>
+<script define:vars={{ lang, clientCopy }}>
   window.__subscribeFormLang = lang;
+  window.__subscribeFormLangCopy = clientCopy;
 </script>
 
 <script>
-  import { getTranslation, type Lang } from '../i18n/translations';
+  import type { Lang } from '../i18n/locales';
 
   const formLang = (window as any).__subscribeFormLang as Lang || 'de';
-  const tr = (key: string) => getTranslation(formLang, key);
+  const clientCopy = (window as any).__subscribeFormLangCopy as Record<string, string>;
+  const tr = (key: string) => clientCopy?.[key] ?? key;
   const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const form = document.getElementById('subscribe-form') as HTMLFormElement;

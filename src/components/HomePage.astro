@@ -39,6 +39,23 @@ const snapshotDate = new Date(statusSnapshot.capturedAt);
 const staticLastCheck = Number.isNaN(snapshotDate.getTime())
   ? tr('status.updated_3x')
   : `${tr('status.last_check')}: ${snapshotDate.toLocaleString(localeTag, { dateStyle: 'medium', timeStyle: 'short' })} · ${tr('status.updated_3x')}`;
+/*
+ * Only the strings this island actually uses, serialised at build time.
+ * Importing getTranslation pulled the whole 17-language table — 469 KB,
+ * 121 KB gzipped — into the page's module graph and blocked every API
+ * call behind it. The wait-times page already did it this way.
+ */
+const clientCopy = {
+  'status.available': tr('status.available'),
+  'status.buy_now': tr('status.buy_now'),
+  'status.checking': tr('status.checking'),
+  'status.error': tr('status.error'),
+  'status.last_check': tr('status.last_check'),
+  'status.sold_out': tr('status.sold_out'),
+  'status.unknown_short': tr('status.unknown_short'),
+  'status.updated_3x': tr('status.updated_3x')
+};
+
 ---
 
 <Layout lang={lang} routeKey="home">
@@ -159,16 +176,18 @@ const staticLastCheck = Number.isNaN(snapshotDate.getTime())
     })),
   })} />
 
-  <script define:vars={{ lang }}>
+  <script define:vars={{ lang, clientCopy }}>
     window.__statusLang = lang;
+    window.__statusLangCopy = clientCopy;
   </script>
 
   <script>
-    import { getTranslation, type Lang } from '../i18n/translations';
+    import type { Lang } from '../i18n/locales';
     import { getLocaleDefinition } from '../i18n/locales';
 
     const statusLang = ((window as any).__statusLang || 'de') as Lang;
-    const tr = (key: string) => getTranslation(statusLang, key);
+    const clientCopy = (window as any).__statusLangCopy as Record<string, string>;
+  const tr = (key: string) => clientCopy?.[key] ?? key;
     const locale = getLocaleDefinition(statusLang).bcp47;
 
     type PassStatus = { available?: boolean | null; state?: 'available' | 'sold_out' | 'unknown'; lastCheck?: string | null } | null;
@@ -290,10 +309,21 @@ const staticLastCheck = Number.isNaN(snapshotDate.getTime())
           schemaEl.textContent = JSON.stringify(schema);
         }
       } catch {
-        updateCard('silver', null, true);
-        updateCard('gold', null, true);
-        document.getElementById('last-check-text')!.textContent = tr('status.error');
-        document.getElementById('hero-status-time')!.textContent = tr('status.error');
+        /*
+         * Keep what the server rendered.
+         *
+         * The HTML now carries a real, dated answer, so replacing it with
+         * "status could not be loaded" on a transient network failure would
+         * throw away better information than the error state contains — the
+         * page would go from a true statement to no statement at all. The
+         * timestamp already tells the reader how old it is; we only add the
+         * error note next to it.
+         */
+        const stamp = document.getElementById('last-check-text');
+        if (stamp && !stamp.dataset.errorNoted) {
+          stamp.dataset.errorNoted = 'true';
+          stamp.textContent = `${stamp.textContent} · ${tr('status.error')}`;
+        }
       }
     }
 
