@@ -133,7 +133,18 @@ async function checkMachineReadable() {
   );
 
   const robots = await text('/robots.txt');
-  record('robots.txt does not list dead tokens', !/anthropic-ai|Claude-Web/.test(robots.body), 'clean');
+  // Directives only. The file explains in a comment *why* anthropic-ai and
+  // Claude-Web were removed, and a naive search for the strings flagged that
+  // explanation as the very problem it documents.
+  const userAgents = robots.body
+    .split('\n')
+    .filter((line) => /^\s*User-agent:/i.test(line))
+    .join('\n');
+  record(
+    'robots.txt does not list dead tokens',
+    !/anthropic-ai|Claude-Web/i.test(userAgents),
+    'no retired user-agents declared',
+  );
   record('robots.txt keeps provider data out of the index', /Disallow: \/api\//.test(robots.body), 'api disallowed');
 }
 

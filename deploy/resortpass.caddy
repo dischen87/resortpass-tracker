@@ -1,0 +1,118 @@
+# ─── ResortPass Tracker ───────────────────────────────────────────────────────
+# Static Astro site + Bun API.
+#
+# This is a site fragment, not a standalone Caddyfile. The production host runs
+# one Caddy container for around twenty site blocks across eleven files; a
+# syntax error here takes all of them down. Always validate before reloading:
+#
+#   docker exec caddy caddy validate --config /etc/caddy/Caddyfile
+#
+# Live paths (verified 2026-08-01):
+#   host /opt/infrastructure/caddy/sites.d  -> container /etc/caddy/sites.d (ro)
+#   host /opt/resortpass-tracker/dist       -> container /srv/www            (ro)
+#
+# The copy under the host's own /etc/caddy/sites.d is not what Caddy reads.
+
+www.resortpass-europapark.ch {
+	# Analytics proxy, unrelated to this project's own code.
+	handle /a/* {
+		uri strip_prefix /a
+		reverse_proxy 162.55.163.81:443 {
+			header_up Host analytics.diisi.dev
+			transport http {
+				tls
+				tls_server_name analytics.diisi.dev
+			}
+		}
+	}
+
+	root * /srv/www
+
+	handle /api/* {
+		reverse_proxy resortpass-api:3000
+	}
+
+	# Keep the conventional sitemap URL machine-readable.
+	redir /sitemap.xml /sitemap-index.xml 308
+
+	# Astro builds directories with trailing slashes; send the other spellings
+	# to the canonical form instead of serving the same page at several URLs.
+	@explicitIndex path_regexp explicit_index ^(.*/)index\.html$
+	redir @explicitIndex {re.explicit_index.1} 308
+
+	@directoryWithoutSlash {
+		not path /api/* /a/* */
+		file {path}/index.html
+	}
+	redir @directoryWithoutSlash {path}/ 308
+
+	handle {
+		# No /index.html fallback.
+		#
+		# That final fallback was an SPA pattern on a static multi-page site: it
+		# answered *every* unknown URL with the German home page at status 200,
+		# marked index,follow. Every typo, every stale link and every crawler
+		# probe became another indexable copy of the home page, and no redirect
+		# could be verified because nothing ever returned anything but 200.
+		try_files {path} {path}.html {path}/index.html
+		file_server
+	}
+
+	handle_errors 404 {
+		rewrite /404.html
+		# The status argument is the whole point: without it file_server reports
+		# 200, because as far as it is concerned it served /404.html just fine.
+		file_server {
+			status {err.status_code}
+		}
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# X-XSS-Protection is deliberately gone: every current browser removed
+		# the filter it enabled, and its last versions were themselves
+		# exploitable. Content-Type-Options plus a CSP is the successor.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+
+	# Only content-hashed bundles may be immutable for a year. The previous rule
+	# applied that to every .css/.js/.png/.svg/.woff2, which included
+	# fixed-name assets like favicon.svg and the Open Graph images — replacing
+	# one of those could not reach a returning visitor for twelve months.
+	@hashedAssets path /_astro/*
+	header @hashedAssets Cache-Control "public, max-age=31536000, immutable"
+
+	@fixedImages {
+		not path /_astro/*
+		path *.svg *.png *.jpg *.jpeg *.webp *.avif *.ico
+	}
+	header @fixedImages Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
+
+	@fixedFonts {
+		not path /_astro/*
+		path *.woff *.woff2
+	}
+	header @fixedFonts Cache-Control "public, max-age=604800"
+
+	# zstd first: Caddy offers encodings in the listed order, and browsers that
+	# accept both were being handed the larger gzip payload.
+	encode zstd gzip
+
+	log {
+		output file /var/log/caddy/resortpass-access.log {
+			roll_size 10MiB
+			roll_keep 3
+			# Access logs contain IP addresses. A size cap is not a retention
+			# policy; this bounds how long they exist and is what the privacy
+			# statement refers to.
+			roll_keep_for 14d
+		}
+	}
+}
+
+resortpass-europapark.ch {
+	redir https://www.resortpass-europapark.ch{uri} permanent
+}
