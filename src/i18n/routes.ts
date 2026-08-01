@@ -156,6 +156,24 @@ export const routeRegistry = {
       it: '/it/metodologia/',
     },
   },
+  /**
+   * Opening hours — a stable search cluster of its own.
+   *
+   * "When is Europa-Park open" is asked independently of crowd levels and wait
+   * times, and had no route answering it; the data was already being fetched
+   * for the crowd calendar and simply not surfaced under its own heading.
+   * Five languages, per the tiering rule.
+   */
+  openingHours: {
+    indexable: true,
+    paths: {
+      de: '/oeffnungszeiten/',
+      en: '/en/opening-hours/',
+      fr: '/fr/horaires-douverture/',
+      nl: '/nl/openingstijden/',
+      it: '/it/orari-di-apertura/',
+    },
+  },
   confirm: {
     indexable: false,
     paths: {
