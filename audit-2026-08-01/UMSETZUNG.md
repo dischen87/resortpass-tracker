@@ -76,12 +76,32 @@ Stand: 1. August 2026. Branch `audit-umsetzung`.
 - Prüfdatum von 39 Stellen auf eine zentralisiert.
 - Design-Tokens in `:root`, angewandt auf die neu gebauten Komponenten.
 
-## Bewusst offen
+## Ausgeliefert
 
-**Braucht Serverzugang — ich habe keinen:**
-- Caddy-Konfiguration ausrollen. Die Repo-Fassung ist korrigiert; erst nach dem Ausrollen
-  liefert eine erfundene URL 404. `bun run verify:live` zeigt den Fortschritt.
-- `deploy.sh` einmal echt durchspielen (`DEPLOY_REMOTE` setzen).
+Alles oben Genannte läuft seit dem 1. August 2026 auf `www.resortpass-europapark.ch`.
+`bun run verify:live` prüft **24 von 24** Punkten grün gegen die Produktion.
+
+Die Server-Topologie war anders als das Repo behauptete und ist jetzt korrekt abgebildet:
+Ein einziger Caddy-Container bedient rund 20 Site-Blöcke aus 11 Dateien für sieben weitere
+Produktivsysteme (kizi prod+staging, prämienfuchs, cyberversicherung, diisi, eigernest, maus).
+Die massgebliche Fragmentdatei liegt unter `/opt/infrastructure/caddy/sites.d/resortpass.caddy`,
+das Build unter `/opt/resortpass-tracker/dist` (read-only nach `/srv/www` gemountet).
+Die Repo-Fassung `deploy/Caddyfile` beschrieb eine Topologie, die es nicht gibt — sie hätte
+beim Ausrollen sieben fremde Sites offline genommen. Massgeblich ist jetzt
+[deploy/resortpass.caddy](../deploy/resortpass.caddy).
+
+Die Soft-404-Ursache war exakt eine Zeile: `try_files … /index.html` — ein SPA-Muster auf
+einer statischen Mehrseiten-Site. Jede Konfigurationsänderung wird vor dem Reload mit
+`caddy validate` gegen die **gesamte** Konfiguration geprüft; schlägt sie fehl, bleibt die
+alte Fassung live. Sicherungen liegen datiert unter `/opt/resortpass-releases/`.
+
+**Zusätzlich live gegangen:** Slug-Korrektur für die drei reichweitenstärksten Fremdsprachen
+(`/en/wartezeiten/` → `/en/wait-times/`, `/fr/` → `/temps-d-attente/`, `/it/` → `/tempi-di-attesa/`
+sowie die drei Impressum-Pfade), jeweils mit dauerhafter 301-Weiterleitung. Ein Test in
+`src/i18n/routes.test.ts` erzwingt, dass jeder stillgelegte Pfad eine Weiterleitung hat und
+nie wiederverwendet wird.
+
+## Bewusst offen
 
 **Braucht eine Entscheidung oder Auskunft:**
 - **Der Verfügbarkeitstreffer im Juni 2026.** `/api/history/silver` meldet `available_checks: 1`,
@@ -91,12 +111,13 @@ Stand: 1. August 2026. Branch `audit-umsetzung`.
 - **Lizenzbrief an ParkQueueTimes** (fünf Fragen im Masterplan, Abschnitt 3/F4). Blockiert
   Tagesverlauf, Heatmap und jede eigene Zeitreihe.
 
-**Blockiert durch den noch nicht ausgerollten 404-Fix:**
-- **Entkannibalisierung der ResortPass-Seiten (M5)** und **Slug-Korrektur en/fr/it (M6)**.
-  Beide entfernen oder verschieben bestehende URLs und brauchen dafür funktionierende
-  301-Weiterleitungen. Solange die Produktion für jede URL 200 liefert, lässt sich keine
-  einzige Weiterleitung verifizieren — der Masterplan nennt die Reihenfolge ausdrücklich
-  zwingend (Abschnitt 4.3, M6). Diese beiden Punkte gehören direkt nach dem ersten Deploy.
+**Bewusst nicht umgesetzt — eine inhaltliche Entscheidung, keine technische:**
+- **Entkannibalisierung der ResortPass-Seiten (M5).** Fünf Seiten teilen 86 % ihres Textes.
+  Der Masterplan schlägt vor, `/resortpass-reservierung/` und `/resortpass-rulantica/` in
+  `/resortpass-guide/` einzufalten und per 301 umzuleiten. Das entfernt zwei indexierte
+  Seiten in 17 Sprachen — 34 URLs. Technisch ist der Weg jetzt frei; ob die Seiten
+  verschwinden sollen, ist eine redaktionelle Entscheidung des Betreibers, keine, die ein
+  Audit alleine treffen sollte.
 
 **Nicht angefangen:**
 - Vollständiger Startseiten-Umbau auf die im Masterplan skizzierte Zielhöhe. Die drei

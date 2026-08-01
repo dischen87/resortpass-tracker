@@ -59,13 +59,13 @@ describe('visible language navigation', () => {
     expect(unknownNavigation.every(({ equivalent }) => !equivalent)).toBe(true);
 
     const waitTimesNavigation = resolveLanguageNavigation({
-      pathname: '/fr/wartezeiten/',
+      pathname: '/fr/temps-d-attente/',
       routeKey: 'waitTimes',
       fallbackRouteKey: 'parkGuide',
     });
     expect(waitTimesNavigation.find(({ locale }) => locale === 'fr')).toEqual({
       locale: 'fr',
-      path: '/fr/wartezeiten/',
+      path: '/fr/temps-d-attente/',
       equivalent: true,
     });
     expect(waitTimesNavigation.find(({ locale }) => locale === 'nl')).toEqual({

@@ -34,6 +34,23 @@ function sourcePageExists(path: string): boolean {
   ].some(existsSync);
 }
 
+/**
+ * URLs that were published and have since moved.
+ *
+ * A path may only appear here after a permanent redirect for it exists in
+ * deploy/resortpass.caddy. Nothing is ever removed from this list, and no
+ * retired path may be reused for different content — someone's bookmark and
+ * somebody's index entry both still point at it.
+ */
+const retiredPaths: Record<string, string> = {
+  '/en/wartezeiten/': '/en/wait-times/',
+  '/fr/wartezeiten/': '/fr/temps-d-attente/',
+  '/it/wartezeiten/': '/it/tempi-di-attesa/',
+  '/en/impressum/': '/en/legal-notice-and-privacy/',
+  '/fr/impressum/': '/fr/mentions-legales-et-confidentialite/',
+  '/it/impressum/': '/it/note-legali-e-privacy/',
+};
+
 describe('semantic route registry', () => {
   test('preserves every existing public URL', () => {
     expect(routeRegistry).toMatchObject({
@@ -41,9 +58,10 @@ describe('semantic route registry', () => {
       waitTimes: {
         paths: {
           de: '/wartezeiten/',
-          fr: '/fr/wartezeiten/',
-          it: '/it/wartezeiten/',
-          en: '/en/wartezeiten/',
+          // Localised on 2026-08-01; the German slugs are in retiredPaths.
+          fr: '/fr/temps-d-attente/',
+          it: '/it/tempi-di-attesa/',
+          en: '/en/wait-times/',
         },
       },
       crowdCalendar: {
@@ -57,12 +75,30 @@ describe('semantic route registry', () => {
       imprint: {
         paths: {
           de: '/impressum/',
-          fr: '/fr/impressum/',
-          it: '/it/impressum/',
-          en: '/en/impressum/',
+          fr: '/fr/mentions-legales-et-confidentialite/',
+          it: '/it/note-legali-e-privacy/',
+          en: '/en/legal-notice-and-privacy/',
         },
       },
     });
+  });
+
+  test('every retired path has a redirect and is never reused', () => {
+    const caddyfile = Bun.file(join(import.meta.dir, '..', '..', 'deploy', 'resortpass.caddy'));
+    const config = require('node:fs').readFileSync(caddyfile.name!, 'utf8') as string;
+    const published = new Set(
+      (Object.keys(routeRegistry) as RouteKey[]).flatMap((key) =>
+        getRouteAlternates(key).map(({ path }) => path),
+      ),
+    );
+
+    for (const [from, to] of Object.entries(retiredPaths)) {
+      // A retired path that is quietly serving something again is worse than a
+      // 404: it silently changes what an indexed URL means.
+      expect(published.has(from)).toBe(false);
+      expect(published.has(to)).toBe(true);
+      expect(config).toContain(`redir ${from} ${to} permanent`);
+    }
   });
 
   test('keeps every existing route mapping backed by its Astro page', () => {

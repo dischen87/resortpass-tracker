@@ -35,6 +35,19 @@ www.resortpass-europapark.ch {
 	# Keep the conventional sitemap URL machine-readable.
 	redir /sitemap.xml /sitemap-index.xml 308
 
+	# ─── Retired URLs ────────────────────────────────────────────────────────
+	# The three highest-traffic foreign languages ran on German slugs while the
+	# thirteen smaller ones were correctly localised. These moved on 2026-08-01.
+	#
+	# Permanent, and the old paths must never be reassigned to anything else.
+	# Only add to this list; never remove an entry.
+	redir /en/wartezeiten/ /en/wait-times/ permanent
+	redir /fr/wartezeiten/ /fr/temps-d-attente/ permanent
+	redir /it/wartezeiten/ /it/tempi-di-attesa/ permanent
+	redir /en/impressum/ /en/legal-notice-and-privacy/ permanent
+	redir /fr/impressum/ /fr/mentions-legales-et-confidentialite/ permanent
+	redir /it/impressum/ /it/note-legali-e-privacy/ permanent
+
 	# Astro builds directories with trailing slashes; send the other spellings
 	# to the canonical form instead of serving the same page at several URLs.
 	@explicitIndex path_regexp explicit_index ^(.*/)index\.html$

@@ -63,6 +63,21 @@ async function checkRedirects() {
   const sitemap = await head('/sitemap.xml');
   record('/sitemap.xml redirects to the index', sitemap.status === 308 || sitemap.status === 301, `got ${sitemap.status}`);
 
+  // Retired URLs must stay redirected forever; they were indexed for months.
+  const retired: [string, string][] = [
+    ['/en/wartezeiten/', '/en/wait-times/'],
+    ['/fr/wartezeiten/', '/fr/temps-d-attente/'],
+    ['/it/wartezeiten/', '/it/tempi-di-attesa/'],
+    ['/en/impressum/', '/en/legal-notice-and-privacy/'],
+    ['/fr/impressum/', '/fr/mentions-legales-et-confidentialite/'],
+    ['/it/impressum/', '/it/note-legali-e-privacy/'],
+  ];
+  for (const [from, to] of retired) {
+    const hop = await head(from);
+    const ok = hop.status === 301 && (hop.location || '').endsWith(to);
+    record(`${from} still redirects`, ok, ok ? `301 -> ${to}` : `got ${hop.status} -> ${hop.location}`);
+  }
+
   const nonWww = await fetch('https://resortpass-europapark.ch/', { redirect: 'manual' });
   record(
     'Bare domain redirects to www',
