@@ -13,6 +13,14 @@ services:
       - DB_PATH=/app/data/resortpass.db
       - API_PORT=3000
       - STATUS_JSON_PATH=/app/dist/api/status.json
+      # The entrypoint copies the image's baked-in dist over the mounted volume
+      # when this is 1, which is its default. The site is deployed by rsync, so
+      # that turns every container restart into a silent partial rollback: the
+      # image carries whatever was built when it was last built, and `cp -a`
+      # overwrites without deleting, so old pages come back while new ones stay.
+      # It nearly reverted the localised slugs. The checker already set this;
+      # the API did not.
+      - SYNC_DIST=0
     volumes:
       - ./data:/app/data
       - ./dist:/app/dist

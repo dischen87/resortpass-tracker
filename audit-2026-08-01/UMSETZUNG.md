@@ -101,6 +101,16 @@ sowie die drei Impressum-Pfade), jeweils mit dauerhafter 301-Weiterleitung. Ein 
 `src/i18n/routes.test.ts` erzwingt, dass jeder stillgelegte Pfad eine Weiterleitung hat und
 nie wiederverwendet wird.
 
+### Beim Ausrollen gefunden
+
+- **`SYNC_DIST` ist kein toter Rest.** Das Audit hielt die Variable für unbenutzt; sie wird
+  vom Entrypoint im `Dockerfile` gelesen und ist standardmässig `1`. Der API-Container
+  kopierte damit bei **jedem Neustart** den im Image gebackenen `dist` über das per rsync
+  ausgelieferte Verzeichnis — `cp -a` überschreibt, ohne zu löschen, also wären alte Seiten
+  zurückgekommen und neue geblieben. Das hätte die lokalisierten Slugs stillschweigend
+  rückgängig gemacht. Der Checker hatte `SYNC_DIST=0`, die API nicht. Jetzt beide, und ein
+  Neustart-Test bestätigt, dass der Deploy ihn übersteht.
+
 ## Bewusst offen
 
 **Braucht eine Entscheidung oder Auskunft:**
