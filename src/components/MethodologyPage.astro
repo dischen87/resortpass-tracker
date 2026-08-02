@@ -83,7 +83,7 @@ const graph = [
         <h2>{pack.correctionsHeading}</h2>
         {pack.corrections.map((correction) => (
           <article class="correction">
-            <p class="correction__date"><time datetime="2026-03-19">{correction.date}</time></p>
+            <p class="correction__date"><time datetime={correction.iso}>{correction.date}</time></p>
             <h3>{correction.title}</h3>
             <p>{correction.text}</p>
           </article>

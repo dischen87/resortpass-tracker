@@ -24,7 +24,8 @@ export interface MethodologyPack {
   intro: string;
   sections: MethodologySection[];
   correctionsHeading: string;
-  corrections: { date: string; title: string; text: string }[];
+  /** `date` is the human label; `iso` is what <time datetime> needs. */
+  corrections: { date: string; iso: string; title: string; text: string }[];
   contactHeading: string;
   contactText: string;
   sourceLinkLabel: string;
@@ -102,7 +103,14 @@ export const methodologyPacks: Record<MethodologyLocale, MethodologyPack> = {
     correctionsHeading: 'Korrekturen',
     corrections: [
       {
+        date: '9. Juni 2026',
+        iso: '2026-06-09',
+        title: 'Zweiter Fehlalarm — und acht Wochen unbemerkt',
+        text: 'Gegen 23:30 Uhr meldete der Prüflauf Silver und Gold als verfügbar und verschickte Alarm-Mails an alle damals bestätigten Abonnenten. Der Zustand war nach gut 20 Minuten wieder verschwunden; es war derselbe Fehlertyp wie am 19. März. Der schwerwiegendere Teil ist der zweite: Wir haben den Vorfall erst am 2. August 2026 bemerkt. Bis dahin wies diese Seite in ihrer Verlaufsstatistik eine Verfügbarkeit aus, die es nie gegeben hat. Die Ursache dafür war eine Annahme im Code — die Ausnahme für bekannte Fehlalarme war auf ein einzelnes Datum ausgelegt, nicht auf mehrere. Sie ist jetzt eine Liste, der 9. Juni ist dauerhaft aus allen Auswertungen herausgerechnet, und ein Test prüft beide Daten.',
+      },
+      {
         date: '19. März 2026',
+        iso: '2026-03-19',
         title: 'Fehlalarm: Silver und Gold fälschlich als verfügbar gemeldet',
         text: 'Dem Ticketshop war eine Schutzseite vorgeschaltet, die unser Prüflauf als reguläre Produktseite gelesen hat. Dadurch ging eine Verfügbarkeitsmeldung raus, obwohl kein Kauf möglich war. Behoben: Der Prüflauf verifiziert seither, dass er wirklich die echte Shop-Seite sieht, und bestätigt Verfügbarkeit über zwei aufeinanderfolgende Prüfungen. Der betroffene Tag ist dauerhaft aus allen Statistiken dieser Seite herausgerechnet.',
       },
@@ -176,7 +184,14 @@ export const methodologyPacks: Record<MethodologyLocale, MethodologyPack> = {
     correctionsHeading: 'Corrections',
     corrections: [
       {
+        date: '9 June 2026',
+        iso: '2026-06-09',
+        title: 'A second false alarm — and eight weeks before we noticed',
+        text: 'At around 23:30 the check reported Silver and Gold as available and sent alerts to every confirmed subscriber at the time. The state was gone about 20 minutes later; it was the same kind of fault as on 19 March. The more serious part is the second one: we did not notice the incident until 2 August 2026. Until then this site reported an availability in its history statistics that never happened. The cause was an assumption in the code — the exception for known false alarms was built for a single date, not several. It is a list now, 9 June is permanently excluded from every aggregate, and a test covers both dates.',
+      },
+      {
         date: '19 March 2026',
+        iso: '2026-03-19',
         title: 'False alarm: Silver and Gold incorrectly reported as available',
         text: 'The ticket shop had a protection page in front of it, which our check read as a regular product page. An availability alert went out although no purchase was possible. Fixed: the check now verifies that it is genuinely looking at the real shop page, and confirms availability across two consecutive checks. That day is permanently excluded from every statistic on this site.',
       },
@@ -250,7 +265,14 @@ export const methodologyPacks: Record<MethodologyLocale, MethodologyPack> = {
     correctionsHeading: 'Corrections',
     corrections: [
       {
+        date: '9 juin 2026',
+        iso: '2026-06-09',
+        title: 'Une deuxième fausse alerte — et huit semaines sans la voir',
+        text: 'Vers 23h30, la vérification a signalé Silver et Gold comme disponibles et a envoyé des alertes à tous les abonnés confirmés de l’époque. L’état avait disparu une vingtaine de minutes plus tard ; il s’agissait du même type d’erreur que le 19 mars. Le plus grave est ailleurs : nous n’avons remarqué l’incident que le 2 août 2026. Jusque-là, ce site affichait dans ses statistiques une disponibilité qui n’a jamais existé. La cause était une supposition dans le code — l’exception pour les fausses alertes connues avait été conçue pour une seule date, pas pour plusieurs. C’est désormais une liste, le 9 juin est définitivement exclu de tous les agrégats, et un test couvre les deux dates.',
+      },
+      {
         date: '19 mars 2026',
+        iso: '2026-03-19',
         title: 'Fausse alerte : Silver et Gold signalés à tort comme disponibles',
         text: 'Une page de protection était placée devant la billetterie et notre vérification l’a interprétée comme une page produit normale. Une alerte de disponibilité est partie alors qu’aucun achat n’était possible. Corrigé : la vérification s’assure désormais qu’elle voit bien la véritable page de la boutique et confirme la disponibilité sur deux vérifications consécutives. Cette journée est définitivement exclue de toutes les statistiques du site.',
       },
@@ -324,7 +346,14 @@ export const methodologyPacks: Record<MethodologyLocale, MethodologyPack> = {
     correctionsHeading: 'Correcties',
     corrections: [
       {
+        date: '9 juni 2026',
+        iso: '2026-06-09',
+        title: 'Een tweede vals alarm — en acht weken voordat we het merkten',
+        text: 'Rond 23:30 uur meldde de controle Silver en Gold als beschikbaar en stuurde meldingen naar alle op dat moment bevestigde abonnees. De toestand was ruim 20 minuten later weer verdwenen; het was hetzelfde type fout als op 19 maart. Het ernstigere deel is het tweede: we hebben het incident pas op 2 augustus 2026 opgemerkt. Tot dan toonde deze site in haar historiek een beschikbaarheid die er nooit is geweest. De oorzaak was een aanname in de code — de uitzondering voor bekende valse alarmen was gebouwd voor één datum, niet voor meerdere. Het is nu een lijst, 9 juni is permanent uit alle aggregaten gehaald, en een test dekt beide data.',
+      },
+      {
         date: '19 maart 2026',
+        iso: '2026-03-19',
         title: 'Vals alarm: Silver en Gold ten onrechte als beschikbaar gemeld',
         text: 'Voor de ticketshop stond een beveiligingspagina die onze controle als een gewone productpagina heeft gelezen. Daardoor ging er een beschikbaarheidsmelding uit terwijl er niets te koop was. Opgelost: de controle verifieert sindsdien dat ze werkelijk de echte shoppagina ziet en bevestigt beschikbaarheid over twee opeenvolgende controles. Die dag is permanent uit alle statistieken van deze site gehaald.',
       },
@@ -398,7 +427,14 @@ export const methodologyPacks: Record<MethodologyLocale, MethodologyPack> = {
     correctionsHeading: 'Correzioni',
     corrections: [
       {
+        date: '9 giugno 2026',
+        iso: '2026-06-09',
+        title: 'Un secondo falso allarme — e otto settimane senza accorgercene',
+        text: 'Verso le 23:30 il controllo ha segnalato Silver e Gold come disponibili e ha inviato gli avvisi a tutti gli iscritti confermati di allora. Lo stato è sparito una ventina di minuti dopo; era lo stesso tipo di errore del 19 marzo. La parte più grave è la seconda: ci siamo accorti dell’episodio solo il 2 agosto 2026. Fino ad allora questo sito riportava nelle sue statistiche una disponibilità che non c’è mai stata. La causa era un presupposto nel codice — l’eccezione per i falsi allarmi noti era pensata per una sola data, non per più di una. Ora è un elenco, il 9 giugno è escluso in modo permanente da tutti gli aggregati e un test copre entrambe le date.',
+      },
+      {
         date: '19 marzo 2026',
+        iso: '2026-03-19',
         title: 'Falso allarme: Silver e Gold segnalati erroneamente come disponibili',
         text: 'Davanti al negozio era presente una pagina di protezione che il nostro controllo ha interpretato come una normale pagina prodotto. È così partito un avviso di disponibilità benché nessun acquisto fosse possibile. Risolto: da allora il controllo verifica di vedere davvero la pagina reale del negozio e conferma la disponibilità su due controlli consecutivi. Quel giorno è escluso in modo permanente da tutte le statistiche del sito.',
       },

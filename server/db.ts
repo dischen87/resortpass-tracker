@@ -13,11 +13,32 @@ const LANGUAGE_CHECK_SQL = supportedLanguages.map((lang) => `'${lang}'`).join(',
 
 let db: Database;
 
-// Incident 2026-03-19: every `available = 1` row on this UTC date came from
-// the known protection-page false alarm. Aggregates keep the checks in their
-// totals but treat them as unavailable; raw history is intentionally untouched.
-export const FALSE_POSITIVE_AVAILABLE_DATE = '2026-03-19';
-const VALID_AVAILABLE_SQL = `available = 1 AND date(checked_at) <> '${FALSE_POSITIVE_AVAILABLE_DATE}'`;
+/**
+ * UTC dates whose `available = 1` rows are known false alarms.
+ *
+ * Aggregates keep those checks in their totals but count them as unavailable.
+ * The raw history is deliberately left untouched: it is the record of what the
+ * checker actually observed, and rewriting it would destroy the evidence that
+ * the incident happened at all.
+ *
+ * - 2026-03-19: the ticket shop had a protection page in front of it that the
+ *   checker read as a product page. Publicly documented from the start.
+ * - 2026-06-09: a second false alarm, 21:30–21:53 UTC. Alerts went out to the
+ *   383 confirmed subscribers of the time before the state reverted. This was
+ *   not caught until 2026-08-02, so until then the site reported one genuine
+ *   availability that never existed.
+ *
+ * This is a list, not a date, because assuming there would only ever be one is
+ * what let the second go unnoticed for eight weeks.
+ */
+export const FALSE_POSITIVE_AVAILABLE_DATES = ['2026-03-19', '2026-06-09'] as const;
+
+/** Kept for callers that predate the list. */
+export const FALSE_POSITIVE_AVAILABLE_DATE = FALSE_POSITIVE_AVAILABLE_DATES[0];
+
+const VALID_AVAILABLE_SQL = `available = 1 AND date(checked_at) NOT IN (${FALSE_POSITIVE_AVAILABLE_DATES.map(
+  (date) => `'${date}'`,
+).join(', ')})`;
 
 export interface DailyAvailabilityAggregate {
   date: string;

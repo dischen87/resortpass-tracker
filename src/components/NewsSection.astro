@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
+import { incidents } from '../content/incidents';
 
 interface Props {
   lang?: Lang;
@@ -47,10 +48,22 @@ const clientCopy = {
         <div class="card rounded-2xl p-6 text-sm text-muted">{tr('status.loading')}</div>
       </div>
 
-      <details open class="mt-6 rounded-2xl border-[3px] border-border bg-surface p-5 shadow-[4px_4px_0_#F9A8D4]">
-        <summary class="min-h-11 cursor-pointer py-2 font-bold text-sm">{tr('news.incident_2026_03_19_title')} · {tr('news.incident_2026_03_19_badge')}</summary>
-        <p class="mt-3 text-sm text-text-secondary leading-relaxed">{tr('news.incident_2026_03_19_text')}</p>
-      </details>
+      {/*
+        Every false alarm we have sent, newest first, and none is ever removed.
+        The most recent is open by default; older ones stay one click away
+        rather than disappearing.
+      */}
+      {incidents.map((incident, index) => (
+        <details
+          open={index === 0}
+          class="mt-6 rounded-2xl border-[3px] border-border bg-surface p-5 shadow-[4px_4px_0_#F9A8D4]"
+        >
+          <summary class="min-h-11 cursor-pointer py-2 font-bold text-sm">
+            {tr(incident.titleKey)} · {tr(incident.badgeKey)}
+          </summary>
+          <p class="mt-3 text-sm text-text-secondary leading-relaxed">{tr(incident.textKey)}</p>
+        </details>
+      ))}
     </div>
   </div>
 </section>

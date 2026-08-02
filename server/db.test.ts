@@ -181,3 +181,59 @@ test('subscriber locale migration preserves rows and expands the existing CHECK 
     rmSync(testDir, { recursive: true, force: true });
   }
 });
+
+test('known false alarms are excluded from every aggregate', async () => {
+  const testDir = mkdtempSync(join(tmpdir(), 'resortpass-fp-test-'));
+
+  try {
+    const child = Bun.spawn([process.execPath, '--eval', `
+      import assert from 'node:assert/strict';
+      import {
+        FALSE_POSITIVE_AVAILABLE_DATES,
+        getDb,
+        getHistoryStats,
+        getMonthlyHeatmap,
+        logHistory,
+      } from './db.ts';
+
+      const db = getDb();
+      // Both documented false alarms, plus a genuine-looking hit that must survive.
+      const rows = [
+        ['silver', 1, '2026-03-19 18:23:25'],
+        ['gold',   1, '2026-03-19 18:23:25'],
+        ['silver', 1, '2026-06-09 21:30:14'],
+        ['gold',   1, '2026-06-09 21:35:06'],
+        ['silver', 1, '2026-07-01 10:00:00'],
+        ['silver', 0, '2026-07-01 10:15:00'],
+      ];
+      for (const [type, available, at] of rows) {
+        db.run('INSERT INTO availability_history (pass_type, available, checked_at) VALUES (?, ?, ?)', [type, available, at]);
+      }
+
+      assert.deepEqual([...FALSE_POSITIVE_AVAILABLE_DATES], ['2026-03-19', '2026-06-09']);
+
+      const stats = getHistoryStats();
+      // Only the July row counts; the four false-alarm rows do not.
+      assert.equal(stats.silver.availableChecks, 1, 'silver should count only the genuine hit');
+      assert.equal(stats.gold.availableChecks, 0, 'gold had no hit outside the false alarms');
+      // The checks themselves stay in the totals — they really were performed.
+      assert.equal(stats.silver.totalChecks, 4);
+
+      const months = Object.fromEntries(getMonthlyHeatmap('silver').map((m) => [m.year + '-' + m.month, m.available_checks]));
+      assert.equal(months['2026-03'], 0, 'March false alarm must not appear');
+      assert.equal(months['2026-06'], 0, 'June false alarm must not appear');
+      assert.equal(months['2026-07'], 1, 'the genuine hit must survive');
+    `], {
+      cwd: join(import.meta.dir),
+      env: { ...process.env, DB_PATH: join(testDir, 'test.db') },
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const [code, stderr] = await Promise.all([child.exited, new Response(child.stderr).text()]);
+    expect(stderr).toBe('');
+    expect(code).toBe(0);
+  } finally {
+    rmSync(testDir, { recursive: true, force: true });
+  }
+});
