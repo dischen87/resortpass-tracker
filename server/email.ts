@@ -726,6 +726,16 @@ function emailContext(value: unknown) {
   };
 }
 
+/*
+ * Always ends in a slash, because the site is built with
+ * `trailingSlash: 'always'` and every other spelling is a redirect.
+ *
+ * That mattered far more than a canonical-URL nicety: the links built on top of
+ * this all carry `?token=`, and the redirect Caddy sends for the slashless form
+ * points at `{path}/` — a bare path, with no query. So the 308 quietly dropped
+ * the token, every confirmation link landed on an empty /confirm/, and nobody
+ * had been able to confirm a subscription since the redirect went in.
+ */
 export function localizedSiteUrl(lang: string = defaultLanguage, route = ''): string {
   const base = SITE_URL.replace(/\/+$/, '');
   const normalizedLanguage = normalizeLanguage(lang);
@@ -734,7 +744,7 @@ export function localizedSiteUrl(lang: string = defaultLanguage, route = ''): st
     : fallbackLanguage;
   const locale = routeLanguage === defaultLanguage ? '' : `/${routeLanguage}`;
   const path = route.replace(/^\/+|\/+$/g, '');
-  return `${base}${locale}/${path}`;
+  return path ? `${base}${locale}/${path}/` : `${base}${locale}/`;
 }
 
 function linkSection(message: string, button: string, url?: string): string {

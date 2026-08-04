@@ -14,11 +14,22 @@ www.resortpass-europapark.ch {
 	@explicitIndex path_regexp explicit_index ^(.*/)index\.html$
 	redir @explicitIndex {re.explicit_index.1} 308
 
+	# `redir` replaces the whole URI, so a bare `{path}/` target drops the query
+	# string — which is how every /confirm?token=… link lost its token. Keep the
+	# two cases apart so the no-query redirect does not grow a trailing `?`.
 	@directoryWithoutSlash {
 		not path /api/* */
 		file {path}/index.html
+		expression `{query} == ""`
 	}
 	redir @directoryWithoutSlash {path}/ 308
+
+	@directoryWithoutSlashWithQuery {
+		not path /api/* */
+		file {path}/index.html
+		expression `{query} != ""`
+	}
+	redir @directoryWithoutSlashWithQuery {path}/?{query} 308
 
 	# Astro is a static multi-page site. Missing files must stay 404s.
 	handle {

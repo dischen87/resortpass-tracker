@@ -39,7 +39,7 @@ describe('localized email rendering', () => {
 
       expect(confirm.html).toContain(`<html lang="${lang}" dir="${direction}">`);
       expect(confirm.html).toContain(nativeGreetings[lang]);
-      expect(confirm.html).toContain(`${prefix}/confirm?token=confirm%20token`);
+      expect(confirm.html).toContain(`${prefix}/confirm/?token=confirm%20token`);
       expect(confirm.text).toContain(nativeGreetings[lang]);
       expect(unsubscribe.html).toContain(`<html lang="${lang}" dir="${direction}">`);
       expect(unsubscribe.html).toContain(`${prefix}/`);
@@ -68,7 +68,7 @@ describe('localized email rendering', () => {
 
       expect(alert.html).toContain(`<html lang="${lang}" dir="${direction}">`);
       expect(alert.html).toContain(nativeGreetings[lang]);
-      expect(alert.html).toContain(`${prefix}/unsubscribe?token=unsubscribe%20token`);
+      expect(alert.html).toContain(`${prefix}/unsubscribe/?token=unsubscribe%20token`);
       expect(alert.subject).toContain('Silver');
       expect(alert.html).toContain('src="https://www.resortpass-europapark.ch/favicon.svg"');
       if (lang !== 'de') expect(alert.html).not.toContain(`${prefix}/favicon.svg`);
@@ -83,42 +83,61 @@ describe('localized email rendering', () => {
     expect(alert.html).toContain('Partager une astuce');
   });
 
-  it('builds locale-aware site routes', () => {
+  it('builds locale-aware site routes that already carry the canonical trailing slash', () => {
     for (const lang of supportedLanguages) {
       const prefix = lang === 'de' ? '' : `/${lang}`;
-      expect(new URL(localizedSiteUrl(lang, 'confirm')).pathname).toBe(`${prefix}/confirm`);
-      expect(new URL(localizedSiteUrl(lang, 'unsubscribe')).pathname).toBe(`${prefix}/unsubscribe`);
+      expect(new URL(localizedSiteUrl(lang, 'confirm')).pathname).toBe(`${prefix}/confirm/`);
+      expect(new URL(localizedSiteUrl(lang, 'unsubscribe')).pathname).toBe(`${prefix}/unsubscribe/`);
     }
 
     expect(new URL(localizedSiteUrl('it')).pathname).toBe('/it/');
-    expect(new URL(localizedSiteUrl('en', '/unsubscribe/')).pathname).toBe('/en/unsubscribe');
-    expect(new URL(localizedSiteUrl('nl', 'confirm')).pathname).toBe('/nl/confirm');
-    expect(new URL(localizedSiteUrl('pt-BR', 'confirm')).pathname).toBe('/pt/confirm');
-    expect(new URL(localizedSiteUrl('iw-IL', 'confirm')).pathname).toBe('/he/confirm');
-    expect(new URL(localizedSiteUrl('unsupported', 'confirm')).pathname).toBe('/en/confirm');
+    expect(new URL(localizedSiteUrl('en', '/unsubscribe/')).pathname).toBe('/en/unsubscribe/');
+    expect(new URL(localizedSiteUrl('nl', 'confirm')).pathname).toBe('/nl/confirm/');
+    expect(new URL(localizedSiteUrl('pt-BR', 'confirm')).pathname).toBe('/pt/confirm/');
+    expect(new URL(localizedSiteUrl('iw-IL', 'confirm')).pathname).toBe('/he/confirm/');
+    expect(new URL(localizedSiteUrl('unsupported', 'confirm')).pathname).toBe('/en/confirm/');
+    expect(new URL(localizedSiteUrl('de', 'community/neu')).pathname).toBe('/community/neu/');
+  });
+
+  /*
+   * The slash is load-bearing, not cosmetic. Caddy answers the slashless form
+   * with a 308 to a bare `{path}/`, which throws the query away — so a link
+   * without the slash reaches the page with no token at all.
+   */
+  it('never puts a token behind a redirect', () => {
+    const tokenLinks = [
+      renderConfirmationEmail('token', 'de').html,
+      renderAlertEmail('silver', 'token', 'en').html,
+      renderIncidentEmail('fr', 'token').html,
+    ];
+    for (const html of tokenLinks) {
+      for (const url of html.match(/https:\/\/[^"'\s]*\?token=[^"'\s]*/g) ?? []) {
+        expect(new URL(url).pathname).toEndWith('/');
+      }
+    }
   });
 
   it('uses the normalized language copy and an English fallback for unsupported values', () => {
     const portuguese = renderConfirmationEmail('token', 'pt-BR');
     expect(portuguese.html).toContain('<html lang="pt" dir="ltr">');
     expect(portuguese.html).toContain(nativeGreetings.pt);
-    expect(portuguese.html).toContain('/pt/confirm?token=token');
+    expect(portuguese.html).toContain('/pt/confirm/?token=token');
 
     const hebrew = renderAlertEmail('gold', 'token', 'iw-IL');
     expect(hebrew.html).toContain('<html lang="he" dir="rtl">');
     expect(hebrew.html).toContain(nativeGreetings.he);
-    expect(hebrew.html).toContain('/he/unsubscribe?token=token');
+    expect(hebrew.html).toContain('/he/unsubscribe/?token=token');
     expect(hebrew.text).toContain('ה־ResortPass Gold');
 
     const unsupported = renderConfirmationEmail('token', 'unsupported');
     expect(unsupported.html).toContain('<html lang="en" dir="ltr">');
     expect(unsupported.html).toContain(nativeGreetings.en);
-    expect(unsupported.html).toContain('/en/confirm?token=token');
+    expect(unsupported.html).toContain('/en/confirm/?token=token');
 
     const defaulted = renderConfirmationEmail('token');
     expect(defaulted.html).toContain('<html lang="de" dir="ltr">');
     expect(defaulted.html).toContain(nativeGreetings.de);
-    expect(defaulted.html).toContain('/confirm?token=token');
+    expect(defaulted.html).toContain('/confirm/?token=token');
   });
 
   it('uses a non-German correction email for every non-German subscriber locale', () => {
@@ -126,7 +145,7 @@ describe('localized email rendering', () => {
       const incident = renderIncidentEmail(lang, 'unsubscribe token');
       const prefix = `/${lang}`;
       expect(incident.html).toContain('<html lang="en" dir="ltr">');
-      expect(incident.html).toContain(`${prefix}/unsubscribe?token=unsubscribe%20token`);
+      expect(incident.html).toContain(`${prefix}/unsubscribe/?token=unsubscribe%20token`);
       expect(incident.text).not.toContain('Fehlalarm');
       expect(incident.text).toContain('false alarm');
     }

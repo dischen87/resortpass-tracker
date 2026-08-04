@@ -20,10 +20,18 @@ const homePath = getRoutePath('home', lang)!;
 /*
  * Only what the island needs, serialised at build time — importing
  * getTranslation would pull the whole 17-language table into the page.
+ *
+ * Named fields rather than a key→string map on purpose. The map was missing
+ * `confirm.error` and `confirm.title`, and the island's lookup fell back to
+ * returning the key itself, so a failed confirmation told the visitor
+ * "confirm.error" in every language. Named fields cannot silently miss: leave
+ * one out and this file stops compiling.
  */
 const clientCopy = {
-  'unsub.processing': tr('unsub.processing'),
-  'unsub.submit': tr('unsub.submit'),
+  error: tr(`${key}.error`),
+  successTitle: tr(`${key}.title`),
+  processing: tr('unsub.processing'),
+  submit: tr('unsub.submit'),
 };
 
 ---
@@ -68,8 +76,11 @@ const clientCopy = {
   </script>
 
   <script>
-    const config = (window as any).__tokenPage as { lang: string; mode: 'confirm' | 'unsubscribe'; copy: Record<string, string> };
-    const tr = (key: string) => config.copy?.[key] ?? key;
+    const config = (window as any).__tokenPage as {
+      lang: string;
+      mode: 'confirm' | 'unsubscribe';
+      copy: { error: string; successTitle: string; processing: string; submit: string };
+    };
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     const message = document.getElementById('token-message')!;
@@ -84,17 +95,17 @@ const clientCopy = {
 
     function showError() {
       stopSpinner();
-      messageText.textContent = tr(`${config.mode === 'confirm' ? 'confirm' : 'unsub'}.error`);
+      messageText.textContent = config.copy.error;
       message.classList.add('text-unavailable', 'font-bold');
       if (button) {
         button.disabled = false;
-        button.textContent = tr('unsub.submit');
+        button.textContent = config.copy.submit;
       }
     }
 
     function showSuccess() {
       stopSpinner();
-      title.textContent = tr(`${config.mode === 'confirm' ? 'confirm' : 'unsub'}.title`);
+      title.textContent = config.copy.successTitle;
       messageText.textContent = '';
       success.classList.remove('hidden');
       button?.remove();
@@ -116,7 +127,7 @@ const clientCopy = {
       if (!token || !button) return showError();
       button.disabled = true;
       button.innerHTML = '<span class="spinner" aria-hidden="true"></span>';
-      messageText.textContent = tr('unsub.processing');
+      messageText.textContent = config.copy.processing;
       try {
         const response = await fetch('/api/unsubscribe', {
           method: 'POST',

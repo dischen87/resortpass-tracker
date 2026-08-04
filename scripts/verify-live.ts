@@ -60,6 +60,20 @@ async function checkRedirects() {
   const bare = await head('/wartezeiten');
   record('Path without trailing slash redirects', bare.status === 308 || bare.status === 301, `got ${bare.status}`);
 
+  /*
+   * The redirect above must not eat the query string. It did: every
+   * confirmation mail links to /confirm?token=…, Caddy answered 308 with a
+   * bare `/confirm/`, and the token never reached the page. Not one subscriber
+   * could confirm, and the subscriber counter sat at 890 until it was found.
+   */
+  const withQuery = await head('/confirm?token=verify-live-probe');
+  const keptToken = (withQuery.location || '').includes('token=verify-live-probe');
+  record(
+    'Trailing-slash redirect keeps the query string',
+    keptToken,
+    keptToken ? `-> ${withQuery.location}` : `token dropped: ${withQuery.status} -> ${withQuery.location}`,
+  );
+
   const sitemap = await head('/sitemap.xml');
   record('/sitemap.xml redirects to the index', sitemap.status === 308 || sitemap.status === 301, `got ${sitemap.status}`);
 
@@ -118,6 +132,19 @@ async function checkRenderedContent() {
     'Home page does not render a purchase call to action while sold out',
     !hasRenderedCta,
     hasRenderedCta ? 'buy CTA present in markup' : 'absent from markup',
+  );
+
+  /*
+   * The confirm page's island gets its strings inlined by `define:vars`. When
+   * one was missing the lookup fell through to the key, so a failed
+   * confirmation read "confirm.error" — in every language.
+   */
+  const confirm = await text('/confirm/');
+  const hasRawKeys = /confirm\.(error|title)|unsub\.(error|title)/.test(confirm.body);
+  record(
+    'Confirm page ships translated copy, not translation keys',
+    !hasRawKeys && confirm.body.includes('ungültig oder abgelaufen'),
+    hasRawKeys ? 'raw i18n key inlined in the page' : 'translated error string present',
   );
 }
 

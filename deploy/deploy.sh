@@ -77,8 +77,15 @@ ssh "$REMOTE" "set -e
   ls -1dt ${BACKUP_ROOT}/*/ 2>/dev/null | tail -n +6 | xargs -r rm -rf"
 
 log "Uploading"
+# The checker writes status.json and history-stats.json into the same directory
+# tree that this rsync owns, and the build produces no dist/api at all — so
+# --delete removed both on every single deploy. Nothing served them (Caddy
+# proxies /api/* to the container, so they answered 404), but the deploy has no
+# business deleting another container's runtime state.
 rsync -az --delete --human-readable \
   --exclude '.DS_Store' \
+  --exclude 'api/status.json' \
+  --exclude 'api/history-stats.json' \
   dist/ "${REMOTE}:${REMOTE_ROOT}/" || die "rsync"
 
 log "Smoke test against ${SITE}"

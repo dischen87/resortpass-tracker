@@ -53,11 +53,34 @@ www.resortpass-europapark.ch {
 	@explicitIndex path_regexp explicit_index ^(.*/)index\.html$
 	redir @explicitIndex {re.explicit_index.1} 308
 
+	# Split by query on purpose, because `redir` replaces the whole URI and the
+	# obvious one-liner — `redir @directoryWithoutSlash {path}/ 308` — kept only
+	# the path. Every confirmation, unsubscribe and community-post mail links to
+	# a URL of the form /confirm?token=…, so that 308 threw the token away and
+	# the visitor arrived at an empty /confirm/ that could only fail.
+	#
+	# It reached production with the 2026-08-01 deploy and was found on
+	# 2026-08-04. In between: 13 sign-ups, 0 confirmations. The last
+	# confirmation before it was 2026-08-01 19:10, and the daily rate up to
+	# that point had been 4-16. A silent zero is the signature to watch for —
+	# nothing errored, nothing alerted, the counter simply stopped at 890.
+	#
+	# The no-query case keeps the bare target so the canonical redirect does not
+	# grow a trailing `?`. The two matchers are mutually exclusive, so their
+	# order here does not matter.
 	@directoryWithoutSlash {
 		not path /api/* /a/* */
 		file {path}/index.html
+		expression `{query} == ""`
 	}
 	redir @directoryWithoutSlash {path}/ 308
+
+	@directoryWithoutSlashWithQuery {
+		not path /api/* /a/* */
+		file {path}/index.html
+		expression `{query} != ""`
+	}
+	redir @directoryWithoutSlashWithQuery {path}/?{query} 308
 
 	handle {
 		# No /index.html fallback.
