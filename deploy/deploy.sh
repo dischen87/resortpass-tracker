@@ -17,9 +17,16 @@
 #
 set -Eeuo pipefail
 
-REMOTE="${DEPLOY_REMOTE:?set DEPLOY_REMOTE, e.g. deploy@example.com}"
-REMOTE_ROOT="${DEPLOY_ROOT:-/srv/www}"
-BACKUP_ROOT="${DEPLOY_BACKUP_ROOT:-/srv/www-releases}"
+# Defaults are the real production paths, verified on the host 2026-08-04.
+#
+# They used to be /srv/www and /srv/www-releases, which do not exist there —
+# /srv/www is the path *inside* the Caddy container, and the host side of that
+# mount is /opt/resortpass-tracker/dist. Anyone running this without setting
+# DEPLOY_ROOT would have rsynced a full build into a brand-new empty directory
+# that Caddy never reads, and reported success.
+REMOTE="${DEPLOY_REMOTE:-root@88.99.60.182}"
+REMOTE_ROOT="${DEPLOY_ROOT:-/opt/resortpass-tracker/dist}"
+BACKUP_ROOT="${DEPLOY_BACKUP_ROOT:-/opt/resortpass-tracker/releases}"
 SITE="${DEPLOY_SITE_URL:-https://www.resortpass-europapark.ch}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 
