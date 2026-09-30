@@ -247,6 +247,8 @@ async function checkMcp() {
     record('MCP exposes exactly three read-only tools', tools.length === 3 && expected.every((name) =>
       tools.some((tool) => tool.name === name && tool.annotations?.readOnlyHint === true && tool.annotations?.destructiveHint === false)),
       tools.map((tool) => tool.name).join(', '));
+    record('MCP publishes structured response schemas', tools.length === 3 && tools.every((tool) =>
+      tool.outputSchema?.type === 'object' && Boolean(tool.outputSchema.properties)), 'object schema for every tool');
     const status = await client.callTool({ name: 'get_status', arguments: { language: 'de' } });
     const result = status.structuredContent as { silver?: { state?: string }; gold?: { state?: string } } | undefined;
     record('MCP returns the public status', !status.isError && Boolean(result?.silver?.state && result?.gold?.state),

@@ -2,8 +2,9 @@ import { describe, expect, test } from 'bun:test';
 import { Hono } from 'hono';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { createResortPassMcpApp, publicMcpPass } from './mcp';
-import { getRoutePath } from '../src/i18n/routes';
+import { createResortPassMcpApp, publicMcpPass, type McpOptions } from './mcp';
+import { getRoutePath, guideRouteKeys } from '../src/i18n/routes';
+import { localeCodes } from '../src/i18n/locales';
 
 const now = Date.parse('2026-09-30T12:00:00Z');
 const siteUrl = 'https://tracker.example';
@@ -15,13 +16,28 @@ const options = {
   }),
 };
 
-async function withClient(run: (client: Client) => Promise<void>) {
-  const app = new Hono().route('/api/mcp', createResortPassMcpApp(options));
+async function withClient(run: (client: Client) => Promise<void>, fixture: {
+  options?: McpOptions;
+  alterResult?: (result: Record<string, any>) => void;
+} = {}) {
+  const app = new Hono().route('/api/mcp', createResortPassMcpApp(fixture.options ?? options));
   const client = new Client({ name: 'resortpass-mcp-test', version: '1.0.0' });
   const transport = new StreamableHTTPClientTransport(new URL(`${siteUrl}/api/mcp`), {
-    fetch: async (input, init) => app.fetch(new Request(input, init)),
+    fetch: async (input, init) => {
+      const response = await app.fetch(new Request(input, init));
+      if (fixture.alterResult && response.headers.get('content-type')?.includes('application/json')) {
+        const envelope = await response.clone().json() as Record<string, any>;
+        if (envelope.result?.structuredContent) {
+          // Corrupt the wire result after server validation to exercise the official client validator.
+          fixture.alterResult(envelope.result);
+          return Response.json(envelope, { status: response.status, headers: response.headers });
+        }
+      }
+      return response;
+    },
   });
-  try { await client.connect(transport); await run(client); }
+  // listTools caches the published JSON Schema validators in the official SDK client.
+  try { await client.connect(transport); await client.listTools(); await run(client); }
   finally { await client.close(); }
 }
 
@@ -34,6 +50,8 @@ describe('public read-only MCP', () => {
         expect(tool.annotations?.readOnlyHint).toBe(true);
         expect(tool.annotations?.destructiveHint).toBe(false);
         expect(tool.annotations?.openWorldHint).toBe(false);
+        expect(tool.outputSchema?.type).toBe('object');
+        expect(tool.outputSchema?.additionalProperties).toBe(false);
       }
       expect(client.getServerCapabilities()?.tools).toBeDefined();
       expect(client.getServerCapabilities()?.resources).toBeUndefined();
@@ -76,6 +94,40 @@ describe('public read-only MCP', () => {
     });
   });
 
+  test('validates sold-out and all unknown observation variants through the SDK', async () => {
+    let silver: ReturnType<McpOptions['readStatus']>['silver'] = null;
+    await withClient(async (client) => {
+      for (const observation of [
+        null,
+        { available: true, lastCheck: 'invalid' },
+        { available: true, lastCheck: '2026-09-30T11:00:00Z' },
+        { available: false, lastCheck: '2026-09-30T12:02:00Z' },
+      ]) {
+        silver = observation;
+        const result = await client.callTool({ name: 'get_status', arguments: {} });
+        expect(result.isError).not.toBe(true);
+        const data = result.structuredContent as Record<string, any>;
+        expect(data.silver).toMatchObject({ state: 'unknown', available: null, fresh: false });
+        expect(data.gold).toMatchObject({ state: 'sold_out', available: false, fresh: true });
+      }
+    }, { options: { ...options, readStatus: () => ({ silver, gold: { available: false, lastCheck: '2026-09-30T11:59:00Z' } }) } });
+  });
+
+  test('validates every localized guide and undated visit outline through the SDK', async () => {
+    await withClient(async (client) => {
+      for (const language of localeCodes) {
+        for (const topic of guideRouteKeys) {
+          const result = await client.callTool({ name: 'find_guide', arguments: { language, topic } });
+          expect(result.isError).not.toBe(true);
+          expect((result.structuredContent as Record<string, any>).guides).toHaveLength(1);
+        }
+        const plan = await client.callTool({ name: 'plan_visit', arguments: { language } });
+        expect(plan.isError).not.toBe(true);
+        expect(plan.structuredContent).not.toHaveProperty('dates');
+      }
+    });
+  });
+
   test('uses the website recommendation with an exclusive date range and no provider data', async () => {
     await withClient(async (client) => {
       const result = await client.callTool({ name: 'plan_visit', arguments: {
@@ -105,9 +157,32 @@ describe('public read-only MCP', () => {
         ['find_guide', { query: 'x'.repeat(201) }],
         ['find_guide', {}],
       ] as const) {
-        expect((await client.callTool({ name, arguments: args })).isError).toBe(true);
+        const result = await client.callTool({ name, arguments: args });
+        expect(result.isError).toBe(true);
+        expect(result.structuredContent).toBeUndefined();
       }
     });
+  });
+
+  test('keeps unavailable-backend errors outside the structured success contract', async () => {
+    await withClient(async (client) => {
+      const result = await client.callTool({ name: 'get_status', arguments: {} });
+      expect(result.isError).toBe(true);
+      expect(result.structuredContent).toBeUndefined();
+      expect(result.content).toEqual([{ type: 'text', text: expect.stringContaining('temporarily unavailable') }]);
+    }, { options: { ...options, readStatus: () => { throw new Error('fixture backend unavailable'); } } });
+  });
+
+  test.each([
+    ['get_status', {}, (result: Record<string, any>) => { result.structuredContent.silver.available = false; }],
+    ['get_status', {}, (result: Record<string, any>) => { result.structuredContent.gold.available = false; }],
+    ['find_guide', { topic: 'resortPassReservation' }, (result: Record<string, any>) => { result.structuredContent.guides[0].url = 'invalid-url'; }],
+    ['plan_visit', {}, (result: Record<string, any>) => { result.structuredContent.recommendedDays = 4; }],
+    ['get_status', {}, (result: Record<string, any>) => { delete result.structuredContent; }],
+  ] as const)('official SDK rejects malformed %s structured output', async (name, args, alterResult) => {
+    await withClient(async (client) => {
+      await expect(client.callTool({ name, arguments: args })).rejects.toThrow(/output schema|structured content/i);
+    }, { alterResult });
   });
 
   test('rejects untrusted host/origin, limits bodies and offers no persistent event stream', async () => {

@@ -21,6 +21,41 @@ export interface McpOptions {
 const language = z.enum(localeCodes).default('de').describe('Language of the editorial content and site links.');
 const annotations = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
 
+const observationFields = {
+  lastCheck: z.iso.datetime().nullable(),
+  ageMinutes: z.number().int().nonnegative().nullable(),
+};
+const passOutput = z.discriminatedUnion('state', [
+  z.object({ ...observationFields, state: z.literal('available'), available: z.literal(true), fresh: z.literal(true) }).strict(),
+  z.object({ ...observationFields, state: z.literal('sold_out'), available: z.literal(false), fresh: z.literal(true) }).strict(),
+  z.object({ ...observationFields, state: z.literal('unknown'), available: z.null(), fresh: z.literal(false) }).strict(),
+]);
+const guideOutput = z.object({
+  topic: z.enum(guideRouteKeys), title: z.string().min(1), description: z.string().min(1), excerpt: z.string().min(1),
+  url: z.url(), editorialCheckedAt: z.iso.date(), sourceUrl: z.url(),
+}).strict();
+
+/** Success contracts; MCP isError responses intentionally have text and no structuredContent. */
+const outputSchemas = {
+  get_status: z.object({
+    silver: passOutput, gold: passOutput, generatedAt: z.iso.datetime(), url: z.url(),
+    source: z.string().min(1), officialShopUrl: z.url(), disclaimer: z.string().min(1),
+  }).strict(),
+  find_guide: z.object({
+    language: z.enum(localeCodes), guides: z.array(guideOutput).max(3),
+    availableTopics: z.array(z.enum(guideRouteKeys)).length(guideRouteKeys.length).optional(),
+    disclaimer: z.string().min(1),
+  }).strict(),
+  plan_visit: z.object({
+    language: z.enum(localeCodes), requestedDays: z.number().int().min(1).max(3),
+    recommendedDays: z.number().int().min(1).max(3), includesRulantica: z.boolean(),
+    dates: z.object({ start: z.iso.date(), endExclusive: z.iso.date() }).strict().optional(),
+    route: z.array(z.object({ dayPart: z.string().min(1), text: z.string().min(1) }).strict()).length(4),
+    notes: z.array(z.string().min(1)).min(1).max(4), disclaimer: z.string().min(1),
+    editorialCheckedAt: z.iso.date(), assumptions: z.string().min(1), url: z.url(), calendar: z.string().min(1),
+  }).strict(),
+};
+
 function result(payload: Record<string, unknown>) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(payload) }], structuredContent: payload };
 }
@@ -51,7 +86,7 @@ export function createResortPassMcpServer(options: McpOptions) {
   server.registerTool('get_status', {
     title: 'ResortPass availability',
     description: 'Read the tracker’s own current ResortPass Silver/Gold sale observations, check times and freshness. Use for whether a pass is on sale. Unknown or stale is not sold out. No personal reservations, subscriptions, purchases, wait times or crowd data.',
-    inputSchema: z.object({ language }).strict(), annotations,
+    inputSchema: z.object({ language }).strict(), outputSchema: outputSchemas.get_status, annotations,
   }, async ({ language: lang }) => {
     try {
       const status = options.readStatus();
@@ -75,7 +110,8 @@ export function createResortPassMcpServer(options: McpOptions) {
       language,
       topic: z.enum(guideRouteKeys).optional(),
       query: z.string().trim().min(2).max(200).optional().describe('Words from the desired guide title, in the requested language.'),
-    }).strict().refine((value) => value.topic || value.query, { message: 'Choose a topic or search query.' }), annotations,
+    }).strict().refine((value) => value.topic || value.query, { message: 'Choose a topic or search query.' }),
+    outputSchema: outputSchemas.find_guide, annotations,
   }, async ({ language: lang, topic, query }) => {
     const pack = getPlanningPack(lang);
     const terms = normalizeSearch(query || '').split(/\s+/).filter(Boolean);
@@ -107,7 +143,7 @@ export function createResortPassMcpServer(options: McpOptions) {
       arrival: z.enum(['opening', 'early', 'late']).default('opening'),
       crowd: z.enum(['low', 'medium', 'high']).default('medium').describe('User-selected planning assumption, never fetched from a provider.'),
       includesRulantica: z.boolean().default(false),
-    }).strict(), annotations,
+    }).strict(), outputSchema: outputSchemas.plan_visit, annotations,
   }, async ({ language: lang, date, days, group, arrival, crowd, includesRulantica }) => {
     const copy = getPlanningPack(lang).visitPlanner;
     const recommendedDays = getRecommendedVisitDays(days, crowd, arrival, includesRulantica);
