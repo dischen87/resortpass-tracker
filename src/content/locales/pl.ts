@@ -321,7 +321,7 @@ export const plPlanning = {
       "description": "Zrozum ResortPass Silver i Gold: stan sprzedaży, ceny, dni wizyty, rezerwacja, Rulantica i niezależne powiadomienie o dostępności.",
       "eyebrow": "Przewodnik ResortPass",
       "heading": "Wszystko, co ważne o Europa-Park ResortPass",
-      "answer": "Silver i Gold nie są obecnie dostępne w regularnej sprzedaży i nie ogłoszono nowej daty. Silver jest tańszy i powiązany z określonymi dniami; Gold jest bardziej elastyczny i zawiera dodatkowe korzyści w Rulantica.",
+      "answer": "Sprawdź w trackerze na żywo, czy Silver i Gold można obecnie kupić. Silver jest tańszy i powiązany z określonymi dniami; Gold jest bardziej elastyczny i zawiera dodatkowe korzyści w Rulantica.",
       "sectionTitle": "Wybierz roczny karnet w zależności od użytkowania",
       "sectionIntro": "Cena nie jest jedyną rzeczą, która się liczy. Bardziej istotne są możliwe dni wizyty, elastyczność, korzystanie z Rulantica i faktyczna dostępność karnetu.",
       "points": [
@@ -344,7 +344,7 @@ export const plPlanning = {
       "faqs": [
         {
           "question": "Kiedy ponownie będą sprzedawane ResortPass?",
-          "answer": "Obecnie nie ogłoszono nowej daty sprzedaży. Tracker powiadomi, gdy Silver lub Gold będą faktycznie dostępne w oficjalnym sklepie."
+          "answer": "Nowych terminów sprzedaży szukaj w oficjalnych ogłoszeniach. Tracker powiadamia, gdy oficjalny sklep faktycznie umożliwia zakup Silver lub Gold."
         },
         {
           "question": "Ile kosztuje ResortPass?",
@@ -401,7 +401,7 @@ export const plPlanning = {
       "description": "Aktualne ceny ResortPass dla dorosłych, dzieci i seniorów, w porównaniu z biletami jednodniowymi Europa-Park w zależności od daty.",
       "eyebrow": "Ceny 2026",
       "heading": "Ile kosztują ResortPass, Silver i Gold?",
-      "answer": "Ostatnia oficjalna weryfikacja: Silver kosztuje 325 euro dla dorosłych i 275 euro dla dzieci oraz seniorów; Gold odpowiednio 495 i 430 euro. Żaden z nich nie jest obecnie dostępny w regularnej sprzedaży.",
+      "answer": "Ostatnia oficjalna weryfikacja: Silver kosztuje 325 euro dla dorosłych i 275 euro dla dzieci oraz seniorów; Gold odpowiednio 495 i 430 euro. Aktualny status sprzedaży sprawdź w trackerze na żywo i w oficjalnym sklepie z biletami.",
       "sectionTitle": "Oceń cenę wraz z użyciem",
       "sectionIntro": "Bilety jednodniowe mają przedziały cenowe zależne od daty. Dlatego opłacalność rocznego karnetu nie zaczyna się od jednej uniwersalnej kwoty, lecz zależy od Twoich rzeczywistych terminów.",
       "points": [
@@ -432,7 +432,7 @@ export const plPlanning = {
         },
         {
           "question": "Czy mogę teraz kupić ResortPass?",
-          "answer": "Silver i Gold są obecnie niedostępne. Tracker na żywo pokaże, gdy rzeczywisty status w sklepie się zmieni."
+          "answer": "Sprawdź tracker na żywo wraz z godziną ostatniej kontroli. Silver lub Gold możesz kupić wyłącznie w oficjalnym sklepie z biletami, gdy są tam oferowane do sprzedaży."
         }
       ]
     },

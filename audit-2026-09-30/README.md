@@ -98,18 +98,26 @@ Die [vollständige Integrationsanalyse](../docs/integrations-2026-09-30.md) prio
 
 Installierte Skills können passend zur Chat-Aufgabe ausgewählt werden. Ein MCP-Werkzeug allein startet keinen Hintergrundlauf. Echte Ereignis-Tasks beziehungsweise MCP Events benötigen unterstützte Plattformen, Kontoberechtigungen, ausdrückliche Abos und eine implementierte Zustellung. GitHub ist im geprüften Plugin-Katalog installiert; Kalender, Gmail und Linear sind mögliche weitere Verbindungen. Es wurden keine Plugins installiert und keine neuen Hintergrund- oder Ereignisaufgaben aktiviert.
 
-## Offene Prioritäten
+## Status des anschliessenden Releases 1.1.0
+
+Nach Freigabe zur Umsetzung wurden die vier Statusbefunde unten behoben: aktuelle Ungewissheit bleibt unbekannt, jeder Pass besitzt seinen eigenen Prüfzeitpunkt, sichtbare Antworten und FAQ-/Meta-Angaben aktualisieren sich gemeinsam, und 68 kurzfristige Verkaufsbehauptungen in 17 Ratgeberpaketen wurden durch Hinweise zum aktuellen Tracker ersetzt. Auch Hero, Verkaufsterminbox und zugehörige FAQ behaupten keine ungeprüfte Ankündigung. Die LLM-Datei nennt beide dokumentierten Fehlalarme.
+
+Der lesende MCP-Endpunkt `/api/mcp` mit `get_status`, `find_guide` und `plan_visit` sowie der automatisch auffindbare Repo-Skill `resortpass-editorial-review` sind implementiert. Der wöchentliche Quellen-/Bildrechte-Heartbeat ist aktiv: Montag 09:00 Uhr, Europe/Zurich, im selben Chat, Meldung nur bei relevanten Änderungen oder Prüffehlern. Ein ChatGPT-Kontoplugin und persönliche Kalenderverbindungen werden dadurch nicht automatisch installiert.
+
+Der Release-Ablauf sichert vollständige Website- und Konfigurationsbackups, prüft die exakte API-Revision und validiert den gemeinsamen Caddy vor dem Neuladen. Der Live-Check prüft zusätzlich Fotos, Dock, Kalenderexport, FAQ-Übereinstimmung, Release-Revision und die drei MCP-Werkzeuge. Die beim Vorabcheck gefundenen alten Live-Weiterleitungs-/404-Fehler werden durch das bereits vorhandene korrekte Sitefragment behoben.
+
+## Befunde aus dem ersten Audit und ihr Status
 
 | Priorität | Befund | Nächste sinnvolle Arbeit |
 |---|---|---|
-| P1 | Aktuelle unbekannte Statusantworten können durch den alten committed `sold_out`-Snapshot ersetzt werden. | Historischen Nachweis und aktuelle Ungewissheit ausdrücklich auseinanderhalten. |
-| P1 | Live-Karten und -Pills aktualisieren sich; längere Verfügbarkeitsantworten und FAQ folgen dem Build. | Eine Zustandsformatierung für alle sichtbaren und strukturierten Antworten einsetzen. |
-| P2 | Ein unbekannter und ein ausverkaufter Pass werden in der ausführlichen Antwort zusammengefasst. | Pro Pass antworten und Unknown sichtbar behalten. |
-| P2 | Einzelne Ratgeber haben langfristig fixierte Texte zur derzeitigen Nichtverfügbarkeit. | Datierte Beobachtung und Link zum aktuellen Status verwenden. |
+| Erledigt | Aktuelle unbekannte Statusantworten wurden durch einen alten `sold_out`-Snapshot ersetzt. | Build- und Client-Abruffehler bleiben jetzt Unknown; historische Beobachtungen bleiben im Verlauf. |
+| Erledigt | Live-Karten und -Pills aktualisierten sich getrennt von längeren Antworten und FAQ. | Zentrale Formatierung aktualisiert Karten, Pills, Antworten, FAQ, Meta und WebPage/WebApplication gemeinsam. |
+| Erledigt | Gemischte Zustände wurden zusammengefasst. | Beide Pässe werden einzeln mit Zustand und geprüftem Zeitpunkt beschrieben; Unknown-Erklärung gehört zum betreffenden Pass. |
+| Erledigt | Einzelne Ratgeber hatten fixierte Texte zur derzeitigen Nichtverfügbarkeit. | Alle 17 Pakete verweisen für den aktuellen Verkauf auf Tracker und offiziellen Shop. |
 | P2 | Kalenderdatei ist erzeugbar; nativer Kalenderimport wurde nicht mit einer echten Kalender-App getestet. | Import in iOS Kalender, Google Calendar und Outlook mit denselben Sprach-/Datumsfällen prüfen. |
 | P2 | Keine reale Nutzerstudie und keine gemessene Conversion-/Performanceverbesserung. | Drei kleine Aufgaben-Tests mit Erstbesuchern; danach gezielte Performance-Messung unter Mobilnetzbedingungen. |
 
-Die ersten vier Befunde bestehen bereits im Projekt und sind genauer im Integrationsbericht beschrieben. Die jetzigen Änderungen bewahren die fachlichen Funktionen, statt die gesamte Statusarchitektur gleichzeitig umzubauen.
+Die ersten vier Befunde wurden im Folgeauftrag zur Umsetzung behoben. Die Grenzen zu nativem Kalenderimport, Nutzertests und Kontoverbindungen bleiben offen.
 
 ## Verifikation und Grenzen
 
@@ -121,4 +129,4 @@ Die ersten vier Befunde bestehen bereits im Projekt und sind genauer im Integrat
 - Der In-App-Browser zeigte „Kalenderdatei erstellt“, lieferte aber kein Download-Ereignis an die Browserautomatisierung. Die Dateiserialisierung wurde mit Tests geprüft; ein tatsächlich gespeicherter Browserdownload oder Kalenderimport wird deshalb nicht als vollständig verifiziert behauptet.
 - Live-Verkaufswechsel, Newsletter-Zustellung, echte Ausfälle und alle 17 Sprachen wurden nicht jeweils als kompletter manueller Browserlauf reproduziert. Bildmetadaten und Sprach-/Buildinvarianten wurden automatisiert geprüft.
 
-Screenshots und Befunde gehören zu diesem aktuellen Lauf. Die Änderungen wurden lokal umgesetzt und geprüft; ein Produktionsdeployment ist ein eigener Schritt.
+Screenshots und Befunde gehören zu diesem aktuellen Lauf. Die erste Analyse und ihre 159 Tests wurden vor dem Folgeauftrag erstellt. Die anschliessende Umsetzung wird zusätzlich mit Status- und offiziellen MCP-SDK-Tests, lokalen HTTP-Fehler-/Mixed-State-Browserantworten und dem erweiterten Live-Verifier geprüft. Der endgültige Live-Nachweis und die Release-Revision stehen im GitHub-Release 1.1.0.

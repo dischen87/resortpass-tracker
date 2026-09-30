@@ -367,7 +367,7 @@ export const nbPlanning: PlanningLocalePack = {
       eyebrow: 'ResortPass-guide',
       heading: 'Alt du trenger å vite om Europa-Park ResortPass',
       answer:
-        'Silver og Gold er for tiden ikke i ordinært salg, og ingen ny salgsdato er kunngjort. Silver er rimeligere og bundet til fastsatte besøksdager, mens Gold er mer fleksibelt og inkluderer ekstra Rulantica-ytelser.',
+        'Sjekk i direktesporeren om Silver og Gold kan kjøpes nå. Silver er rimeligere og bundet til fastsatte besøksdager, mens Gold er mer fleksibelt og inkluderer ekstra Rulantica-ytelser.',
       sectionTitle: 'Velg årskort etter bruk',
       sectionIntro:
         'Prisen alene avgjør ikke. Mulige besøksdager, fleksibilitet, bruk av Rulantica og om kortet faktisk er tilgjengelig, er viktigere.',
@@ -392,7 +392,7 @@ export const nbPlanning: PlanningLocalePack = {
         {
           question: 'Når blir ResortPass tilgjengelig igjen?',
           answer:
-            'Ingen ny salgsdato er kunngjort. Sporeren varsler når den offisielle butikken faktisk viser Silver eller Gold som tilgjengelig for kjøp igjen.',
+            'Sjekk offisielle kunngjøringer om nye salgsdatoer. Sporeren varsler når den offisielle butikken faktisk tilbyr Silver eller Gold for kjøp.',
         },
         {
           question: 'Hva koster ResortPass?',
@@ -459,7 +459,7 @@ export const nbPlanning: PlanningLocalePack = {
       eyebrow: 'Priser 2026',
       heading: 'Hva koster ResortPass Silver og Gold?',
       answer:
-        'Sist offisielt kontrollert: Silver 325 euro for voksne og 275 euro for barn/seniorer; Gold henholdsvis 495 og 430 euro. Ingen av kortene er for tiden i ordinært salg.',
+        'Sist offisielt kontrollert: Silver 325 euro for voksne og 275 euro for barn/seniorer; Gold henholdsvis 495 og 430 euro. Sjekk direktesporeren og den offisielle billettbutikken for gjeldende salgsstatus.',
       sectionTitle: 'Vurder prisen sammen med faktisk bruk',
       sectionIntro:
         'Dagsbilletter har datobaserte prisintervaller. Et årskort lønner seg derfor ikke etter ett universelt antall, men ut fra de faktiske datoene dine.',
@@ -494,7 +494,7 @@ export const nbPlanning: PlanningLocalePack = {
         {
           question: 'Kan jeg kjøpe ResortPass nå?',
           answer:
-            'Silver og Gold står for tiden som utilgjengelige. Direktesporeren viser når den faktiske butikkstatusen endres.',
+            'Sjekk direktesporeren sammen med tidspunktet for siste kontroll. Silver og Gold kan bare kjøpes i den offisielle billettbutikken når de tilbys for salg.',
         },
       ],
     },

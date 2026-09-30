@@ -29,12 +29,12 @@ function record(name: string, ok: boolean, detail: string, warnOnly = false) {
 }
 
 async function head(path: string) {
-  const response = await fetch(`${BASE}${path}`, { redirect: 'manual' });
+  const response = await fetch(`${BASE}${path}`, { redirect: 'manual', signal: AbortSignal.timeout(10_000) });
   return { status: response.status, location: response.headers.get('location'), response };
 }
 
 async function text(path: string, headers: Record<string, string> = {}) {
-  const response = await fetch(`${BASE}${path}`, { headers });
+  const response = await fetch(`${BASE}${path}`, { headers, signal: AbortSignal.timeout(10_000) });
   return { status: response.status, body: await response.text(), response };
 }
 
@@ -118,20 +118,21 @@ async function checkRenderedContent() {
   );
 
   const home = await text('/');
+  const homeMarkup = home.body.replace(/<script[\s\S]*?<\/script>/g, '');
   record(
     'Home page states a real availability answer',
-    /Ausverkauft|Jetzt verfügbar/.test(home.body),
+    /Ausverkauft|Jetzt verfügbar|Unbekannt/.test(homeMarkup),
     'answer present',
   );
   // Scripts are stripped first on purpose. The island carries the label as a
   // string so it can build the panel the moment the shop opens; what must not
   // exist is a rendered, crawlable purchase link while the pass is sold out.
-  const homeMarkup = home.body.replace(/<script[\s\S]*?<\/script>/g, '');
+  const renderedAvailable = /data-pass-state="available"/.test(homeMarkup);
   const hasRenderedCta = /class="[^"]*status-available/.test(homeMarkup) || homeMarkup.includes('Jetzt kaufen');
   record(
-    'Home page does not render a purchase call to action while sold out',
-    !hasRenderedCta,
-    hasRenderedCta ? 'buy CTA present in markup' : 'absent from markup',
+    'Purchase actions agree with the rendered pass state',
+    renderedAvailable || !hasRenderedCta,
+    renderedAvailable ? 'at least one pass is available' : hasRenderedCta ? 'buy CTA without an available pass' : 'absent for unavailable/unknown passes',
   );
 
   /*
@@ -197,17 +198,70 @@ async function checkStatusDrift() {
     return;
   }
   const payload = JSON.parse(live.body) as Record<string, { state?: string }>;
-  const liveState = payload.silver?.state;
-  const renderedSoldOut = home.body.includes('Ausverkauft');
-  const agrees = liveState === 'sold_out' ? renderedSoldOut : liveState === 'available' ? !renderedSoldOut : true;
-  record(
-    'Rendered status matches the live endpoint',
-    agrees,
-    agrees
-      ? `both say ${liveState}`
-      : `endpoint says ${liveState} but the page was built with a different snapshot — update src/data/status-snapshot.ts and redeploy`,
-    true,
-  );
+  for (const type of ['silver', 'gold']) {
+    const pill = home.body.match(new RegExp(`<[^>]+id="hero-pill-${type}"[^>]*>`))?.[0];
+    const renderedState = pill?.match(/data-pass-state="([^"]+)"/)?.[1];
+    const liveState = payload[type]?.state;
+    const agrees = liveState === renderedState;
+    record(`Rendered ${type} status matches the live endpoint`, agrees,
+      `API ${liveState}; build ${renderedState || 'missing'}`, true);
+  }
+}
+
+async function checkReleaseFeatures() {
+  const home = await text('/');
+  const answer = home.body.match(/<p[^>]*data-availability-answer[^>]*>([\s\S]*?)<\/p>/)?.[1]?.trim();
+  const faqText = home.body.match(/<script[^>]*id="availability-faq-schema"[^>]*>([\s\S]*?)<\/script>/)?.[1];
+  const faqAnswer = faqText ? JSON.parse(faqText).mainEntity?.[1]?.acceptedAnswer?.text : undefined;
+  record('Visible availability answer and FAQ schema agree', Boolean(answer) && answer === faqAnswer,
+    answer === faqAnswer ? 'identical per-pass answer' : 'missing or divergent answer');
+  record('Mobile navigation and licensed hero photo are published',
+    home.body.includes('mobile-dock') && home.body.includes('/images/ep-voltron-') && home.body.includes('creativecommons.org/licenses/by-sa/4.0/'),
+    'dock, local photo and license credit');
+  const planner = await text('/europa-park-besuchsplaner/');
+  record('Planner includes the local calendar export',
+    planner.status === 200 && planner.body.includes('name="visit-date"') && planner.body.includes('data-calendar-download'),
+    'optional date and explicit calendar button');
+  const full = await text('/llms-full.txt');
+  record('Machine-readable context documents both false alarms',
+    full.body.includes('2026-03-19') && full.body.includes('2026-06-09'), 'March and June documented');
+  if (process.env.DEPLOY_EXPECTED_REVISION) {
+    const release = await text('/release.json');
+    const revision = release.status === 200 ? JSON.parse(release.body).revision : null;
+    record('Live release is the requested Git revision', revision === process.env.DEPLOY_EXPECTED_REVISION,
+      `expected ${process.env.DEPLOY_EXPECTED_REVISION}; got ${revision}`);
+  }
+}
+
+async function checkMcp() {
+  if (process.env.DEPLOY_VERIFY_MCP !== '1') return;
+  const { Client } = await import('@modelcontextprotocol/sdk/client/index.js');
+  const { StreamableHTTPClientTransport } = await import('@modelcontextprotocol/sdk/client/streamableHttp.js');
+  const client = new Client({ name: 'resortpass-release-check', version: '1.1.0' });
+  try {
+    await client.connect(new StreamableHTTPClientTransport(new URL(`${BASE}/api/mcp`), {
+      requestInit: { signal: AbortSignal.timeout(15_000) },
+    }));
+    const { tools } = await client.listTools();
+    const expected = ['get_status', 'find_guide', 'plan_visit'];
+    record('MCP exposes exactly three read-only tools', tools.length === 3 && expected.every((name) =>
+      tools.some((tool) => tool.name === name && tool.annotations?.readOnlyHint === true && tool.annotations?.destructiveHint === false)),
+      tools.map((tool) => tool.name).join(', '));
+    const status = await client.callTool({ name: 'get_status', arguments: { language: 'de' } });
+    const result = status.structuredContent as { silver?: { state?: string }; gold?: { state?: string } } | undefined;
+    record('MCP returns the public status', !status.isError && Boolean(result?.silver?.state && result?.gold?.state),
+      `silver ${result?.silver?.state}; gold ${result?.gold?.state}`);
+    const guide = await client.callTool({ name: 'find_guide', arguments: { language: 'de', topic: 'visitPlanner' } });
+    record('MCP guide lookup succeeds', !guide.isError && Boolean(guide.structuredContent), 'own editorial guide');
+    const plan = await client.callTool({ name: 'plan_visit', arguments: {
+      language: 'de', date: '2026-12-31', days: 1, crowd: 'high', includesRulantica: true,
+    } });
+    const outline = plan.structuredContent as { recommendedDays?: number; dates?: { endExclusive?: string } } | undefined;
+    record('MCP plan handles recommended duration and year boundary', !plan.isError && outline?.recommendedDays === 3 && outline.dates?.endExclusive === '2027-01-03',
+      'three-day outline ending exclusively on January 3');
+  } finally {
+    await client.close();
+  }
 }
 
 // -------------------------------------------------------------------- runner
@@ -219,6 +273,8 @@ const checks = [
   checkProviderEndpoints,
   checkMachineReadable,
   checkStatusDrift,
+  checkReleaseFeatures,
+  checkMcp,
 ];
 
 for (const check of checks) {

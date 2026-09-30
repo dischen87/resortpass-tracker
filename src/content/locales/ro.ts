@@ -321,7 +321,7 @@ export const roPlanning = {
       "description": "Înțelege ResortPass Silver și Gold: stare de vânzare, prețuri, zile de vizitare, rezervare, Rulantica și alertă independentă de disponibilitate.",
       "eyebrow": "Ghid ResortPass",
       "heading": "Tot ce este important despre Europa-Park ResortPass",
-      "answer": "Silver și Gold nu sunt disponibile în prezent pentru vânzarea obișnuită și nu a fost anunțată o nouă dată. Silver este mai ieftin și este legat de zile definite; Gold este mai flexibil și include avantaje suplimentare în Rulantica.",
+      "answer": "Verifică în trackerul în timp real dacă Silver și Gold pot fi cumpărate în prezent. Silver este mai ieftin și este legat de zile definite; Gold este mai flexibil și include avantaje suplimentare în Rulantica.",
       "sectionTitle": "Alege abonamentul anual în funcție de utilizare",
       "sectionIntro": "Prețul nu este singurul lucru care contează. Sunt mai relevante posibilele zile de vizitare, flexibilitatea, utilizarea Rulantica și disponibilitatea reală a abonamentului.",
       "points": [
@@ -344,7 +344,7 @@ export const roPlanning = {
       "faqs": [
         {
           "question": "Când vor fi din nou puse în vânzare ResortPass?",
-          "answer": "În prezent nu a fost anunțată o nouă dată de vânzare. Monitorul avertizează când Silver sau Gold devin efectiv disponibile în magazinul oficial."
+          "answer": "Consultă anunțurile oficiale pentru noile date de vânzare. Trackerul te anunță când magazinul oficial permite efectiv cumpărarea Silver sau Gold."
         },
         {
           "question": "Cât costă ResortPass?",
@@ -401,7 +401,7 @@ export const roPlanning = {
       "description": "Prețurile actuale ale ResortPass pentru adulți, copii și seniori, comparativ cu biletele de o zi Europa-Park în funcție de dată.",
       "eyebrow": "Prețuri 2026",
       "heading": "Cât costă ResortPass Silver și Gold?",
-      "answer": "Ultima verificare oficială: Silver, 325 euro pentru adulți și 275 euro pentru copii și seniori; Gold, 495 și 430 euro, respectiv. Niciunul nu este disponibil în prezent pentru vânzarea obișnuită.",
+      "answer": "Ultima verificare oficială: Silver, 325 euro pentru adulți și 275 euro pentru copii și seniori; Gold, 495 și 430 euro, respectiv. Consultă trackerul în timp real și magazinul oficial pentru starea actuală a vânzării.",
       "sectionTitle": "Evaluează prețul împreună cu utilizarea",
       "sectionIntro": "Biletele de o zi au intervale de prețuri în funcție de dată. De aceea, un abonament anual nu se justifică pornind de la o cifră universală, ci în funcție de datele tale reale.",
       "points": [
@@ -432,7 +432,7 @@ export const roPlanning = {
         },
         {
           "question": "Pot cumpăra ResortPass acum?",
-          "answer": "Silver și Gold sunt în prezent indisponibile. Trackerul în timp real arată când se schimbă starea reală în magazin."
+          "answer": "Consultă trackerul în timp real împreună cu ora ultimei verificări. Silver și Gold pot fi cumpărate numai din magazinul oficial, când sunt oferite spre vânzare."
         }
       ]
     },

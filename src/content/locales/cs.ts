@@ -321,7 +321,7 @@ export const csPlanning = {
       "description": "Pochopte ResortPass Silver a Gold: stav prodeje, ceny, dny návštěvy, rezervace, Rulantica a nezávislé upozornění na dostupnost.",
       "eyebrow": "Průvodce ResortPass",
       "heading": "Vše důležité o Europa-Park ResortPass",
-      "answer": "Silver a Gold nejsou momentálně k dispozici pro běžný prodej a nebylo oznámeno nové datum. Silver je levnější a je vázán na určené dny; Gold je flexibilnější a obsahuje další výhody u Rulantica.",
+      "answer": "Aktuální dostupnost Silver a Gold ke koupi ověř v trackeru v reálném čase. Silver je levnější a je vázán na určené dny; Gold je flexibilnější a obsahuje další výhody u Rulantica.",
       "sectionTitle": "Vyberte si roční vstup podle použití",
       "sectionIntro": "Cena není to jediné, co je důležité. Důležitější jsou možné dny návštěvy, flexibilita, využití Rulantica a skutečná dostupnost vstupenky.",
       "points": [
@@ -344,7 +344,7 @@ export const csPlanning = {
       "faqs": [
         {
           "question": "Kdy bude ResortPass opět k prodeji?",
-          "answer": "V současné době nebylo oznámeno nové datum prodeje. Tracker vás upozorní, až budou Silver nebo Gold skutečně dostupné v oficiálním obchodě."
+          "answer": "Nové termíny prodeje hledej v oficiálních oznámeních. Tracker upozorní, když oficiální obchod skutečně nabídne Silver nebo Gold ke koupi."
         },
         {
           "question": "Kolik stojí ResortPass?",
@@ -401,7 +401,7 @@ export const csPlanning = {
       "description": "Aktuální ceny ResortPass pro dospělé, děti a seniory ve srovnání s jednodenními vstupenkami Europa-Park podle data.",
       "eyebrow": "Ceny 2026",
       "heading": "Kolik stojí ResortPass, Silver a Gold?",
-      "answer": "Poslední oficiální kontrola: Silver stojí 325 eur pro dospělé a 275 eur pro děti a seniory; Gold stojí 495 eur, respektive 430 eur. Ani jeden není aktuálně dostupný v běžném prodeji.",
+      "answer": "Poslední oficiální kontrola: Silver stojí 325 eur pro dospělé a 275 eur pro děti a seniory; Gold stojí 495 eur, respektive 430 eur. Aktuální stav prodeje ověř v trackeru v reálném čase a v oficiálním obchodě s lístky.",
       "sectionTitle": "Zvaž cenu spolu s využitím",
       "sectionIntro": "Denní vstupenky mají cenové rozpětí podle data. Proto se roční vstupenka nevyplatí od univerzální částky, ale podle tvých skutečných dat.",
       "points": [
@@ -432,7 +432,7 @@ export const csPlanning = {
         },
         {
           "question": "Mohu nyní koupit ResortPass?",
-          "answer": "Silver a Gold jsou aktuálně nedostupné. Tracker v reálném čase ukáže, až se skutečný stav v obchodě změní."
+          "answer": "Ověř tracker v reálném čase společně s časem poslední kontroly. Silver nebo Gold lze koupit pouze v oficiálním obchodě s lístky, když je nabízí k prodeji."
         }
       ]
     },

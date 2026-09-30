@@ -30,6 +30,7 @@ import {
 import { getWaitTimes, getWaitTimesCacheHealth, startWaitTimesPoller } from './wait-times';
 import { isSameOriginRequest } from './same-origin';
 import { buildParkNow } from './park-now';
+import { createResortPassMcpApp } from './mcp';
 
 const app = new Hono();
 const SITE_URL = process.env.SITE_URL || 'https://www.resortpass-europapark.ch';
@@ -56,6 +57,9 @@ app.use('/api/*', bodyLimit({
   maxSize: 64 * 1024,
   onError: (c) => c.json({ error: 'Request body too large.' }, 413),
 }));
+
+// Public read-only MCP tools use only our two observations and editorial content.
+app.route('/api/mcp', createResortPassMcpApp({ siteUrl: SITE_URL, readStatus: getLatestStatus }));
 
 function statusFreshness(value: { available: boolean; lastCheck: string } | null) {
   if (!value?.lastCheck) return { lastCheck: null, ageMinutes: null, fresh: false };

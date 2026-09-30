@@ -321,7 +321,7 @@ export const huPlanning = {
       "description": "Ismerd meg a ResortPass Silver és Gold értékesítési állapotát, árait, látogatási napjait, foglalását, Rulantica-előnyeit és a független készletértesítőt.",
       "eyebrow": "ResortPass útmutató",
       "heading": "Minden fontos tudnivaló az Europa-Park ResortPass-ról",
-      "answer": "A Silver és a Gold jelenleg nem kapható a szokásos értékesítésben, és új dátumot sem jelentettek be. A Silver olcsóbb, és meghatározott napokhoz kötődik; a Gold rugalmasabb, és további Rulantica-előnyöket tartalmaz.",
+      "answer": "A valós idejű készletfigyelőben ellenőrizd, hogy a Silver és a Gold megvásárolható-e most. A Silver olcsóbb, és meghatározott napokhoz kötődik; a Gold rugalmasabb, és további Rulantica-előnyöket tartalmaz.",
       "sectionTitle": "Válaszd az éves bérletet a használat alapján",
       "sectionIntro": "Az ár nem az egyetlen fontos tényező. Fontosabbak a lehetséges látogatási napok, a rugalmasság, a Rulantica használata és a bérlet valós elérhetősége.",
       "points": [
@@ -344,7 +344,7 @@ export const huPlanning = {
       "faqs": [
         {
           "question": "Mikor kezdik újra árusítani a ResortPass-t?",
-          "answer": "Jelenleg nem jelentettek be új értékesítési dátumot. A készletfigyelő jelzi, amikor a Silver vagy a Gold ténylegesen elérhetővé válik a hivatalos boltban."
+          "answer": "Az új értékesítési időpontokat a hivatalos közleményekben ellenőrizd. A készletfigyelő jelzi, amikor a hivatalos bolt ténylegesen megvásárolhatóként kínálja a Silvert vagy a Goldot."
         },
         {
           "question": "Mennyibe kerül a ResortPass?",
@@ -401,7 +401,7 @@ export const huPlanning = {
       "description": "A ResortPass aktuális árai felnőtteknek, gyerekeknek és időseknek, összehasonlítva az Europa-Park dátumfüggő napijegyeivel.",
       "eyebrow": "2026 árak",
       "heading": "Mennyibe kerül a ResortPass Silver és Gold?",
-      "answer": "A legutóbbi hivatalos ellenőrzés szerint a Silver 325 euró felnőtteknek és 275 euró gyermekeknek és időseknek; a Gold ára rendre 495 és 430 euró. Jelenleg egyik sem kapható a szokásos értékesítésben.",
+      "answer": "A legutóbbi hivatalos ellenőrzés szerint a Silver 325 euró felnőtteknek és 275 euró gyermekeknek és időseknek; a Gold ára rendre 495 és 430 euró. Az aktuális értékesítési állapotot a valós idejű készletfigyelőben és a hivatalos jegyboltban ellenőrizd.",
       "sectionTitle": "Értékeld az árat a használattal együtt",
       "sectionIntro": "A napijegyek árai az időponttól függően változnak. Ezért az éves bérlet nem térül meg egy univerzális szám alapján, hanem a tényleges dátumaid függvényében.",
       "points": [
@@ -432,7 +432,7 @@ export const huPlanning = {
         },
         {
           "question": "Meg tudom vásárolni a ResortPass-t most?",
-          "answer": "A Silver és a Gold jelenleg nem elérhető. A valós idejű készletfigyelő mutatja, mikor változik a bolt tényleges állapota."
+          "answer": "Nézd meg a valós idejű készletfigyelőt az utolsó ellenőrzés időpontjával együtt. Silvert vagy Goldot csak a hivatalos jegyboltban vásárolhatsz, amikor értékesítésre kínálják."
         }
       ]
     },

@@ -158,9 +158,27 @@ Alle Kernseiten, Planungsratgeber, Formulare, E-Mail-Aktionen und Navigationszie
 
 Fakten mit Ablaufdatum liegen zentral mit Quelle, Prüfdatum und nächstem Review-Termin. Die redaktionellen Fotos stammen aus Wikimedia Commons und stehen unter CC BY-SA 4.0. Autor, Lizenz, Bearbeitung und Lizenzlink stehen sichtbar am Bild; Leitbilder erscheinen zusätzlich in strukturierten Daten. Die geprüften lokalen Zuschnitte und responsive Bildmaße sind im Medienregister dokumentiert. Das Foto der Rulantica-Eingangshalle zeigt historische Halloween-Dekoration vom Oktober 2022 und ist entsprechend beschriftet. Ein weiteres geprüftes Rulantica-Motiv bleibt wegen erkennbarer Badegäste und Minderjähriger als Leitbild ausgeschlossen.
 
-Die [UX-/Designanalyse](audit-2026-09-30/README.md), [Fotodokumentation](docs/licensed-photos-2026-09-30.md) und [Integrationsanalyse](docs/integrations-2026-09-30.md) dokumentieren Änderungen, Bildrechte, Prüfnachweise und die priorisierten Möglichkeiten für ChatGPT/Codex. Neue Event-Tasks, Plugin-Verbindungen und MCP-Ereignisabos sind darin Vorschläge und wurden nicht automatisch aktiviert.
+Die [UX-/Designanalyse](audit-2026-09-30/README.md), [Fotodokumentation](docs/licensed-photos-2026-09-30.md) und [Integrationsanalyse](docs/integrations-2026-09-30.md) dokumentieren Änderungen, Bildrechte, Prüfnachweise und die priorisierten Möglichkeiten für ChatGPT/Codex. Der lesende MCP-Endpunkt `/api/mcp` bietet `get_status`, `find_guide` und `plan_visit` mit eigenen Daten. Der Repo-Skill `resortpass-editorial-review` ist automatisch auffindbar; ein wöchentlicher Quellen-/Bildrechte-Heartbeat läuft montags um 09:00 Uhr im selben Codex-Chat. Event-Abos und persönliche Konto-/Kalenderverbindungen benötigen weiterhin eine konkrete Einrichtung.
 
 ---
+
+## Release auf dem bestehenden VPS
+
+```bash
+# Tests, Typen, Build, statische QA, Backup, Sitefragment und Live-Nachweis
+bun run deploy
+
+# Zusätzlich die gepushte Git-Version der API bauen und nur die API neu starten
+bun run deploy --with-api
+
+# Prüfen, ohne hochzuladen
+bun run deploy --dry-run
+
+# Neuestes vollständiges Backup von Frontend, Caddy und ggf. API wiederherstellen
+bun run deploy --rollback
+```
+
+Das Script verwendet die verifizierten Pfade unter `/opt/resortpass-tracker` und das Projektfragment unter `/opt/infrastructure/caddy/sites.d/resortpass.caddy`. Es veröffentlicht nur einen committeten Stand, bewahrt Checker-Dateien und lässt Datenbank, `.env` und Checker-Prozess unangetastet. Die Sitekonfiguration wird vor dem Neuladen des gemeinsamen Caddy validiert. Die Datei `/release.json` erlaubt den Vergleich der tatsächlich veröffentlichten Git-Revision.
 
 ## Deployment (Docker)
 

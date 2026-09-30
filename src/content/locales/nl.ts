@@ -367,7 +367,7 @@ export const nlPlanning: PlanningLocalePack = {
       eyebrow: 'ResortPass-gids',
       heading: 'Alles wat je moet weten over de Europa-Park ResortPass',
       answer:
-        'Silver en Gold zijn momenteel niet regulier verkrijgbaar; er is geen nieuwe verkoopdatum aangekondigd. Silver is goedkoper en gebonden aan vastgestelde bezoekdagen, terwijl Gold flexibeler is en extra Rulantica-voordelen bevat.',
+        'Controleer de actuele beschikbaarheid van Silver en Gold in de live tracker. Silver is goedkoper en gebonden aan vastgestelde bezoekdagen, terwijl Gold flexibeler is en extra Rulantica-voordelen bevat.',
       sectionTitle: 'Kies de jaarpas op basis van je gebruik',
       sectionIntro:
         'Niet alleen de prijs is bepalend. Belangrijker zijn mogelijke bezoekdagen, flexibiliteit, gebruik van Rulantica en of de pas daadwerkelijk beschikbaar is.',
@@ -392,7 +392,7 @@ export const nlPlanning: PlanningLocalePack = {
         {
           question: 'Wanneer zijn ResortPassen weer verkrijgbaar?',
           answer:
-            'Er is momenteel geen nieuwe verkoopdatum aangekondigd. De tracker meldt wanneer Silver of Gold in de officiële shop daadwerkelijk weer te koop is.',
+            'Bekijk officiële aankondigingen voor nieuwe verkoopdata. De tracker meldt wanneer Silver of Gold daadwerkelijk te koop is in de officiële shop.',
         },
         {
           question: 'Wat kost de ResortPass?',
@@ -459,7 +459,7 @@ export const nlPlanning: PlanningLocalePack = {
       eyebrow: 'Prijzen 2026',
       heading: 'Wat kosten ResortPass Silver en Gold?',
       answer:
-        'Laatst officieel gecontroleerd: Silver 325 euro voor volwassenen en 275 euro voor kinderen/senioren; Gold respectievelijk 495 en 430 euro. Beide passen zijn momenteel niet regulier beschikbaar.',
+        'Laatst officieel gecontroleerd: Silver 325 euro voor volwassenen en 275 euro voor kinderen/senioren; Gold respectievelijk 495 en 430 euro. Bekijk de live tracker en de officiële ticketshop voor de actuele verkoopstatus.',
       sectionTitle: 'Beoordeel de prijs altijd samen met het gebruik',
       sectionIntro:
         'Dagtickets hebben datumafhankelijke prijsbandbreedtes. Een jaarpas loont daarom niet vanaf één universeel aantal, maar op basis van jouw werkelijke data.',
@@ -494,7 +494,7 @@ export const nlPlanning: PlanningLocalePack = {
         {
           question: 'Kan ik de ResortPass nu kopen?',
           answer:
-            'Silver en Gold staan momenteel als niet beschikbaar vermeld. De live tracker toont wanneer de werkelijke shopstatus verandert.',
+            'Bekijk de live tracker met het tijdstip van de laatste controle. Silver en Gold kun je uitsluitend kopen in de officiële ticketshop wanneer ze daar te koop worden aangeboden.',
         },
       ],
     },

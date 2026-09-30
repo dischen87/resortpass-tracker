@@ -368,7 +368,7 @@ const pages: PlanningLocalePack['pages'] = {
     eyebrow: 'Guide ResortPass',
     heading: 'L’essentiel sur le ResortPass Europa-Park',
     answer:
-      'Silver et Gold ne sont actuellement pas disponibles à la vente standard, et aucune nouvelle date de vente n’est annoncée. Silver coûte moins cher avec des jours de visite définis ; Gold est plus flexible et inclut des prestations Rulantica supplémentaires.',
+      'Vérifie la disponibilité actuelle de Silver et Gold dans le suivi en direct. Silver coûte moins cher avec des jours de visite définis ; Gold est plus flexible et inclut des prestations Rulantica supplémentaires.',
     sectionTitle: 'Choisir le pass annuel selon votre usage',
     sectionIntro:
       'Le prix ne suffit pas à décider. Les jours où vous pouvez venir, la flexibilité, l’utilisation de Rulantica et la disponibilité réelle du pass comptent davantage.',
@@ -393,7 +393,7 @@ const pages: PlanningLocalePack['pages'] = {
       {
         question: 'Quand les ResortPass seront-ils de nouveau disponibles ?',
         answer:
-          'Aucune nouvelle date de vente n’est actuellement annoncée. Le tracker vous alerte lorsque la boutique officielle affiche réellement Silver ou Gold comme achetable.',
+          'Consulte les annonces officielles pour les nouvelles dates de vente. Le tracker donne l’alerte lorsque la boutique officielle permet réellement d’acheter Silver ou Gold.',
       },
       {
         question: 'Combien coûte le ResortPass ?',
@@ -460,7 +460,7 @@ const pages: PlanningLocalePack['pages'] = {
     eyebrow: 'Prix 2026',
     heading: 'Combien coûtent les ResortPass Silver et Gold ?',
     answer:
-      'Dernière vérification officielle : Silver coûte 325 euros pour les adultes et 275 euros pour les enfants/seniors ; Gold coûte respectivement 495 et 430 euros. Les deux pass ne sont actuellement pas disponibles à la vente standard.',
+      'Dernière vérification officielle : Silver coûte 325 euros pour les adultes et 275 euros pour les enfants/seniors ; Gold coûte respectivement 495 et 430 euros. Consulte le suivi en direct et la billetterie officielle pour connaître le statut de vente actuel.',
     sectionTitle: 'Évaluer le prix uniquement avec l’usage prévu',
     sectionIntro:
       'Les billets journée ont des prix variables selon la date. La rentabilité d’un pass annuel ne dépend donc pas d’un nombre universel, mais de vos dates réelles.',
@@ -495,7 +495,7 @@ const pages: PlanningLocalePack['pages'] = {
       {
         question: 'Puis-je acheter le ResortPass maintenant ?',
         answer:
-          'Silver et Gold sont actuellement indiqués comme indisponibles. Le suivi en direct vous informe si le statut réel de la boutique change.',
+          'Consulte le suivi en direct avec l’heure de la dernière vérification. Silver et Gold s’achètent uniquement dans la billetterie officielle, lorsqu’ils y sont proposés à la vente.',
       },
     ],
   },

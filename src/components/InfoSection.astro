@@ -3,7 +3,7 @@ import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
 import { getPlanningPack } from '../content/planning';
-import { getAvailabilityAnswer } from '../data/availability-answer';
+import { getAvailabilityAnswer, getStatusCopy } from '../data/availability-answer';
 
 interface Props {
   lang?: Lang;
@@ -15,6 +15,7 @@ const planningPack = getPlanningPack(lang);
 // Follows the build-time snapshot instead of a frozen "Nein.", and carries its
 // own check timestamp so a later quote of it stays honest.
 const availabilityAnswer = await getAvailabilityAnswer(lang);
+const statusCopy = getStatusCopy(lang);
 const resourceCopy = {
   title: planningPack.common.relatedTitle,
   compare: planningPack.pages.resortPassCompare.eyebrow,
@@ -48,7 +49,8 @@ const resources = [
       <article class="card reveal p-6" style="--card-shadow:#FDE68A;--i:1">
         <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent mb-3">02</p>
         <h3 class="text-lg font-bold mb-3">{tr('info.why_title')}</h3>
-        <p class="text-sm text-text-secondary leading-relaxed">{availabilityAnswer}</p>
+        <p class="text-sm text-text-secondary leading-relaxed" data-availability-answer>{availabilityAnswer}</p>
+        <a href="#history" class="mt-3 inline-flex min-h-11 items-center text-xs font-bold text-accent underline underline-offset-2">{statusCopy.historyLink}</a>
       </article>
 
       <article class="card reveal p-6" style="--card-shadow:#F9A8D4;--i:2">
@@ -61,7 +63,7 @@ const resources = [
     <article class="card reveal p-6 md:p-8 mb-8 border-accent" style="--card-shadow:var(--color-accent)">
       <p class="text-xs font-bold uppercase tracking-wider text-accent mb-2">{tr('info.answer_label')}</p>
       <h3 class="text-xl md:text-2xl font-bold mb-3">{tr('info.tip_title')}</h3>
-      <p class="text-text-secondary leading-relaxed">{tr('info.tip_text')}</p>
+      <p class="text-text-secondary leading-relaxed">{statusCopy.saleTiming}</p>
     </article>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">

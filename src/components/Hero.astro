@@ -6,6 +6,8 @@ import BrandSafeText from './BrandSafeText.astro';
 import LicensedPhoto from './LicensedPhoto.astro';
 import { getLocaleDefinition } from '../i18n/locales';
 import { getBuildTimeStatus } from '../data/status-snapshot';
+import { getStatusCopy } from '../data/availability-answer';
+import { formatPassLabel, formatStatusRequest } from '../data/status-format';
 
 interface Props {
   lang?: Lang;
@@ -20,14 +22,8 @@ const tr = (key: string) => getTranslation(lang, key);
  * the first paint, every visitor.
  */
 const snapshot = await getBuildTimeStatus();
-const pillText = (state: 'available' | 'sold_out' | 'unknown') =>
-  state === 'available' ? tr('status.available')
-  : state === 'sold_out' ? tr('status.sold_out')
-  : tr('status.unknown_short');
-const lastCheckDate = snapshot.capturedAt ? new Date(snapshot.capturedAt) : null;
-const lastCheckLabel = lastCheckDate && !Number.isNaN(lastCheckDate.getTime())
-  ? `${tr('status.last_check')}: ${lastCheckDate.toLocaleString(getLocaleDefinition(lang).bcp47, { dateStyle: 'medium', timeStyle: 'short' })} · ${tr('status.updated_3x')}`
-  : tr('status.updated_3x');
+const statusCopy = getStatusCopy(lang);
+const lastCheckLabel = formatStatusRequest(snapshot, statusCopy, getLocaleDefinition(lang).bcp47);
 const titleLead = tr('hero.title_lead');
 const titleHighlight = tr('hero.title_highlight');
 const answerLabel = tr('hero.answer_label');
@@ -72,18 +68,18 @@ const features = [
           {answerLabel} · <span id="hero-status-time">{lastCheckLabel}</span>
         </p>
         <p class="mb-3 text-left text-[0.98rem] leading-relaxed text-text-secondary md:text-[1.05rem]">
-          {tr('hero.subtitle')}
+          {statusCopy.heroIntro}
         </p>
-        <div class="flex flex-wrap gap-2" role="status" aria-live="polite">
-          <span class="hero-pill" id="hero-pill-silver" data-state={snapshot.silver.state}>
+        <div class="flex flex-wrap gap-2" role="status" aria-live="polite" aria-atomic="true">
+          <span class="hero-pill" id="hero-pill-silver" data-state={snapshot.silver.state} data-pass-state={snapshot.silver.state}>
             <span class="dot" aria-hidden="true"></span>
             <span class="hero-status-label">Silver</span>
-            <span class="hero-status-value" id="hero-status-silver">{pillText(snapshot.silver.state)}</span>
+            <span class="hero-status-value" id="hero-status-silver">{formatPassLabel(snapshot.silver, statusCopy)}</span>
           </span>
-          <span class="hero-pill" id="hero-pill-gold" data-state={snapshot.gold.state}>
+          <span class="hero-pill" id="hero-pill-gold" data-state={snapshot.gold.state} data-pass-state={snapshot.gold.state}>
             <span class="dot" aria-hidden="true"></span>
             <span class="hero-status-label">Gold</span>
-            <span class="hero-status-value" id="hero-status-gold">{pillText(snapshot.gold.state)}</span>
+            <span class="hero-status-value" id="hero-status-gold">{formatPassLabel(snapshot.gold, statusCopy)}</span>
           </span>
         </div>
       </div>

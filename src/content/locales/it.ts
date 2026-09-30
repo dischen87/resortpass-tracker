@@ -368,7 +368,7 @@ const pages: PlanningLocalePack['pages'] = {
     eyebrow: 'Guida ResortPass',
     heading: 'Tutto ciò che conta sul ResortPass Europa-Park',
     answer:
-      'Silver e Gold non sono attualmente disponibili nella vendita ordinaria e non è stata annunciata una nuova data. Silver costa meno ed è legato a giorni di visita definiti; Gold è più flessibile e include prestazioni Rulantica aggiuntive.',
+      'Controlla la disponibilità attuale di Silver e Gold nel tracker in tempo reale. Silver costa meno ed è legato a giorni di visita definiti; Gold è più flessibile e include prestazioni Rulantica aggiuntive.',
     sectionTitle: 'Scegli l’abbonamento annuale in base all’uso',
     sectionIntro:
       'Il prezzo da solo non decide. Contano di più i possibili giorni di visita, la flessibilità, l’uso di Rulantica e la disponibilità effettiva della tessera.',
@@ -393,7 +393,7 @@ const pages: PlanningLocalePack['pages'] = {
       {
         question: 'Quando torneranno disponibili i ResortPass?',
         answer:
-          'Al momento non è stata annunciata una nuova data di vendita. Il tracker segnala quando il negozio ufficiale mostra davvero Silver o Gold come acquistabile.',
+          'Consulta gli annunci ufficiali per le nuove date di vendita. Il tracker avvisa quando il negozio ufficiale consente davvero di acquistare Silver o Gold.',
       },
       {
         question: 'Quanto costa il ResortPass?',
@@ -460,7 +460,7 @@ const pages: PlanningLocalePack['pages'] = {
     eyebrow: 'Prezzi 2026',
     heading: 'Quanto costano ResortPass Silver e Gold?',
     answer:
-      'Ultima verifica ufficiale: Silver costa 325 euro per gli adulti e 275 euro per bambini/senior; Gold rispettivamente 495 e 430 euro. Entrambi i pass non sono attualmente disponibili nella vendita ordinaria.',
+      'Ultima verifica ufficiale: Silver costa 325 euro per gli adulti e 275 euro per bambini/senior; Gold rispettivamente 495 e 430 euro. Consulta il tracker in tempo reale e il negozio ufficiale per conoscere lo stato attuale della vendita.',
     sectionTitle: 'Valuta il prezzo solo insieme all’utilizzo',
     sectionIntro:
       'I biglietti giornalieri hanno prezzi variabili per data. Un abbonamento annuale non conviene quindi dopo un numero universale di visite, ma in base alle tue date effettive.',
@@ -495,7 +495,7 @@ const pages: PlanningLocalePack['pages'] = {
       {
         question: 'Posso acquistare ora il ResortPass?',
         answer:
-          'Silver e Gold risultano attualmente non disponibili. Il tracker in diretta mostra quando cambia lo stato effettivo del negozio.',
+          'Controlla il tracker in tempo reale e l’orario dell’ultima verifica. Silver e Gold si acquistano esclusivamente nel negozio ufficiale, quando sono effettivamente in vendita.',
       },
     ],
   },
