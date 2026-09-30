@@ -27,6 +27,18 @@ done
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 log() { printf '\n==> %s\n' "$*"; }
 die() { printf 'Deployment failed: %s\n' "$*" >&2; exit 1; }
+wait_for_api() {
+  log 'Waiting for the API to accept requests'
+  # This protected route returns 403 once Caddy can reach the running API.
+  # Unlike /api/health, it does not require an upstream provider to be healthy.
+  local attempt status
+  for ((attempt = 1; attempt <= 15; attempt++)); do
+    status=$(curl --silent --max-time 3 --output /dev/null --write-out '%{http_code}' "${SITE%/}/api/wait-times") || status=000
+    [[ "$status" == '403' ]] && return 0
+    [[ "$attempt" == '15' ]] || sleep 1
+  done
+  die "API did not become reachable; last HTTP status $status; latest backup is available with --rollback"
+}
 # SSH assembles remote arguments through a shell. Restrict configurable paths
 # before interpolation and refuse paths outside absolute directory syntax.
 for path in "$REMOTE_PROJECT" "$REMOTE_ROOT" "$BACKUP_ROOT" "$CADDY_FRAGMENT"; do
@@ -61,6 +73,7 @@ fi
 echo "Restored $previous"
 REMOTE
   log 'Rollback finished; checking live'
+  wait_for_api
   bun scripts/verify-live.ts "$SITE"
   exit 0
 fi
@@ -141,6 +154,7 @@ fi
 rm "/tmp/resortpass-$stamp.caddy"
 REMOTE
 
+[[ "$WITH_API" == '1' ]] && wait_for_api
 log "Live verification against $SITE"
 if ! DEPLOY_EXPECTED_REVISION="$REVISION" DEPLOY_VERIFY_MCP="$WITH_API" bun scripts/verify-live.ts "$SITE"; then
   die 'live verification failed; latest backup is available with --rollback'
