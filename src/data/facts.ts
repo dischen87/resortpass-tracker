@@ -325,8 +325,8 @@ export const centralFacts = [
     validUntil: "2027-01-09",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -343,8 +343,8 @@ export const centralFacts = [
     validUntil: "2027-01-09",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -361,8 +361,8 @@ export const centralFacts = [
     validUntil: "2027-01-09",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -379,8 +379,8 @@ export const centralFacts = [
     validUntil: "2027-01-09",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -397,8 +397,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/infos/planen-sie-ihren-besuch/anreise-zum-europa-park",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -415,8 +415,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/rulantica/tickets-angebote/tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Datumsabhängiger Onlinepreis; Tageskontingent und konkrete Einlasszeit prüfen.",
@@ -432,8 +432,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/rulantica/tickets-angebote/tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Datumsabhängiger Onlinepreis; Kleinkinder von 0–3 Jahren sind separat ausgewiesen.",
@@ -449,8 +449,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/rulantica/tickets-angebote/tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Regulärer Einlass ab 17:00 Uhr; Sonderöffnungszeiten vor dem Besuch prüfen.",
@@ -466,8 +466,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/rulantica/tickets-angebote/tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Regulärer Einlass ab 17:00 Uhr; Sonderöffnungszeiten vor dem Besuch prüfen.",
@@ -483,8 +483,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/rulantica/tickets-angebote/tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Regulärer Einlass ab 19:00 Uhr; Sonderöffnungszeiten vor dem Besuch prüfen.",
@@ -500,8 +500,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Der Pass wird am Prüftag als nicht verfügbar geführt.",
@@ -517,8 +517,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Altersgrenzen und Nachweise laut Betreiberseite prüfen; am Prüftag nicht verfügbar.",
@@ -534,8 +534,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Der Pass wird am Prüftag als nicht verfügbar geführt.",
@@ -551,8 +551,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Altersgrenzen und Nachweise laut Betreiberseite prüfen; am Prüftag nicht verfügbar.",
@@ -567,8 +567,8 @@ export const centralFacts = [
     validFrom: null,
     validUntil: null,
     sourceUrl: "https://www.europapark.de/de/resortpass/faq",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed_with_qualifier",
     caveat:
@@ -584,8 +584,8 @@ export const centralFacts = [
     validFrom: null,
     validUntil: null,
     sourceUrl: "https://www.europapark.de/de/resortpass/faq",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -602,8 +602,8 @@ export const centralFacts = [
     validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed_with_qualifier",
     caveat:
@@ -620,8 +620,8 @@ export const centralFacts = [
     validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/resortpass/europa-park-resortpass",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed_with_qualifier",
     caveat:
@@ -638,8 +638,8 @@ export const centralFacts = [
     validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/resortpass/europa-park-resortpass",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-08-15",
+    checkedAt: "2026-09-30",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed_with_qualifier",
     caveat:

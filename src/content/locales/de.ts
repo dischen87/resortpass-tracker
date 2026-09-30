@@ -367,7 +367,7 @@ export const dePlanning: PlanningLocalePack = {
       eyebrow: 'ResortPass Guide',
       heading: 'Alles Wichtige zum Europa-Park ResortPass',
       answer:
-        'Silver und Gold sind derzeit nicht regulär verfügbar; ein neuer Verkaufstermin ist nicht angekündigt. Silver ist günstiger und an definierte Besuchstage gebunden, Gold flexibler und enthält zusätzliche Rulantica-Leistungen.',
+        'Prüfe die aktuelle Kaufverfügbarkeit von Silver und Gold im Live-Tracker. Silver ist günstiger und an definierte Besuchstage gebunden, Gold flexibler und enthält zusätzliche Rulantica-Leistungen.',
       sectionTitle: 'Die Jahreskarte nach Nutzung auswählen',
       sectionIntro:
         'Der Preis allein entscheidet nicht. Relevanter sind mögliche Besuchstage, Flexibilität, Rulantica-Nutzung und ob die Karte tatsächlich verfügbar ist.',
@@ -392,7 +392,7 @@ export const dePlanning: PlanningLocalePack = {
         {
           question: 'Wann gibt es wieder ResortPässe?',
           answer:
-            'Aktuell ist kein neuer Verkaufstermin angekündigt. Der Tracker meldet, wenn der offizielle Shop Silver oder Gold tatsächlich wieder kaufbar zeigt.',
+            'Prüfe die offiziellen Ankündigungen für neue Verkaufstermine. Der Tracker meldet, wenn der offizielle Shop Silver oder Gold tatsächlich kaufbar zeigt.',
         },
         {
           question: 'Was kostet der ResortPass?',
@@ -459,7 +459,7 @@ export const dePlanning: PlanningLocalePack = {
       eyebrow: 'Preise 2026',
       heading: 'Was kosten ResortPass Silver und Gold?',
       answer:
-        'Zuletzt offiziell geprüft: Silver 325 Euro für Erwachsene und 275 Euro für Kinder/Senioren; Gold 495 beziehungsweise 430 Euro. Beide Pässe sind derzeit nicht regulär verfügbar.',
+        'Zuletzt offiziell geprüft: Silver 325 Euro für Erwachsene und 275 Euro für Kinder/Senioren; Gold 495 beziehungsweise 430 Euro. Den aktuellen Verkaufsstatus findest du im Live-Tracker und im offiziellen Ticketshop.',
       sectionTitle: 'Preis nur zusammen mit Nutzung bewerten',
       sectionIntro:
         'Tageskarten haben datumsabhängige Preisspannen. Eine Jahreskarte lohnt sich deshalb nicht ab einer universellen Zahl, sondern anhand deiner tatsächlichen Termine.',
@@ -494,7 +494,7 @@ export const dePlanning: PlanningLocalePack = {
         {
           question: 'Kann ich den ResortPass gerade kaufen?',
           answer:
-            'Silver und Gold werden aktuell als nicht verfügbar geführt. Der Live-Tracker zeigt, wenn sich der tatsächliche Shopstatus ändert.',
+            'Prüfe den Live-Tracker mit dem Zeitpunkt der letzten Kontrolle. Kaufen kannst du Silver oder Gold ausschließlich im offiziellen Ticketshop, sofern dort ein Verkauf möglich ist.',
         },
       ],
     },

@@ -2,6 +2,9 @@
 import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, getTranslation } from '../i18n/translations';
 import { getBuildTimeStatus } from '../data/status-snapshot';
+import { getStatusCopy } from '../data/availability-answer';
+import { formatPassCheck, formatPassLabel } from '../data/status-format';
+import { getLocaleDefinition } from '../i18n/locales';
 
 interface Props {
   type: 'silver' | 'gold';
@@ -17,6 +20,9 @@ const lang = Astro.props.lang || defaultLang;
  */
 const snapshot = await getBuildTimeStatus();
 const state = snapshot[type].state;
+const statusCopy = getStatusCopy(lang);
+const passLabel = formatPassLabel(snapshot[type], statusCopy);
+const passCheck = formatPassCheck(snapshot[type], statusCopy, getLocaleDefinition(lang).bcp47);
 const tr = (key: string) => getTranslation(lang, key);
 const isGold = type === 'gold';
 const shopUrl = 'https://tickets.mackinternational.de/de/resortpass/uebersicht';
@@ -35,6 +41,7 @@ const tier = isGold ? 'Premium' : 'Classic';
   class:list={['card reveal p-6 md:p-7', isGold ? 'card-gold' : 'card-silver']}
   style={`--i:${isGold ? 1 : 0}`}
   data-pass-type={type}
+  data-pass-state={state}
   aria-labelledby={`${type}-title`}
 >
   <div class="mb-4 flex items-start justify-between gap-3">
@@ -48,58 +55,19 @@ const tier = isGold ? 'Premium' : 'Classic';
     ]}>{tier}</span>
   </div>
 
-  {/* Only shipped when we genuinely do not know; otherwise the real answer
-      below is the first thing in the markup. */}
-  {state === 'unknown' && (
-    <div class="status-loading" role="status">
-      <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-bg-light px-4 py-3">
-        <span class="dot-breathe h-3 w-3 shrink-0 rounded-full bg-muted"></span>
-        <span class="text-sm font-bold text-muted">{tr('status.loading')}</span>
-      </div>
+  <div data-pass-status role="status" aria-live="polite" aria-atomic="true">
+    <div class="pass-status flex min-h-12 items-center gap-3 rounded-2xl px-4 py-3" data-state={state}>
+      <span class="h-3 w-3 shrink-0 rounded-full bg-current" aria-hidden="true"></span>
+      <span class="font-heading text-lg font-extrabold" data-pass-label>{passLabel}</span>
     </div>
-  )}
-
-  <div class:list={['status-unavailable', state !== 'sold_out' && 'hidden']} role="status">
-    <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-pink/10 px-4 py-3 text-unavailable">
-      <span class="h-3 w-3 shrink-0 rounded-full bg-pink"></span>
-      <span class="font-heading text-lg font-extrabold">{tr('status.sold_out')}</span>
-    </div>
-  </div>
-
-  {/*
-    The purchase call to action only exists in the markup when the pass really
-    is on sale. Shipping it hidden meant every crawl recorded an active "buy
-    now" link for a product that had been unavailable for months.
-  */}
-  {state === 'available' && (
-    <div class="status-available" role="status">
-      <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-available">
-        <span class="relative flex h-3 w-3 shrink-0">
-          <span class="ping-brand absolute inline-flex h-full w-full rounded-full bg-green-500"></span>
-          <span class="relative inline-flex h-3 w-3 rounded-full bg-available"></span>
-        </span>
-        <span class="font-heading text-lg font-extrabold">{tr('status.available')}</span>
-      </div>
-      <a href={shopUrl} target="_blank" rel="noopener noreferrer" class="btn-primary mt-3 w-full bg-available py-3 text-base">
+    {state === 'available' && (
+      <a data-pass-buy href={shopUrl} target="_blank" rel="noopener noreferrer" class="btn-primary mt-3 w-full bg-available py-3 text-base">
         {tr('status.buy_now')}
         <Icon name="tabler:arrow-right" class="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
       </a>
-    </div>
-  )}
-
-  <div class="status-checking hidden" role="status">
-    <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-bg-light px-4 py-3 text-muted">
-      <Icon name="tabler:hourglass-high" class="h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
-      <p class="text-sm font-bold leading-snug">{tr('status.checking')}</p>
-    </div>
+    )}
   </div>
-
-  <div class="status-error hidden" role="status">
-    <div class="flex min-h-12 items-center gap-3 rounded-2xl bg-bg-light px-4 py-3 text-muted">
-      <Icon name="tabler:cloud-off" class="h-5 w-5 shrink-0" aria-hidden="true" />
-      <p class="text-sm font-bold leading-snug">{tr('status.error')}</p>
-    </div>
-  </div>
+  <p data-pass-check class="mt-3 text-xs leading-relaxed text-muted">{passCheck}</p>
 
   <div class:list={['inner-card mt-5 overflow-hidden', isGold ? 'bg-amber-50' : 'bg-bg-light']}>
     <table class="w-full text-sm">
@@ -130,3 +98,9 @@ const tier = isGold ? 'Premium' : 'Classic';
     </a>
   </div>
 </article>
+
+<style>
+  .pass-status[data-state='available'] { background: #f0fdf4; color: var(--color-available); }
+  .pass-status[data-state='sold_out'] { background: rgb(236 72 153 / 0.1); color: var(--color-unavailable); }
+  .pass-status[data-state='unknown'] { background: var(--color-bg-light); color: var(--color-muted); }
+</style>

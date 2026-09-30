@@ -1,18 +1,6 @@
-export type PassState = 'available' | 'sold_out' | 'unknown';
-
-export interface PassSnapshot {
-  state: PassState;
-  lastCheck: string | null;
-}
-
-export interface StatusSnapshot {
-  silver: PassSnapshot;
-  gold: PassSnapshot;
-  /** When this snapshot was taken. Rendered visibly so nothing looks live that isn't. */
-  capturedAt: string;
-  /** True when the build reached the live API; false when the committed value was used. */
-  live: boolean;
-}
+import { createUnknownSnapshot, snapshotFromPayload, type StatusSnapshot } from './status-format';
+export { normalizeCheckTimestamp } from './status-format';
+export type { PassState, PassSnapshot, StatusSnapshot } from './status-format';
 
 /**
  * The last known ResortPass state, committed to the repository.
@@ -24,12 +12,8 @@ export interface StatusSnapshot {
  * "Nein." in the FAQ markup — could contradict reality on the one day that
  * matters. Crawlers and answer engines, which do not run JavaScript, saw both.
  *
- * Now exactly one branch is rendered, chosen at build time. This constant is
- * the floor: if the build cannot reach the API, the page still states a real,
- * dated position instead of "checking…".
- *
- * Update it whenever the state genuinely changes. `scripts/verify-live.ts`
- * warns when it drifts from production.
+ * Historical record only. It is never used as a fallback for current
+ * availability; an inconclusive current check remains unknown.
  */
 export const COMMITTED_STATUS: StatusSnapshot = {
   silver: { state: 'sold_out', lastCheck: '2026-08-01T07:46:00.000Z' },
@@ -38,54 +22,35 @@ export const COMMITTED_STATUS: StatusSnapshot = {
   live: false,
 };
 
-const STATUS_ENDPOINT =
-  process.env.BUILD_STATUS_URL || 'https://www.resortpass-europapark.ch/api/status';
+interface BuildStatusOptions {
+  endpoint?: string;
+  offline?: boolean;
+  fetcher?: typeof fetch;
+  now?: () => Date;
+}
 
-function coerce(value: unknown): PassSnapshot {
-  if (!value || typeof value !== 'object') return { state: 'unknown', lastCheck: null };
-  const record = value as { state?: unknown; lastCheck?: unknown };
-  const state = record.state === 'available' || record.state === 'sold_out' ? record.state : 'unknown';
-  const lastCheck = typeof record.lastCheck === 'string' ? record.lastCheck : null;
-  return { state, lastCheck };
+/** A failed or inconclusive current check is unknown, never yesterday's state. */
+export async function resolveBuildTimeStatus(options: BuildStatusOptions = {}): Promise<StatusSnapshot> {
+  const now = options.now ?? (() => new Date());
+  if (options.offline) return createUnknownSnapshot(now().toISOString());
+  try {
+    const response = await (options.fetcher ?? fetch)(options.endpoint ?? 'https://www.resortpass-europapark.ch/api/status', {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return snapshotFromPayload(await response.json(), now().toISOString());
+  } catch {
+    return createUnknownSnapshot(now().toISOString(), true);
+  }
 }
 
 let cached: Promise<StatusSnapshot> | null = null;
 
-/**
- * Resolves the status to render into the HTML.
- *
- * Deliberately forgiving: a build must never fail, and must never hang, because
- * a status endpoint is slow. Two seconds, then the committed value. Resolved
- * once per build and shared across all 324 pages.
- */
+/** Resolve once per build so every language and component shares one request. */
 export function getBuildTimeStatus(): Promise<StatusSnapshot> {
-  if (cached) return cached;
-
-  cached = (async (): Promise<StatusSnapshot> => {
-    if (process.env.BUILD_STATUS_OFFLINE === '1') return COMMITTED_STATUS;
-    try {
-      const response = await fetch(STATUS_ENDPOINT, {
-        headers: { Accept: 'application/json' },
-        signal: AbortSignal.timeout(2000),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const payload = (await response.json()) as Record<string, unknown>;
-      const silver = coerce(payload.silver);
-      const gold = coerce(payload.gold);
-      // An endpoint that answers "unknown" for both tells us nothing the
-      // committed value does not already say, and it is worse: it would render
-      // "checking…" into the static HTML, which is what we set out to remove.
-      if (silver.state === 'unknown' && gold.state === 'unknown') return COMMITTED_STATUS;
-      return {
-        silver,
-        gold,
-        capturedAt: silver.lastCheck || gold.lastCheck || new Date().toISOString(),
-        live: true,
-      };
-    } catch {
-      return COMMITTED_STATUS;
-    }
-  })();
-
-  return cached;
+  return cached ??= resolveBuildTimeStatus({
+    endpoint: process.env.BUILD_STATUS_URL,
+    offline: process.env.BUILD_STATUS_OFFLINE === '1',
+  });
 }

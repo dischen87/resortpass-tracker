@@ -1,0 +1,6 @@
+interface:
+  display_name: "ResortPass editorial review"
+  short_description: "Review ResortPass facts, photos and mobile UX"
+  default_prompt: "Use $resortpass-editorial-review to check the affected facts, licensed photos or mobile UX and complete the requested maintenance."
+policy:
+  allow_implicit_invocation: true

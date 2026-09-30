@@ -130,7 +130,14 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 7rem;
+  scroll-padding-top: calc(var(--site-header-height, 5rem) + 1rem);
+}
+
+@media (max-width: 767px) {
+  body.has-mobile-dock { padding-bottom: var(--mobile-dock-height, calc(4.5rem + env(safe-area-inset-bottom))); }
+  .has-mobile-dock #sticky-cta { bottom: var(--mobile-dock-height, calc(4.5rem + env(safe-area-inset-bottom))); }
+  html:has(.has-mobile-dock) { scroll-padding-bottom: calc(var(--mobile-dock-height, 4.5rem) + 5rem); }
+  .has-mobile-dock input, .has-mobile-dock select, .has-mobile-dock textarea { scroll-margin-bottom: calc(var(--mobile-dock-height, 4.5rem) + 5rem); }
 }
 
 body {

@@ -367,7 +367,7 @@ export const esPlanning: PlanningLocalePack = {
       eyebrow: 'Guía ResortPass',
       heading: 'Todo lo importante sobre Europa-Park ResortPass',
       answer:
-        'Silver y Gold no están disponibles actualmente para la venta habitual y no se ha anunciado una nueva fecha. Silver es más barato y está vinculado a días definidos; Gold es más flexible e incluye ventajas adicionales en Rulantica.',
+        'Consulta el rastreador en directo para comprobar si Silver y Gold se pueden comprar actualmente. Silver es más barato y está vinculado a días definidos; Gold es más flexible e incluye ventajas adicionales en Rulantica.',
       sectionTitle: 'Elige el pase anual según el uso',
       sectionIntro:
         'El precio no es lo único que importa. Son más relevantes los posibles días de visita, la flexibilidad, el uso de Rulantica y la disponibilidad real del pase.',
@@ -392,7 +392,7 @@ export const esPlanning: PlanningLocalePack = {
         {
           question: '¿Cuándo volverán a venderse los ResortPass?',
           answer:
-            'Actualmente no se ha anunciado una nueva fecha de venta. El rastreador avisa cuando Silver o Gold aparecen realmente disponibles en la tienda oficial.',
+            'Consulta los anuncios oficiales para conocer nuevas fechas de venta. El rastreador avisa cuando la tienda oficial permite realmente comprar Silver o Gold.',
         },
         {
           question: '¿Cuánto cuesta ResortPass?',
@@ -459,7 +459,7 @@ export const esPlanning: PlanningLocalePack = {
       eyebrow: 'Precios 2026',
       heading: '¿Cuánto cuestan ResortPass Silver y Gold?',
       answer:
-        'Última comprobación oficial: Silver, 325 euros para adultos y 275 euros para niños y mayores; Gold, 495 y 430 euros, respectivamente. Ninguno está disponible actualmente para la venta habitual.',
+        'Última comprobación oficial: Silver, 325 euros para adultos y 275 euros para niños y mayores; Gold, 495 y 430 euros, respectivamente. Consulta el rastreador en directo y la tienda oficial para conocer el estado actual de venta.',
       sectionTitle: 'Valora el precio junto con el uso',
       sectionIntro:
         'Las entradas de día tienen intervalos de precios según la fecha. Por eso un pase anual no compensa a partir de una cifra universal, sino en función de tus fechas reales.',
@@ -494,7 +494,7 @@ export const esPlanning: PlanningLocalePack = {
         {
           question: '¿Puedo comprar ResortPass ahora?',
           answer:
-            'Silver y Gold figuran actualmente como no disponibles. El rastreador en directo muestra cuándo cambia el estado real de la tienda.',
+            'Consulta el rastreador en directo junto con la hora de la última comprobación. Solo puedes comprar Silver o Gold en la tienda oficial cuando se ofrecen a la venta.',
         },
       ],
     },

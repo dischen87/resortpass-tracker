@@ -3,6 +3,8 @@ import { Icon } from 'astro-icon/components';
 import Layout from '../../layouts/Layout.astro';
 import SiteHeader from '../SiteHeader.astro';
 import ResponsiveIllustration from '../ResponsiveIllustration.astro';
+import LicensedPhoto from '../LicensedPhoto.astro';
+import type { LicensedMediaId } from '../../data/media';
 import BrandSafeText from '../BrandSafeText.astro';
 import { getLocaleDefinition, type LocaleCode } from '../../i18n/locales';
 import { normalizeRoutePath, type RouteKey } from '../../i18n/routes';
@@ -18,6 +20,8 @@ export interface PlanningNavItem {
 
 export interface PlanningRelatedItem {
   href: string;
+  mediaId?: LicensedMediaId;
+  photoCaption?: string;
   eyebrow: string;
   title: string;
   text: string;
@@ -35,6 +39,8 @@ export interface PlanningSource {
 }
 
 export interface PlanningHeroImage {
+  mediaId?: LicensedMediaId;
+  caption?: string;
   src: string;
   srcset?: string;
   sizes?: string;
@@ -188,6 +194,12 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
               {eyebrow}
             </span>
             <h1 class="planning-hero__title"><BrandSafeText text={heading} /></h1>
+            {toc.some((item) => item.href === '#tool') && (
+              <a href="#tool" class="btn-primary mt-5">
+                <Icon name="tabler:adjustments-horizontal" class="h-5 w-5" aria-hidden="true" />
+                {toc.find((item) => item.href === '#tool')!.label}
+              </a>
+            )}
           </div>
 
           <aside class="planning-answer">
@@ -206,7 +218,24 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
           </aside>
         </div>
 
-        {heroImage && (
+        {toc.length > 0 && (
+          <nav class="planning-toc" aria-label={copy.onThisPage}>
+            <span>{copy.onThisPage}</span>
+            <div>
+              {toc.map((item) => (
+                <a href={item.href}>
+                  {item.icon && <Icon name={item.icon} class="h-4 w-4" aria-hidden="true" />}
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </nav>
+        )}
+
+        {heroImage?.mediaId && (
+          <LicensedPhoto mediaId={heroImage.mediaId} alt={heroImage.alt} lang={lang} caption={heroImage.caption} class="mt-8" aspectRatio={heroImage.mediaId === 'wikimedia-rulantica-entrance-hall-2022' ? '3 / 2' : '21 / 9'} objectPosition={heroImage.mediaId === 'wikimedia-rulantica-entrance-hall-2022' ? 'center bottom' : 'center'} sizes="(max-width: 767px) calc(100vw - 2rem), 72rem" />
+        )}
+        {heroImage && !heroImage.mediaId && (
           <figure class="planning-hero-media">
             <img
               src={heroImage.src}
@@ -236,19 +265,6 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
           />
         )}
 
-        {toc.length > 0 && (
-          <nav class="planning-toc" aria-label={copy.onThisPage}>
-            <span>{copy.onThisPage}</span>
-            <div>
-              {toc.map((item) => (
-                <a href={item.href}>
-                  {item.icon && <Icon name={item.icon} class="h-4 w-4" aria-hidden="true" />}
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          </nav>
-        )}
       </div>
     </section>
 
@@ -276,13 +292,16 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
           <h2 id="related-title" class="section-heading">{copy.relatedTitle}</h2>
           <div class="mt-7 grid gap-5 md:grid-cols-3">
             {related.map((item) => (
-              <a href={item.href} class="planning-related card">
+              <article class="planning-related card">
+                {item.mediaId && <LicensedPhoto mediaId={item.mediaId} alt="" lang={lang} caption={item.photoCaption} aspectRatio="16 / 9" objectPosition={item.mediaId === 'wikimedia-rulantica-entrance-hall-2022' ? 'center bottom' : 'center'} sizes="(min-width: 768px) 24rem, calc(100vw - 2rem)" />}
+                <a href={item.href} class="planning-related__body">
                 <span class="planning-related__icon"><Icon name={item.icon} class="h-6 w-6" aria-hidden="true" /></span>
                 <span class="section-kicker">{item.eyebrow}</span>
                 <h3>{item.title}</h3>
                 <p>{item.text}</p>
                 <Icon name="tabler:arrow-up-right" class="mt-auto h-5 w-5 text-accent rtl:-scale-x-100" aria-hidden="true" />
-              </a>
+                </a>
+              </article>
             ))}
           </div>
         </div>
@@ -596,10 +615,19 @@ const structuredAboutNames = routeKey.startsWith('resortPass')
     display: flex;
     min-height: 15rem;
     flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .planning-related :global(.licensed-photo) { border: 0; border-radius: 0; }
+  .planning-related__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
     align-items: flex-start;
     gap: 0.6rem;
     padding: 1.25rem;
   }
+  .planning-related__body:hover { background: var(--color-bg-light); }
 
   .planning-related__icon {
     display: grid;

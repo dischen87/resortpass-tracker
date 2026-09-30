@@ -121,8 +121,12 @@ describe("restaurant directory", () => {
 });
 
 describe("media license registry", () => {
-  test("contains the four reviewed Wikimedia records and traces local derivatives", () => {
-    expect(licensedMedia).toHaveLength(4);
+  test("preserves reviewed Wikimedia records and traces every local derivative", () => {
+    const ids: string[] = licensedMedia.map((media) => media.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const id of ['wikimedia-ep-panorama-2023', 'wikimedia-ep-voltron-2024', 'wikimedia-europa-park-entrance-2024', 'wikimedia-rulantica-wave-pool-2019']) {
+      expect(ids).toContain(id);
+    }
 
     for (const media of licensedMedia) {
       expect(media.licenseId).toBe("CC-BY-SA-4.0");
@@ -142,6 +146,13 @@ describe("media license registry", () => {
         expect(media.localPath).toMatch(/^\/images\/.+\.webp$/);
         expect(media.derivativeDescription?.length).toBeGreaterThan(20);
         expect(existsSync(join(import.meta.dir, "../..", "public", media.localPath!))).toBe(true);
+        if ('responsiveVariants' in media) {
+          for (const variant of media.responsiveVariants) {
+            expect(existsSync(join(import.meta.dir, '../..', 'public', variant.path))).toBe(true);
+            expect(variant.width).toBeGreaterThan(0);
+            expect(variant.height).toBeGreaterThan(0);
+          }
+        }
       }
     }
   });

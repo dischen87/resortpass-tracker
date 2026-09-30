@@ -3,8 +3,11 @@ import { Icon } from 'astro-icon/components';
 import { type Lang, defaultLang, crowdCalendarPaths, getTranslation } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
 import BrandSafeText from './BrandSafeText.astro';
+import LicensedPhoto from './LicensedPhoto.astro';
 import { getLocaleDefinition } from '../i18n/locales';
 import { getBuildTimeStatus } from '../data/status-snapshot';
+import { getStatusCopy } from '../data/availability-answer';
+import { formatPassLabel, formatStatusRequest } from '../data/status-format';
 
 interface Props {
   lang?: Lang;
@@ -19,14 +22,8 @@ const tr = (key: string) => getTranslation(lang, key);
  * the first paint, every visitor.
  */
 const snapshot = await getBuildTimeStatus();
-const pillText = (state: 'available' | 'sold_out' | 'unknown') =>
-  state === 'available' ? tr('status.available')
-  : state === 'sold_out' ? tr('status.sold_out')
-  : tr('status.unknown_short');
-const lastCheckDate = snapshot.capturedAt ? new Date(snapshot.capturedAt) : null;
-const lastCheckLabel = lastCheckDate && !Number.isNaN(lastCheckDate.getTime())
-  ? `${tr('status.last_check')}: ${lastCheckDate.toLocaleString(getLocaleDefinition(lang).bcp47, { dateStyle: 'medium', timeStyle: 'short' })} · ${tr('status.updated_3x')}`
-  : tr('status.updated_3x');
+const statusCopy = getStatusCopy(lang);
+const lastCheckLabel = formatStatusRequest(snapshot, statusCopy, getLocaleDefinition(lang).bcp47);
 const titleLead = tr('hero.title_lead');
 const titleHighlight = tr('hero.title_highlight');
 const answerLabel = tr('hero.answer_label');
@@ -51,8 +48,9 @@ const features = [
   <span class="deco deco--yellow-square" aria-hidden="true"></span>
   <span class="deco deco--purple-square" aria-hidden="true"></span>
 
-  <div class="section-shell relative z-10 pb-8 pt-8 text-center md:pb-10 md:pt-16">
-    <div class="mx-auto max-w-[56.25rem]">
+  <div class="section-shell relative z-10 pb-8 pt-8 text-center md:pb-10 md:pt-12">
+    <div class="hero-layout">
+    <div class="hero-copy">
       <div class="mb-6 animate-fade-in-up">
         <span class="badge">
           <Icon name="tabler:rollercoaster" class="h-4 w-4 text-pink" aria-hidden="true" />
@@ -70,18 +68,18 @@ const features = [
           {answerLabel} · <span id="hero-status-time">{lastCheckLabel}</span>
         </p>
         <p class="mb-3 text-left text-[0.98rem] leading-relaxed text-text-secondary md:text-[1.05rem]">
-          {tr('hero.subtitle')}
+          {statusCopy.heroIntro}
         </p>
-        <div class="flex flex-wrap gap-2" role="status" aria-live="polite">
-          <span class="hero-pill" id="hero-pill-silver" data-state={snapshot.silver.state}>
+        <div class="flex flex-wrap gap-2" role="status" aria-live="polite" aria-atomic="true">
+          <span class="hero-pill" id="hero-pill-silver" data-state={snapshot.silver.state} data-pass-state={snapshot.silver.state}>
             <span class="dot" aria-hidden="true"></span>
             <span class="hero-status-label">Silver</span>
-            <span class="hero-status-value" id="hero-status-silver">{pillText(snapshot.silver.state)}</span>
+            <span class="hero-status-value" id="hero-status-silver">{formatPassLabel(snapshot.silver, statusCopy)}</span>
           </span>
-          <span class="hero-pill" id="hero-pill-gold" data-state={snapshot.gold.state}>
+          <span class="hero-pill" id="hero-pill-gold" data-state={snapshot.gold.state} data-pass-state={snapshot.gold.state}>
             <span class="dot" aria-hidden="true"></span>
             <span class="hero-status-label">Gold</span>
-            <span class="hero-status-value" id="hero-status-gold">{pillText(snapshot.gold.state)}</span>
+            <span class="hero-status-value" id="hero-status-gold">{formatPassLabel(snapshot.gold, statusCopy)}</span>
           </span>
         </div>
       </div>
@@ -97,9 +95,9 @@ const features = [
         </a>
       </div>
 
-      <div class="hero-live animate-fade-in-up-delay-3">
+      <div id="hero-live-count" class="hero-live animate-fade-in-up-delay-3" hidden>
         <span class="hero-live-badge"><span class="hero-live-dot" aria-hidden="true"></span>Live</span>
-        <span class="hero-live-number" id="fan-count" data-countup>800</span>
+        <span class="hero-live-number" id="fan-count" data-countup>—</span>
         <span class="hero-live-label">{tr('subscribe.waiting_fans')} <span class="text-muted">· {tr('subscribe.privacy').split('.')[0]}</span></span>
       </div>
 
@@ -112,6 +110,10 @@ const features = [
           </a>
         ))}
       </nav>
+    </div>
+    <div class="hero-photo">
+      <LicensedPhoto mediaId="wikimedia-ep-voltron-2024" alt="" lang={lang} eager aspectRatio="4 / 3" sizes="(min-width: 1024px) 42vw, calc(100vw - 2rem)" />
+    </div>
     </div>
   </div>
 
@@ -136,3 +138,27 @@ const features = [
     </g>
   </svg>
 </section>
+
+<style>
+  .hero-layout { display: grid; gap: 2rem; align-items: center; }
+  .hero-copy { min-width: 0; }
+  .hero-photo { min-width: 0; }
+  .hero-live { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 0.4rem; margin-block: 1rem; }
+  .hero-live[hidden] { display: none; }
+  .hero-live-number { font-size: 1.1rem; color: var(--color-text-primary); background: none; }
+  .hero-live-badge { font-size: 0.6rem; }
+  .hero-live-label { font-size: 0.75rem; }
+  @media (min-width: 1024px) {
+    .hero-layout { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 3rem; }
+    .hero-copy { text-align: start; }
+    .hero-copy h1 { font-size: clamp(2.5rem, 4.1vw, 3.65rem); }
+    .hero-copy :global(.hero-features) { justify-content: start; }
+    .hero-copy :global(.hero-live) { justify-content: start; }
+    .hero-copy :global(.badge) { font-size: 0.75rem; }
+  }
+  @media (max-width: 767px) {
+    .hero-copy h1 { font-size: clamp(1.9rem, 7.8vw, 2.4rem); }
+    .hero-copy :global(.hero-features) { gap: 0.5rem; }
+    .hero-copy :global(.hero-feature) { min-height: 2.75rem; font-size: 0.8rem; }
+  }
+</style>

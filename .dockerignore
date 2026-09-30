@@ -5,6 +5,8 @@ dist/
 dist-static/
 data/
 journal/
+releases/
+audit-*/
 .env
 .env.*
 **/.env

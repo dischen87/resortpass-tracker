@@ -9,13 +9,14 @@ import HistorySection from './HistorySection.astro';
 import NewsSection from './NewsSection.astro';
 import CommunitySection from './CommunitySection.astro';
 import PlanningTeaser from './PlanningTeaser.astro';
+import JourneySection from './JourneySection.astro';
 import Footer from './Footer.astro';
-import ResponsiveIllustration from './ResponsiveIllustration.astro';
 import '../styles/global.css';
 import { getTranslation, type Lang } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
 import { getBuildTimeStatus } from '../data/status-snapshot';
-import { getAvailabilityAnswer } from '../data/availability-answer';
+import { getAvailabilityAnswer, getStatusCopy } from '../data/availability-answer';
+import { formatStatusDescription, formatStatusRequest } from '../data/status-format';
 import { getLocaleDefinition } from '../i18n/locales';
 
 interface Props {
@@ -36,10 +37,9 @@ const socialImageUrl = `${siteUrl}/og-resortpass-v3.png`;
  */
 const statusSnapshot = await getBuildTimeStatus();
 const availabilityAnswer = await getAvailabilityAnswer(lang);
-const snapshotDate = new Date(statusSnapshot.capturedAt);
-const staticLastCheck = Number.isNaN(snapshotDate.getTime())
-  ? tr('status.updated_3x')
-  : `${tr('status.last_check')}: ${snapshotDate.toLocaleString(localeTag, { dateStyle: 'medium', timeStyle: 'short' })} · ${tr('status.updated_3x')}`;
+const statusCopy = getStatusCopy(lang);
+const staticLastCheck = formatStatusRequest(statusSnapshot, statusCopy, localeTag);
+const statusDescription = formatStatusDescription(statusSnapshot, statusCopy);
 /*
  * Only the strings this island actually uses, serialised at build time.
  * Importing getTranslation pulled the whole 17-language table — 469 KB,
@@ -59,7 +59,7 @@ const clientCopy = {
 
 ---
 
-<Layout lang={lang} routeKey="home">
+<Layout lang={lang} routeKey="home" description={statusDescription}>
   <Navbar lang={lang} />
 
   <main id="main-content">
@@ -68,24 +68,19 @@ const clientCopy = {
     <section id="status" class="pt-6 pb-10 md:pt-8 md:pb-16" aria-labelledby="status-heading">
       <div class="section-shell">
         <h2 id="status-heading" class="sr-only">Status</h2>
-        <ResponsiveIllustration
-          baseName="resortpass-status-illustration"
-          alt={tr('meta.og_alt')}
-          class="mx-auto mb-8 max-w-[42rem] md:mb-10"
-          sizes="(max-width: 767px) calc(100vw - 2rem), 42rem"
-        />
         <div class="mx-auto grid max-w-[55rem] grid-cols-1 gap-7 md:grid-cols-2">
           <StatusCard type="silver" lang={lang} />
           <StatusCard type="gold" lang={lang} />
         </div>
 
-        <p class="mt-7 text-center font-mono text-xs text-muted" id="last-check" role="status" aria-live="polite">
+        <p class="mt-7 text-center font-mono text-xs text-muted" id="last-check" role="status" aria-live="polite" aria-atomic="true">
           <span id="last-check-text">{staticLastCheck}</span>
         </p>
       </div>
     </section>
 
     <SubscribeForm lang={lang} />
+    <JourneySection lang={lang} />
     <InfoSection lang={lang} />
     <PlanningTeaser lang={lang} />
     <NewsSection lang={lang} />
@@ -120,7 +115,7 @@ const clientCopy = {
     '@type': 'WebPage',
     name: tr('meta.title'),
     url: `${siteUrl}${homePath}`,
-    description: tr('meta.description'),
+    description: statusDescription,
     inLanguage: localeTag,
     primaryImageOfPage: {
       '@type': 'ImageObject',
@@ -146,12 +141,12 @@ const clientCopy = {
     },
   })} />
 
-  <script type="application/ld+json" set:html={JSON.stringify({
+  <script type="application/ld+json" id="schema-webapp" set:html={JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: 'ResortPass Tracker',
     url: `${siteUrl}${homePath}`,
-    description: tr('meta.description'),
+    description: statusDescription,
     applicationCategory: 'UtilitiesApplication',
     operatingSystem: 'Web',
     inLanguage: localeTag,
@@ -163,14 +158,14 @@ const clientCopy = {
     },
   })} />
 
-  <script type="application/ld+json" set:html={JSON.stringify({
+  <script type="application/ld+json" id="availability-faq-schema" set:html={JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
     mainEntity: [
       [tr('info.what_title'), tr('info.what_text')],
       [tr('info.why_title'), availabilityAnswer],
       [tr('info.how_title'), tr('info.how_text')],
-      [tr('info.tip_title'), tr('info.tip_text')],
+      [tr('info.tip_title'), statusCopy.saleTiming],
     ].map(([name, text]) => ({
       '@type': 'Question',
       name,
@@ -178,154 +173,118 @@ const clientCopy = {
     })),
   })} />
 
-  <script define:vars={{ lang, clientCopy }}>
+  <script define:vars={{ lang, clientCopy, statusCopy }}>
     window.__statusLang = lang;
     window.__statusLangCopy = clientCopy;
+    window.__statusCopy = statusCopy;
   </script>
 
   <script>
-    import type { Lang } from '../i18n/locales';
+    import type { LocaleCode } from '../i18n/locales';
     import { getLocaleDefinition } from '../i18n/locales';
+    import {
+      createUnknownSnapshot, formatPassCheck, formatPassLabel, formatStatusAnswer, formatStatusDescription,
+      formatStatusRequest, snapshotFromPayload, updateAvailabilityFaq,
+      type StatusCopy, type StatusSnapshot,
+    } from '../data/status-format';
 
-    const statusLang = ((window as any).__statusLang || 'de') as Lang;
+    const statusLang = ((window as any).__statusLang || 'de') as LocaleCode;
     const clientCopy = (window as any).__statusLangCopy as Record<string, string>;
-  const tr = (key: string) => clientCopy?.[key] ?? key;
+    const statusCopy = (window as any).__statusCopy as StatusCopy;
+    const tr = (key: string) => clientCopy?.[key] ?? key;
     const locale = getLocaleDefinition(statusLang).bcp47;
-
-    type PassStatus = { available?: boolean | null; state?: 'available' | 'sold_out' | 'unknown'; lastCheck?: string | null } | null;
-
-    function stateOf(status: PassStatus): 'available' | 'sold_out' | 'unknown' {
-      if (!status) return 'unknown';
-      if (status.state) return status.state;
-      if (status.available === true) return 'available';
-      if (status.available === false) return 'sold_out';
-      return 'unknown';
-    }
-
-    function parseTimestamp(value?: string | null): Date | null {
-      if (!value) return null;
-      const normalized = value.includes('T') ? value : value.replace(' ', 'T');
-      const date = new Date(/[zZ]|[+-]\d\d:\d\d$/.test(normalized) ? normalized : `${normalized}Z`);
-      return Number.isNaN(date.getTime()) ? null : date;
-    }
-
     const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    /**
-     * Builds the "on sale now" panel on demand.
-     *
-     * The static HTML deliberately omits it, so nothing can be crawled or
-     * quoted as an active purchase link while the pass is sold out. The one
-     * moment this project exists for still has to work for someone who left
-     * the tab open, so the panel is created the first time the status flips.
-     */
-    function ensureAvailablePanel(card: HTMLElement) {
-      if (card.querySelector('.status-available')) return;
-      const shopUrl = 'https://tickets.mackinternational.de/de/resortpass/uebersicht';
-      const panel = document.createElement('div');
-      panel.className = 'status-available';
-      panel.setAttribute('role', 'status');
-
-      const banner = document.createElement('div');
-      banner.className = 'flex min-h-12 items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-available';
-      const dot = document.createElement('span');
-      dot.className = 'relative flex h-3 w-3 shrink-0';
-      dot.innerHTML = '<span class="ping-brand absolute inline-flex h-full w-full rounded-full bg-green-500"></span><span class="relative inline-flex h-3 w-3 rounded-full bg-available"></span>';
-      const label = document.createElement('span');
-      label.className = 'font-heading text-lg font-extrabold';
-      label.textContent = tr('status.available');
-      banner.append(dot, label);
-
-      const cta = document.createElement('a');
-      cta.href = shopUrl;
-      cta.target = '_blank';
-      cta.rel = 'noopener noreferrer';
-      cta.className = 'btn-primary mt-3 w-full bg-available py-3 text-base';
-      cta.textContent = tr('status.buy_now');
-
-      panel.append(banner, cta);
-      // Ahead of the price table, where the sold-out banner also sits.
-      const anchor = card.querySelector('.status-checking');
-      if (anchor) anchor.before(panel);
-      else card.append(panel);
-    }
-
-    function updateCard(type: 'silver' | 'gold', status: PassStatus, didFetchFail = false) {
+    function updateCard(type: 'silver' | 'gold', snapshot: StatusSnapshot) {
+      const pass = snapshot[type];
       const card = document.getElementById(`card-${type}`);
-      if (!card) return;
-
-      const state = didFetchFail ? 'error' : stateOf(status);
-      const visibleBlock = state === 'available' ? 'available'
-        : state === 'sold_out' ? 'unavailable'
-        : state === 'error' ? 'error'
-        : 'checking';
-
-      card.classList.remove('card-available', 'card-unavailable');
-      // The "on sale" panel is not shipped in the HTML — a hidden buy button
-      // for a sold-out product is what crawlers were reading. It is built here
-      // the moment the shop actually opens, so a page left open still updates.
-      if (visibleBlock === 'available') ensureAvailablePanel(card);
-      for (const block of ['loading', 'available', 'unavailable', 'checking', 'error']) {
-        card.querySelector(`.status-${block}`)?.classList.toggle('hidden', block !== visibleBlock);
+      if (card) {
+        card.dataset.passState = pass.state;
+        card.classList.toggle('card-available', pass.state === 'available');
+        card.classList.toggle('card-unavailable', pass.state === 'sold_out');
+        const panel = card.querySelector<HTMLElement>('[data-pass-status]');
+        const banner = panel?.querySelector<HTMLElement>('[data-state]');
+        if (banner) banner.dataset.state = pass.state;
+        const label = card.querySelector<HTMLElement>('[data-pass-label]');
+        if (label) label.textContent = formatPassLabel(pass, statusCopy);
+        const checked = card.querySelector<HTMLElement>('[data-pass-check]');
+        if (checked) checked.textContent = formatPassCheck(pass, statusCopy, locale);
+        const existingBuy = panel?.querySelector('[data-pass-buy]');
+        if (pass.state !== 'available') existingBuy?.remove();
+        else if (panel && !existingBuy) {
+          const buy = document.createElement('a');
+          buy.dataset.passBuy = '';
+          buy.href = 'https://tickets.mackinternational.de/de/resortpass/uebersicht';
+          buy.target = '_blank';
+          buy.rel = 'noopener noreferrer';
+          buy.className = 'btn-primary mt-3 w-full bg-available py-3 text-base';
+          buy.textContent = tr('status.buy_now');
+          panel.append(buy);
+        }
       }
-      if (state === 'available') card.classList.add('card-available');
-      if (state === 'sold_out') card.classList.add('card-unavailable');
-
       const pill = document.getElementById(`hero-pill-${type}`);
       const heroValue = document.getElementById(`hero-status-${type}`);
-      if (pill && heroValue) {
-        const pillState = state === 'available' ? 'available' : state === 'sold_out' ? 'sold_out' : 'unknown';
-        const text = state === 'available' ? tr('status.available')
-          : state === 'sold_out' ? tr('status.sold_out')
-          : state === 'error' ? tr('status.unknown_short')
-          : tr('status.checking');
-        const apply = () => { heroValue.textContent = text; pill.dataset.state = pillState; };
-        if (prefersReduce || heroValue.textContent === text) {
-          apply();
-        } else {
-          heroValue.style.opacity = '0';
-          window.setTimeout(() => { apply(); heroValue.style.opacity = '1'; }, 200);
-        }
+      if (pill) {
+        pill.dataset.state = pass.state;
+        pill.dataset.passState = pass.state;
+      }
+      if (heroValue) heroValue.textContent = formatPassLabel(pass, statusCopy);
+    }
+
+    function applyStatus(snapshot: StatusSnapshot) {
+      updateCard('silver', snapshot);
+      updateCard('gold', snapshot);
+      const answer = formatStatusAnswer(snapshot, statusCopy, locale);
+      const description = formatStatusDescription(snapshot, statusCopy);
+      document.querySelectorAll<HTMLMetaElement>('meta[name="description"], meta[property="og:description"], meta[name="twitter:description"]').forEach((element) => {
+        element.content = description;
+      });
+      document.querySelectorAll<HTMLElement>('[data-availability-answer]').forEach((element) => {
+        element.textContent = answer;
+      });
+      const request = formatStatusRequest(snapshot, statusCopy, locale);
+      for (const id of ['last-check-text', 'hero-status-time']) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = request;
+      }
+      const faq = document.getElementById('availability-faq-schema');
+      if (faq) {
+        try {
+          faq.textContent = JSON.stringify(updateAvailabilityFaq(JSON.parse(faq.textContent || '{}'), answer));
+        } catch { /* A schema parsing failure must not obscure the visible current status. */ }
+      }
+      const webpage = document.getElementById('schema-webpage');
+      if (webpage) {
+        try {
+          const schema = JSON.parse(webpage.textContent || '{}');
+          schema.description = description;
+          schema.dateModified = snapshot.capturedAt;
+          webpage.textContent = JSON.stringify(schema);
+        } catch {}
+      }
+      const app = document.getElementById('schema-webapp');
+      if (app) {
+        try {
+          const schema = JSON.parse(app.textContent || '{}');
+          schema.description = description;
+          app.textContent = JSON.stringify(schema);
+        } catch {}
       }
     }
 
     async function loadStatus() {
       try {
-        const response = await fetch('/api/status', { headers: { Accept: 'application/json' } });
+        const response = await fetch('/api/status', {
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+          signal: AbortSignal.timeout(10_000),
+        });
         if (!response.ok) throw new Error('status');
-        const data = await response.json();
-        updateCard('silver', data.silver);
-        updateCard('gold', data.gold);
-
-        const lastCheck = parseTimestamp(data.silver?.lastCheck || data.gold?.lastCheck);
-        const text = lastCheck
-          ? `${tr('status.last_check')}: ${lastCheck.toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })} · ${tr('status.updated_3x')}`
-          : tr('status.updated_3x');
-        document.getElementById('last-check-text')!.textContent = text;
-        document.getElementById('hero-status-time')!.textContent = text;
-
-        const schemaEl = document.getElementById('schema-webpage');
-        if (schemaEl && lastCheck) {
-          const schema = JSON.parse(schemaEl.textContent || '{}');
-          schema.dateModified = lastCheck.toISOString();
-          schemaEl.textContent = JSON.stringify(schema);
-        }
+        applyStatus(snapshotFromPayload(await response.json(), new Date().toISOString()));
       } catch {
-        /*
-         * Keep what the server rendered.
-         *
-         * The HTML now carries a real, dated answer, so replacing it with
-         * "status could not be loaded" on a transient network failure would
-         * throw away better information than the error state contains — the
-         * page would go from a true statement to no statement at all. The
-         * timestamp already tells the reader how old it is; we only add the
-         * error note next to it.
-         */
-        const stamp = document.getElementById('last-check-text');
-        if (stamp && !stamp.dataset.errorNoted) {
-          stamp.dataset.errorNoted = 'true';
-          stamp.textContent = `${stamp.textContent} · ${tr('status.error')}`;
-        }
+        // Keep confirmed observations in history; current availability is unknown
+        // after a failed refresh, including tabs that previously showed a sale.
+        applyStatus(createUnknownSnapshot(new Date().toISOString(), true));
       }
     }
 
@@ -348,7 +307,10 @@ const clientCopy = {
         if (!response.ok) return;
         const data = await response.json();
         const element = document.getElementById('fan-count');
-        if (element && Number.isFinite(data.count)) countUp(element, data.count, (n) => n.toLocaleString(locale));
+        if (element && Number.isFinite(data.count) && data.count >= 0) {
+          document.getElementById('hero-live-count')?.removeAttribute('hidden');
+          countUp(element, data.count, (n) => n.toLocaleString(locale));
+        }
       } catch {}
     }
 
@@ -381,12 +343,14 @@ const clientCopy = {
     const stickyCta = document.getElementById('sticky-cta');
     const subscribeSection = document.getElementById('benachrichtigung');
     const heroCta = document.getElementById('hero-cta');
+    const footer = document.querySelector('footer');
 
     if (stickyCta && subscribeSection && heroCta) {
       let heroVisible = true;
       let subscribeVisible = false;
+      let footerVisible = false;
       const updateSticky = () => {
-        const hide = heroVisible || subscribeVisible;
+        const hide = heroVisible || subscribeVisible || footerVisible;
         stickyCta.toggleAttribute('inert', hide);
         stickyCta.setAttribute('aria-hidden', String(hide));
         stickyCta.classList.toggle('opacity-0', hide);
@@ -398,11 +362,13 @@ const clientCopy = {
         for (const entry of entries) {
           if (entry.target === heroCta) heroVisible = entry.isIntersecting;
           if (entry.target === subscribeSection) subscribeVisible = entry.isIntersecting;
+          if (entry.target === footer) footerVisible = entry.isIntersecting;
         }
         updateSticky();
       }, { threshold: 0.1 });
       observer.observe(heroCta);
       observer.observe(subscribeSection);
+      if (footer) observer.observe(footer);
     }
   </script>
 </Layout>

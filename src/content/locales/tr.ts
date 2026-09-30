@@ -321,7 +321,7 @@ export const trPlanning = {
       "description": "ResortPass Silver ve Gold: satış durumu, fiyatlar, ziyaret günleri, rezervasyon, Rulantica ve bağımsız müsaitlik uyarısını anla.",
       "eyebrow": "ResortPass rehberi",
       "heading": "Europa-Park ResortPass hakkında her şey",
-      "answer": "Silver ve Gold şu anda normal satışta değildir ve yeni bir tarih duyurulmamıştır. Silver daha ucuzdur ve belirli günlerle sınırlıdır; Gold daha esnektir ve Rulantica'da ek avantajlar içerir.",
+      "answer": "Silver ve Gold’un güncel satın alınabilirliğini canlı takip aracından kontrol et. Silver daha ucuzdur ve belirli günlerle sınırlıdır; Gold daha esnektir ve Rulantica'da ek avantajlar içerir.",
       "sectionTitle": "Kullanıma göre yıllık kartı seçin",
       "sectionIntro": "Fiyat tek önemli unsur değildir. Daha önemli olan olası ziyaret günleri, esneklik, Rulantica kullanımı ve kartın gerçek mevcudiyetidir.",
       "points": [
@@ -344,7 +344,7 @@ export const trPlanning = {
       "faqs": [
         {
           "question": "ResortPass ne zaman tekrar satışa sunulacak?",
-          "answer": "Şu anda yeni bir satış tarihi açıklanmadı. İzleyici, Silver veya Gold resmi mağazada gerçekten mevcut olduğunda uyarır."
+          "answer": "Yeni satış tarihleri için resmi duyuruları kontrol et. Takip aracı, resmi mağaza Silver veya Gold’u gerçekten satışa sunduğunda bildirim gönderir."
         },
         {
           "question": "ResortPass ne kadar?",
@@ -401,7 +401,7 @@ export const trPlanning = {
       "description": "Yetişkinler, çocuklar ve yaşlılar için ResortPass'in mevcut fiyatları, tarihine göre Europa-Park günlük biletleri ile karşılaştırılmıştır.",
       "eyebrow": "2026 Fiyatları",
       "heading": "ResortPass, Silver ve Gold ne kadar?",
-      "answer": "Son resmi kontrol: Yetişkinler için Silver, 325 euro ve çocuklar ve yaşlılar için 275 euro; sırasıyla Gold, 495 ve 430 euro. Hiçbiri şu anda normal satış için mevcut değil.",
+      "answer": "Son resmi kontrol: Yetişkinler için Silver, 325 euro ve çocuklar ve yaşlılar için 275 euro; sırasıyla Gold, 495 ve 430 euro. Güncel satış durumunu canlı takip aracından ve resmi bilet mağazasından kontrol et.",
       "sectionTitle": "Fiyatı kullanım ile birlikte değerlendir",
       "sectionIntro": "Günlük biletlerin fiyat aralıkları tarihine göre değişir. Bu yüzden bir yıllık kart, evrensel bir rakama göre değil, gerçek tarihlerine göre avantaj sağlar.",
       "points": [
@@ -432,7 +432,7 @@ export const trPlanning = {
         },
         {
           "question": "Şimdi ResortPass satın alabilir miyim?",
-          "answer": "Silver ve Gold şu anda mevcut değil. Canlı takip aracı, mağazadaki gerçek durumun ne zaman değiştiğini gösterir."
+          "answer": "Canlı takip aracını son kontrol saatiyle birlikte incele. Silver veya Gold yalnızca resmi bilet mağazasında satışa sunulduklarında satın alınabilir."
         }
       ]
     },
