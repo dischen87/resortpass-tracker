@@ -45,8 +45,16 @@ function coerce(value: unknown): PassSnapshot {
   if (!value || typeof value !== 'object') return { state: 'unknown', lastCheck: null };
   const record = value as { state?: unknown; lastCheck?: unknown };
   const state = record.state === 'available' || record.state === 'sold_out' ? record.state : 'unknown';
-  const lastCheck = typeof record.lastCheck === 'string' ? record.lastCheck : null;
+  const lastCheck = normalizeCheckTimestamp(record.lastCheck);
   return { state, lastCheck };
+}
+
+/** SQLite timestamps from our API are UTC even when no offset is included. */
+export function normalizeCheckTimestamp(value: unknown): string | null {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  const normalized = value.trim().replace(' ', 'T');
+  const timestamp = new Date(/[zZ]|[+-]\d\d:\d\d$/.test(normalized) ? normalized : `${normalized}Z`);
+  return Number.isNaN(timestamp.getTime()) ? null : timestamp.toISOString();
 }
 
 let cached: Promise<StatusSnapshot> | null = null;

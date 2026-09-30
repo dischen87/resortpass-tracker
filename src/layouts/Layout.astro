@@ -12,6 +12,7 @@ import {
 import { getTranslation } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
 import { buildEntityGraph } from '../data/entity-graph';
+import MobileDock from '../components/MobileDock.astro';
 
 interface Props {
   title?: string;
@@ -51,6 +52,7 @@ const alternateLinks = noindex ? [] : resolvedRoute.alternates;
 const xDefaultPath = noindex ? undefined : resolvedRoute.xDefaultPath;
 const rssLang = lang;
 const skipLinkLabel = Astro.props.skipLinkLabel || tr('nav.skip');
+const showMobileDock = !noindex && Boolean(resolvedRoute.routeKey) && !['imprint', 'methodology'].includes(resolvedRoute.routeKey!);
 
 /*
  * Entity anchors on every page.
@@ -138,9 +140,10 @@ const entityGraph = buildEntityGraph(lang, methodologyPath);
     set:html={JSON.stringify({ '@context': 'https://schema.org', '@graph': entityGraph })}
   />
 </head>
-<body class="min-h-screen bg-bg text-text-primary antialiased">
+<body class:list={['min-h-screen bg-bg text-text-primary antialiased', { 'has-mobile-dock': showMobileDock }]}>
   <a class="skip-link" href="#main-content">{skipLinkLabel}</a>
   <div class="top-bar"></div>
   <slot />
+  {showMobileDock && <MobileDock lang={lang} routeKey={resolvedRoute.routeKey} />}
 </body>
 </html>

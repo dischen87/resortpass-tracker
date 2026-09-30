@@ -9,8 +9,8 @@ import HistorySection from './HistorySection.astro';
 import NewsSection from './NewsSection.astro';
 import CommunitySection from './CommunitySection.astro';
 import PlanningTeaser from './PlanningTeaser.astro';
+import JourneySection from './JourneySection.astro';
 import Footer from './Footer.astro';
-import ResponsiveIllustration from './ResponsiveIllustration.astro';
 import '../styles/global.css';
 import { getTranslation, type Lang } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
@@ -68,12 +68,6 @@ const clientCopy = {
     <section id="status" class="pt-6 pb-10 md:pt-8 md:pb-16" aria-labelledby="status-heading">
       <div class="section-shell">
         <h2 id="status-heading" class="sr-only">Status</h2>
-        <ResponsiveIllustration
-          baseName="resortpass-status-illustration"
-          alt={tr('meta.og_alt')}
-          class="mx-auto mb-8 max-w-[42rem] md:mb-10"
-          sizes="(max-width: 767px) calc(100vw - 2rem), 42rem"
-        />
         <div class="mx-auto grid max-w-[55rem] grid-cols-1 gap-7 md:grid-cols-2">
           <StatusCard type="silver" lang={lang} />
           <StatusCard type="gold" lang={lang} />
@@ -86,6 +80,7 @@ const clientCopy = {
     </section>
 
     <SubscribeForm lang={lang} />
+    <JourneySection lang={lang} />
     <InfoSection lang={lang} />
     <PlanningTeaser lang={lang} />
     <NewsSection lang={lang} />
@@ -348,7 +343,10 @@ const clientCopy = {
         if (!response.ok) return;
         const data = await response.json();
         const element = document.getElementById('fan-count');
-        if (element && Number.isFinite(data.count)) countUp(element, data.count, (n) => n.toLocaleString(locale));
+        if (element && Number.isFinite(data.count) && data.count >= 0) {
+          document.getElementById('hero-live-count')?.removeAttribute('hidden');
+          countUp(element, data.count, (n) => n.toLocaleString(locale));
+        }
       } catch {}
     }
 
@@ -381,12 +379,14 @@ const clientCopy = {
     const stickyCta = document.getElementById('sticky-cta');
     const subscribeSection = document.getElementById('benachrichtigung');
     const heroCta = document.getElementById('hero-cta');
+    const footer = document.querySelector('footer');
 
     if (stickyCta && subscribeSection && heroCta) {
       let heroVisible = true;
       let subscribeVisible = false;
+      let footerVisible = false;
       const updateSticky = () => {
-        const hide = heroVisible || subscribeVisible;
+        const hide = heroVisible || subscribeVisible || footerVisible;
         stickyCta.toggleAttribute('inert', hide);
         stickyCta.setAttribute('aria-hidden', String(hide));
         stickyCta.classList.toggle('opacity-0', hide);
@@ -398,11 +398,13 @@ const clientCopy = {
         for (const entry of entries) {
           if (entry.target === heroCta) heroVisible = entry.isIntersecting;
           if (entry.target === subscribeSection) subscribeVisible = entry.isIntersecting;
+          if (entry.target === footer) footerVisible = entry.isIntersecting;
         }
         updateSticky();
       }, { threshold: 0.1 });
       observer.observe(heroCta);
       observer.observe(subscribeSection);
+      if (footer) observer.observe(footer);
     }
   </script>
 </Layout>

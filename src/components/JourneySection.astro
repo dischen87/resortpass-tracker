@@ -1,0 +1,40 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { LocaleCode } from '../i18n/locales';
+import { getRoutePath } from '../i18n/routes';
+import { getExperienceCopy } from '../i18n/experience';
+interface Props { lang: LocaleCode; }
+const { lang } = Astro.props;
+const copy = getExperienceCopy(lang);
+const journeys = [
+  { href: '#benachrichtigung', icon: 'tabler:bell-ringing', title: copy.passGoal, text: copy.passHint },
+  { href: getRoutePath('parkGuide', lang)!, icon: 'tabler:map-2', title: copy.visitGoal, text: copy.visitHint },
+  { href: getRoutePath('waitTimes', lang)!, icon: 'tabler:clock-hour-4', title: copy.todayGoal, text: copy.todayHint },
+];
+---
+<section class="journeys" aria-labelledby="journey-title">
+  <div class="section-shell">
+    <h2 id="journey-title" class="section-heading">{copy.journeyTitle}</h2>
+    <p class="journeys__intro">{copy.journeyIntro}</p>
+    <nav class="journeys__grid" aria-label={copy.shortcutLabel}>
+      {journeys.map((journey) => (
+        <a href={journey.href}>
+          <Icon name={journey.icon} class="h-6 w-6 text-accent" aria-hidden="true" />
+          <span><strong>{journey.title}</strong><span>{journey.text}</span></span>
+          <Icon name="tabler:arrow-right" class="h-5 w-5 text-accent rtl:-scale-x-100" aria-hidden="true" />
+        </a>
+      ))}
+    </nav>
+  </div>
+</section>
+<style>
+  .journeys { padding-block: var(--space-section); background: var(--color-bg-light); border-block: 1px solid var(--color-border-light); }
+  .journeys__intro { color: var(--color-text-secondary); margin-block: 0.65rem 1.5rem; max-width: 46rem; }
+  .journeys__grid { display: grid; gap: 1rem; }
+  .journeys__grid a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem; padding: 1.25rem; background: var(--color-surface); border: 2px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--elev-1); }
+  .journeys__grid a:hover { background: var(--color-bg); }
+  .journeys__grid a > span { display: grid; gap: 0.35rem; }
+  .journeys__grid strong { font-family: var(--font-heading); font-size: var(--text-xl); line-height: 1.1; }
+  .journeys__grid span span { color: var(--color-text-secondary); font-size: var(--text-sm); line-height: 1.5; }
+  @media (min-width: 900px) { .journeys__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>

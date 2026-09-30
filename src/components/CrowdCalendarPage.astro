@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from './Navbar.astro';
 import Footer from './Footer.astro';
-import ResponsiveIllustration from './ResponsiveIllustration.astro';
+import LicensedPhoto from './LicensedPhoto.astro';
 import BrandSafeText from './BrandSafeText.astro';
 import { crowdCalendarPaths, type Lang, getTranslation, fillTemplate } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
@@ -153,11 +153,13 @@ const clientCopy = {
               Powered by ParkQueueTimes.com
             </a>
           </div>
-          <ResponsiveIllustration
-            baseName="europa-park-crowd-forecast-illustration"
-            alt={tr('crowd.og_alt')}
+          <LicensedPhoto
+            mediaId="wikimedia-ep-panorama-2023"
+            alt=""
+            lang={lang}
             class="w-full"
-            eager={true}
+            eager
+            aspectRatio="4 / 3"
             sizes="(max-width: 1023px) calc(100vw - 2rem), 28rem"
           />
         </div>

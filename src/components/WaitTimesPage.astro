@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Navbar from './Navbar.astro';
 import Footer from './Footer.astro';
 import BrandSafeText from './BrandSafeText.astro';
+import LicensedPhoto from './LicensedPhoto.astro';
 import { crowdCalendarPaths, type Lang, getTranslation } from '../i18n/translations';
 import { getRoutePath } from '../i18n/routes';
 import { getLocaleDefinition } from '../i18n/locales';
@@ -281,6 +282,7 @@ const clientCopy = {
     <section class="wait-explainer">
       <div class="section-shell section-shell--narrow">
         <h2>{tr('wait.explainer_title')}</h2>
+        <LicensedPhoto mediaId="wikimedia-ep-voltron-2024" alt="" lang={lang} aspectRatio="21 / 9" class="my-6" sizes="(max-width: 767px) calc(100vw - 2rem), 52rem" />
         <div class="wait-explainer__grid">
           <article class="glass-card p-6">
             <h3>{tr('wait.explainer_live_title')}</h3>

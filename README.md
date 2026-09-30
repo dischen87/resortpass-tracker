@@ -19,6 +19,9 @@ Der Europa-Park ResortPass ist derzeit ausverkauft; ein neuer Verkaufstermin ist
 - **Verlauf und Feed** — reale Prüfungen, tägliche Zusammenfassungen und RSS
 - **Planungswissen in 17 Sprachen** — Deutsch, Englisch, Französisch, Italienisch, Niederländisch, Spanisch, Schwedisch, Rumänisch, Tschechisch, Polnisch, Türkisch, Dänisch, Griechisch, Portugiesisch, Norwegisch, Hebräisch und Ungarisch
 - **Interaktive Reiseplanung** — Besuchsdauer, Kosten, Familienattraktionen, Rulantica, Unterkunft, Restaurants und ResortPass-Entscheidung
+- **Kalenderexport** — optionaler Reisebeginn und lokale `.ics`-Datei für den empfohlenen Reiseplan, ohne Kalenderkonto oder Datenweitergabe
+- **Mobile Schnellnavigation** — direkter Wechsel zwischen ResortPass, Wartezeiten, Prognose und Planung; Abstand passt sich der tatsächlichen Navigationshöhe an
+- **Lizenzierte Fotografie** — sieben verwendete Wikimedia-Motive mit responsiven WebP-Fassungen, sichtbaren Credits und Bearbeitungsangaben in allen 17 Sprachen
 - **Saubere Suchmaschinen-Signale** — lokalisierte Canonicals und `hreflang`, strukturierte Daten, Sitemap sowie `llms.txt`/`llms-full.txt`
 - **Kein Nutzer-Tracking** — keine Tracking-Cookies, kein Analytics, keine Werbung; technische Server-Logs sind in der Datenschutzerklärung beschrieben
 - **Community** — moderierte Tipps von bestätigten Abonnenten
@@ -153,7 +156,9 @@ bun run verify:seo
 
 Alle Kernseiten, Planungsratgeber, Formulare, E-Mail-Aktionen und Navigationsziele sind in den 17 veröffentlichten Sprachen verfügbar: Deutsch, Französisch, Italienisch, Englisch, Niederländisch, Spanisch, Schwedisch, Rumänisch, Tschechisch, Polnisch, Türkisch, Dänisch, Griechisch, Portugiesisch, Norwegisch (Bokmål), Hebräisch und Ungarisch.
 
-Fakten mit Ablaufdatum liegen zentral mit Quelle, Prüfdatum und nächstem Review-Termin. Das redaktionell eingesetzte Europa-Park-Panorama stammt aus Wikimedia Commons; Autor, Lizenz, Bearbeitung und Lizenzlink werden direkt am Bild sowie als strukturierte Daten ausgegeben. Ein geprüftes Rulantica-Motiv wird wegen erkennbarer Badegäste und Minderjähriger bewusst nicht als redaktionelles Leitbild verwendet.
+Fakten mit Ablaufdatum liegen zentral mit Quelle, Prüfdatum und nächstem Review-Termin. Die redaktionellen Fotos stammen aus Wikimedia Commons und stehen unter CC BY-SA 4.0. Autor, Lizenz, Bearbeitung und Lizenzlink stehen sichtbar am Bild; Leitbilder erscheinen zusätzlich in strukturierten Daten. Die geprüften lokalen Zuschnitte und responsive Bildmaße sind im Medienregister dokumentiert. Das Foto der Rulantica-Eingangshalle zeigt historische Halloween-Dekoration vom Oktober 2022 und ist entsprechend beschriftet. Ein weiteres geprüftes Rulantica-Motiv bleibt wegen erkennbarer Badegäste und Minderjähriger als Leitbild ausgeschlossen.
+
+Die [UX-/Designanalyse](audit-2026-09-30/README.md), [Fotodokumentation](docs/licensed-photos-2026-09-30.md) und [Integrationsanalyse](docs/integrations-2026-09-30.md) dokumentieren Änderungen, Bildrechte, Prüfnachweise und die priorisierten Möglichkeiten für ChatGPT/Codex. Neue Event-Tasks, Plugin-Verbindungen und MCP-Ereignisabos sind darin Vorschläge und wurden nicht automatisch aktiviert.
 
 ---
 

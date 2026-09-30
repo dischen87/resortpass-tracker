@@ -1,5 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
+import { getExperienceCopy } from '../../i18n/experience';
+import type { LocaleCode } from '../../i18n/locales';
 
 export interface VisitPlannerCopy {
   eyebrow: string;
@@ -60,12 +62,14 @@ interface Props {
   copy: VisitPlannerCopy;
   forecastPath?: string;
   toolId?: string;
+  lang?: LocaleCode;
 }
 
-const { copy, forecastPath, toolId = 'visit-planner' } = Astro.props;
+const { copy, forecastPath, toolId = 'visit-planner', lang = 'de' } = Astro.props;
+const experience = getExperienceCopy(lang);
 ---
 
-<section class="planner-card" id={toolId} aria-labelledby={`${toolId}-title`}>
+<section class="planner-card" id={toolId} aria-labelledby={`${toolId}-title`} data-planner-copy={JSON.stringify(copy)} data-experience-copy={JSON.stringify(experience)}>
   <div class="planner-card__head">
     <span class="section-kicker">{copy.eyebrow}</span>
     <h2 id={`${toolId}-title`} class="section-heading mt-2">{copy.title}</h2>
@@ -74,6 +78,11 @@ const { copy, forecastPath, toolId = 'visit-planner' } = Astro.props;
 
   <form class="planner-form" data-visit-planner>
     <div class="planner-form__grid">
+      <label class="planner-field">
+        <span>{copy.dateLabel}</span>
+        <input name="visit-date" type="date" min="0001-01-01" max="9999-12-31" aria-describedby={`${toolId}-calendar-help ${toolId}-calendar-status`} />
+      </label>
+
       <label class="planner-field">
         <span>{copy.daysLabel}</span>
         <select name="days">
@@ -119,6 +128,7 @@ const { copy, forecastPath, toolId = 'visit-planner' } = Astro.props;
         </span>
       </label>
     </div>
+    <p class="mt-3 text-xs leading-relaxed text-muted" id={`${toolId}-calendar-help`}>{experience.calendarHelp}</p>
 
     <button class="btn-primary mt-6 w-full sm:w-auto" type="submit">
       <Icon name="tabler:route" class="h-5 w-5" aria-hidden="true" />
@@ -132,8 +142,8 @@ const { copy, forecastPath, toolId = 'visit-planner' } = Astro.props;
       <span class="planner-result__icon" aria-hidden="true"><Icon name="tabler:map-2" class="h-7 w-7" /></span>
       <div>
         <p class="font-mono text-xs font-bold uppercase tracking-wider text-accent">{copy.resultTitle}</p>
-        <h3 class="mt-1 text-2xl font-extrabold" data-result-heading aria-live="polite" aria-atomic="true">{copy.resultLead}</h3>
-        <p class="mt-1 text-sm text-text-secondary"><span data-result-days>2</span> {copy.resultDays}</p>
+        <h3 class="mt-1 text-2xl font-extrabold" data-result-heading>{copy.resultLead}</h3>
+        <p class="mt-1 text-sm text-text-secondary" aria-live="polite" aria-atomic="true"><span data-result-days>2</span> {copy.resultDays}</p>
       </div>
     </div>
 
@@ -150,6 +160,15 @@ const { copy, forecastPath, toolId = 'visit-planner' } = Astro.props;
       <li data-note="arrival">{copy.notes.early}</li>
     </ul>
 
+    <div class="planner-calendar" data-planner-calendar hidden>
+      <button class="planner-calendar__button" type="button" data-calendar-download>
+        <Icon name="tabler:calendar-plus" class="h-5 w-5" aria-hidden="true" />
+        {experience.calendarButton}
+      </button>
+      <p class="mt-2 text-xs leading-relaxed text-muted">{experience.calendarDisclaimer}</p>
+      <p class="mt-2 text-sm font-bold text-accent" id={`${toolId}-calendar-status`} data-calendar-status aria-live="polite" aria-atomic="true"></p>
+    </div>
+
     <div class="mt-5 flex flex-col gap-3 border-t-2 border-border-light pt-5 sm:flex-row sm:items-center sm:justify-between">
       <p class="max-w-2xl text-xs leading-relaxed text-muted">{copy.disclaimer}</p>
       {forecastPath && (
@@ -162,65 +181,144 @@ const { copy, forecastPath, toolId = 'visit-planner' } = Astro.props;
   </div>
 </section>
 
-<script is:inline define:vars={{ copy, toolId }}>
-  const root = document.getElementById(toolId);
-  const form = root?.querySelector('[data-visit-planner]');
-  const result = root?.querySelector('[data-planner-result]');
-  const heading = root?.querySelector('[data-result-heading]');
-  const daysValue = root?.querySelector('[data-result-days]');
-  const routeList = root?.querySelector('[data-route-list]');
-  const notesList = root?.querySelector('[data-planner-notes]');
+<script>
+  import type { VisitPlannerLocaleCopy } from '../../content/planning-types';
+  import type { ExperienceCopy } from '../../i18n/experience';
+  import { createVisitCalendar, getRecommendedVisitDays } from '../../lib/visit-calendar';
 
-  const render = () => {
-    if (!(form instanceof HTMLFormElement) || !result || !routeList || !notesList) return;
-    const data = new FormData(form);
-    const group = String(data.get('group') || 'balanced');
-    const arrival = String(data.get('arrival') || 'opening');
-    const crowd = String(data.get('crowd') || 'medium');
-    const includesRulantica = data.get('rulantica') === 'on';
-    let days = Number(data.get('days') || 2);
+  for (const root of document.querySelectorAll<HTMLElement>('[data-planner-copy]')) {
+    const copy = JSON.parse(root.dataset.plannerCopy || '{}') as VisitPlannerLocaleCopy;
+    const experience = JSON.parse(root.dataset.experienceCopy || '{}') as ExperienceCopy;
+    const form = root?.querySelector('[data-visit-planner]');
+    const result = root?.querySelector('[data-planner-result]');
+    const heading = root?.querySelector('[data-result-heading]');
+    const daysValue = root?.querySelector('[data-result-days]');
+    const routeList = root?.querySelector('[data-route-list]');
+    const notesList = root?.querySelector('[data-planner-notes]');
+    const calendar = root.querySelector<HTMLElement>('[data-planner-calendar]');
+    const calendarButton = root.querySelector<HTMLButtonElement>('[data-calendar-download]');
+    const calendarStatus = root.querySelector<HTMLElement>('[data-calendar-status]');
+    const dateInput = root.querySelector<HTMLInputElement>('input[name="visit-date"]');
+    let downloadUrl: string | undefined;
+    let cleanupTimer: number | undefined;
 
-    if ((crowd === 'high' || arrival === 'late') && days === 1) days = 2;
-    if (includesRulantica && days < 2) days = 2;
-    if (includesRulantica && crowd === 'high' && days < 3) days = 3;
+    const render = (scroll = true) => {
+      if (!(form instanceof HTMLFormElement) || !result || !routeList || !notesList) return;
+      const data = new FormData(form);
+      const selectedGroup = String(data.get('group') || 'balanced');
+      const group: keyof VisitPlannerLocaleCopy['routes'] =
+        ['family', 'thrill', 'shows'].includes(selectedGroup) ? selectedGroup as 'family' | 'thrill' | 'shows' : 'balanced';
+      const arrival = String(data.get('arrival') || 'opening');
+      const crowd = String(data.get('crowd') || 'medium');
+      const includesRulantica = data.get('rulantica') === 'on';
+      const days = getRecommendedVisitDays(Number(data.get('days') || 2), crowd, arrival, includesRulantica);
 
-    const route = copy.routes[group] || copy.routes.balanced;
-    const timeLabels = [copy.morning, copy.midday, copy.afternoon, copy.evening];
-    const routeItems = route.map((item, index) => {
-      const article = document.createElement('article');
-      article.className = 'planner-route__item';
-      const time = document.createElement('span');
-      time.className = 'planner-route__time';
-      time.textContent = timeLabels[index];
-      const text = document.createElement('p');
-      text.textContent = item;
-      article.append(time, text);
-      return article;
+      const route = copy.routes[group] || copy.routes.balanced;
+      const timeLabels = [copy.morning, copy.midday, copy.afternoon, copy.evening];
+      const routeItems = route.map((item, index) => {
+        const article = document.createElement('article');
+        article.className = 'planner-route__item';
+        const time = document.createElement('span');
+        time.className = 'planner-route__time';
+        time.textContent = timeLabels[index];
+        const text = document.createElement('p');
+        text.textContent = item;
+        article.append(time, text);
+        return article;
+      });
+      routeList.replaceChildren(...routeItems);
+
+      const notes = [];
+      notes.push(arrival === 'late' ? copy.notes.late : copy.notes.early);
+      if (crowd === 'high') notes.push(copy.notes.busy);
+      if (includesRulantica) notes.push(copy.notes.rulantica);
+      if (group === 'family') notes.push(copy.notes.family);
+      if (group === 'thrill') notes.push(copy.notes.thrill);
+      if (group === 'shows') notes.push(copy.notes.shows);
+      notesList.replaceChildren(...notes.map((note) => {
+        const item = document.createElement('li');
+        item.textContent = note;
+        return item;
+      }));
+
+      if (heading) heading.textContent = copy.resultLead;
+      if (daysValue) daysValue.textContent = String(days);
+      if (scroll) result.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
+      return { days, includesRulantica, route, timeLabels, notes };
+    };
+
+    form?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (calendarStatus) calendarStatus.textContent = '';
+      render();
     });
-    routeList.replaceChildren(...routeItems);
 
-    const notes = [];
-    notes.push(arrival === 'late' ? copy.notes.late : copy.notes.early);
-    if (crowd === 'high') notes.push(copy.notes.busy);
-    if (includesRulantica) notes.push(copy.notes.rulantica);
-    if (group === 'family') notes.push(copy.notes.family);
-    if (group === 'thrill') notes.push(copy.notes.thrill);
-    if (group === 'shows') notes.push(copy.notes.shows);
-    notesList.replaceChildren(...notes.map((note) => {
-      const item = document.createElement('li');
-      item.textContent = note;
-      return item;
-    }));
+    const releaseDownload = () => {
+      if (cleanupTimer !== undefined) window.clearTimeout(cleanupTimer);
+      if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+      downloadUrl = undefined;
+      cleanupTimer = undefined;
+    };
 
-    if (heading) heading.textContent = copy.resultLead;
-    if (daysValue) daysValue.textContent = String(days);
-    result.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
-  };
+    calendarButton?.addEventListener('click', () => {
+      if (!dateInput || !calendarStatus) return;
+      if (!dateInput.value || !dateInput.validity.valid) {
+        calendarStatus.textContent = experience.calendarDateRequired;
+        dateInput.setAttribute('aria-invalid', 'true');
+        dateInput.focus();
+        return;
+      }
+      const plan = render(false);
+      if (!plan) return;
+      const description = [
+        `${copy.resultTitle}: ${plan.days} ${copy.resultDays}`,
+        ...plan.route.map((item, index) => `${plan.timeLabels[index]}: ${item}`),
+        '',
+        ...plan.notes,
+        '',
+        copy.disclaimer,
+        experience.calendarDisclaimer,
+      ].join('\n');
+      const plannerUrl = new URL(window.location.pathname, window.location.origin);
+      plannerUrl.hash = root.id;
+      let file: string;
+      try {
+        file = createVisitCalendar({
+          date: dateInput.value,
+          days: plan.days,
+          summary: `${experience.calendarTripTitle}${plan.includesRulantica ? ' + Rulantica' : ''}`,
+          description,
+          url: plannerUrl.href,
+          uid: `${crypto.randomUUID()}@resortpass-tracker`,
+          location: plan.includesRulantica ? 'Europa-Park & Rulantica, Rust' : 'Europa-Park, Rust',
+        });
+      } catch {
+        calendarStatus.textContent = experience.calendarDateRequired;
+        dateInput.setAttribute('aria-invalid', 'true');
+        dateInput.focus();
+        return;
+      }
+      releaseDownload();
+      downloadUrl = URL.createObjectURL(new Blob([file], { type: 'text/calendar;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `europa-park-${dateInput.value}.ics`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      dateInput.removeAttribute('aria-invalid');
+      calendarStatus.textContent = experience.calendarStatus;
+      // Allow the browser to consume the Blob before releasing it; also clean up on page exit.
+      cleanupTimer = window.setTimeout(releaseDownload, 30_000);
+    });
 
-  form?.addEventListener('submit', (event) => {
-    event.preventDefault();
-    render();
-  });
+    form?.addEventListener('input', () => {
+      if (calendarStatus) calendarStatus.textContent = '';
+      dateInput?.removeAttribute('aria-invalid');
+    });
+    if (calendar) calendar.hidden = false;
+    window.addEventListener('pagehide', releaseDownload);
+  }
 </script>
 
 <style>
@@ -370,6 +468,45 @@ const { copy, forecastPath, toolId = 'visit-planner' } = Astro.props;
     content: '✓';
     color: var(--color-available);
     font-weight: 900;
+  }
+
+  .planner-calendar {
+    margin-top: 1.5rem;
+    border-top: 2px solid var(--color-border-light);
+    padding-top: 1.25rem;
+  }
+
+  .planner-calendar__button {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    border: 2px solid var(--color-border);
+    border-radius: 0.8rem;
+    background: white;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .planner-calendar__button:hover {
+    background: var(--color-bg-light);
+  }
+
+  .planner-calendar__button:focus-visible,
+  .planner-field input:focus-visible,
+  .planner-field select:focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 41.99rem) {
+    .planner-calendar__button {
+      width: 100%;
+    }
   }
 
   @media (min-width: 42rem) {

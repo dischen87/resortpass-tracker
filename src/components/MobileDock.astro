@@ -1,0 +1,75 @@
+---
+import { Icon } from 'astro-icon/components';
+import { getTranslation } from '../i18n/translations';
+import { getPlanningPack } from '../content/planning';
+import { getRoutePath, type RouteKey } from '../i18n/routes';
+import type { LocaleCode } from '../i18n/locales';
+
+interface Props { lang: LocaleCode; routeKey?: RouteKey; }
+const { lang, routeKey } = Astro.props;
+const tr = (key: string) => getTranslation(lang, key);
+const pack = getPlanningPack(lang);
+const items = [
+  { route: 'home' as const, label: 'ResortPass', icon: 'tabler:ticket', active: routeKey === 'home' || routeKey?.startsWith('resortPass') },
+  { route: 'waitTimes' as const, label: tr('nav.wait_short'), icon: 'tabler:clock-hour-4', active: routeKey === 'waitTimes' },
+  { route: 'crowdCalendar' as const, label: tr('nav.crowd_short'), icon: 'tabler:calendar-stats', active: routeKey === 'crowdCalendar' || routeKey === 'openingHours' },
+  { route: 'parkGuide' as const, label: pack.common.plannerLabel, icon: 'tabler:map-2', active: Boolean(routeKey && !routeKey.startsWith('resortPass') && ['parkGuide', 'visitPlanner', 'costCalculator', 'familyGuide', 'rulanticaGuide', 'stayGuide', 'restaurantGuide'].includes(routeKey)) },
+];
+---
+
+<nav class="mobile-dock" aria-label={tr('hero.explore_label')}>
+  {items.map((item) => (
+    <a href={getRoutePath(item.route, lang)} class:list={{ 'is-active': item.active }} aria-current={routeKey === item.route ? 'page' : undefined}>
+      <Icon name={item.icon} class="h-5 w-5" aria-hidden="true" />
+      <span>{item.label}</span>
+    </a>
+  ))}
+</nav>
+
+<script>
+  const dock = document.querySelector<HTMLElement>('.mobile-dock');
+  const syncDockHeight = () => {
+    if (dock) document.documentElement.style.setProperty('--mobile-dock-height', `${Math.ceil(dock.getBoundingClientRect().height)}px`);
+  };
+  if (dock) {
+    new ResizeObserver(syncDockHeight).observe(dock);
+    syncDockHeight();
+  }
+</script>
+
+<style>
+  .mobile-dock { display: none; }
+  @media (max-width: 767px) {
+    .mobile-dock {
+      position: fixed;
+      z-index: 55;
+      inset-inline: 0;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.25rem;
+      padding: 0.4rem max(0.5rem, env(safe-area-inset-right)) calc(0.4rem + env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
+      border-top: 2px solid var(--color-border-light);
+      background: var(--color-surface);
+      box-shadow: 0 -4px 20px rgb(46 16 101 / 7%);
+    }
+    .mobile-dock a {
+      display: flex;
+      min-height: 3.5rem;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.2rem;
+      padding: 0.25rem;
+      border-radius: var(--radius-md);
+      text-align: center;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+      color: var(--color-text-secondary);
+    }
+    .mobile-dock a.is-active { color: var(--color-accent-dark); background: var(--color-bg-light); }
+    .mobile-dock a:focus-visible { outline-offset: -3px; }
+  }
+</style>
