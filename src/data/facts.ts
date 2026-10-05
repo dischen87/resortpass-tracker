@@ -146,8 +146,8 @@ export const centralFacts = [
     validUntil: "2026-11-01",
     sourceUrl:
       "https://www.europapark.de/de/uebernachten/uebernachtungsmoeglichkeiten/erlebnishotels/vorteile-fuer-hotelgaeste",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-10-01",
+    checkedAt: "2026-10-06",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -160,16 +160,16 @@ export const centralFacts = [
     value: "09:00",
     unit: "local_time_Europe_Berlin",
     qualifier: "exact",
-    validFrom: "2026-03-28",
-    validUntil: "2027-03-19",
+    validFrom: null,
+    validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/uebernachten/uebernachtungsmoeglichkeiten/erlebnishotels/vorteile-fuer-hotelgaeste",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-10-01",
+    checkedAt: "2026-10-06",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
-      "Gilt nur mit gültiger Eintrittskarte. Für Abend- und Moonlight-Tickets gelten eigene Einlasszeiten.",
+      "Gilt nur mit gültiger Eintrittskarte. Für Abend- und Moonlight-Tickets gelten eigene Einlasszeiten. Die Quelle nennt für den regulären Hotelgäste-Früheintritt keine festen Gültigkeitsdaten.",
   },
   {
     id: "hotel-resort-shuttle",
@@ -182,8 +182,8 @@ export const centralFacts = [
     validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/uebernachten/uebernachtungsmoeglichkeiten/erlebnishotels/vorteile-fuer-hotelgaeste",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-10-01",
+    checkedAt: "2026-10-06",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -196,16 +196,16 @@ export const centralFacts = [
     value: "09:30",
     unit: "local_time_Europe_Berlin",
     qualifier: "exact",
-    validFrom: "2026-03-28",
-    validUntil: "2027-03-19",
+    validFrom: null,
+    validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/rulantica/infos/planen-sie-ihren-besuch/rulantica-oeffnungszeiten",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-10-01",
+    checkedAt: "2026-10-06",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
-      "Revisionsphasen, Weihnachtspause, Sonderveranstaltungen und abweichende Tageszeiten müssen zusätzlich geprüft werden.",
+      "Revisionsphasen, Weihnachtspause, Sonderveranstaltungen und abweichende Tageszeiten müssen zusätzlich geprüft werden. Die Quelle nennt für die Standardöffnungszeiten kein festes Gültigkeitsfenster; die Preisgültigkeit ist davon getrennt.",
   },
   {
     id: "rulantica-standard-closing-time",
@@ -214,16 +214,16 @@ export const centralFacts = [
     value: "22:00",
     unit: "local_time_Europe_Berlin",
     qualifier: "exact",
-    validFrom: "2026-03-28",
-    validUntil: "2027-03-19",
+    validFrom: null,
+    validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/rulantica/infos/planen-sie-ihren-besuch/rulantica-oeffnungszeiten",
-    checkedAt: CHECKED_AT,
-    nextReviewAt: "2026-10-01",
+    checkedAt: "2026-10-06",
+    nextReviewAt: "2026-11-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
-      "Revisionsphasen, Weihnachtspause, Sonderveranstaltungen und abweichende Tageszeiten müssen zusätzlich geprüft werden.",
+      "Revisionsphasen, Weihnachtspause, Sonderveranstaltungen und abweichende Tageszeiten müssen zusätzlich geprüft werden. Die Quelle nennt für die Standardöffnungszeiten kein festes Gültigkeitsfenster; die Preisgültigkeit ist davon getrennt.",
   },
   {
     id: "rulantica-outdoor-area-size",
