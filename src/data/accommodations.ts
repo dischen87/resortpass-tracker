@@ -74,7 +74,7 @@ export const accommodationComparisonTypes = [
     },
     verifiedFactIds: [
       "europa-park-themed-hotels",
-      "hotel-guests-europa-park-early-entry-2026",
+      "hotel-guests-europa-park-early-entry-hallowinter-2026",
       "hotel-guests-rulantica-early-entry",
       "hotel-resort-shuttle",
     ],

@@ -211,7 +211,7 @@ export const plCoreTranslations: Record<string, string> = {
   'info.section_title': 'Najważniejsze odpowiedzi o ResortPassie',
   'info.section_desc': 'Aktualny stan według oficjalnych stron ResortPassu i udokumentowanej dostępności w sklepie z biletami.',
   'info.what_title': 'Czym jest ResortPass?',
-  'info.what_text': 'ResortPass to oficjalny, imienny karnet roczny Europa-Parku. Jest ważny przez rok od pierwszej wizyty. Wymagana jest rezerwacja konkretnej daty; jednocześnie można mieć do pięciu rezerwacji do Europa-Parku.',
+  'info.what_text': 'ResortPass to oficjalny, imienny karnet roczny Europa-Parku. Jest ważny przez rok od daty rozpoczęcia ważności wybranej przy zakupie, która musi przypadać w ciągu 14 dni od zakupu. Wymagana jest rezerwacja konkretnej daty; jednocześnie można mieć do pięciu rezerwacji do Europa-Parku.',
   'info.why_title': 'Czy ResortPass jest teraz dostępny?',
   'info.why_text': 'Nie. Europa-Park obecnie oznacza Silver i Gold jako wyprzedane lub niedostępne do odwołania. Nie podano oficjalnej daty kolejnej sprzedaży.',
   'info.how_title': 'Jak działa ten tracker?',

@@ -211,7 +211,7 @@ export const csCoreTranslations: Record<string, string> = {
   'info.section_title': 'Nejdůležitější odpovědi o ResortPassu',
   'info.section_desc': 'Aktuální stav podle oficiálních stránek ResortPassu a zdokumentované dostupnosti v obchodě s vstupenkami.',
   'info.what_title': 'Co je ResortPass?',
-  'info.what_text': 'ResortPass je oficiální roční vstupenka Europa-Parku vystavená na jméno. Platí jeden rok od první návštěvy. Je nutná rezervace konkrétního data; současně lze mít až pět rezervací do Europa-Parku.',
+  'info.what_text': 'ResortPass je oficiální roční vstupenka Europa-Parku vystavená na jméno. Platí jeden rok od data začátku platnosti zvoleného při nákupu, které musí být do 14 dnů od nákupu. Je nutná rezervace konkrétního data; současně lze mít až pět rezervací do Europa-Parku.',
   'info.why_title': 'Je ResortPass nyní dostupný?',
   'info.why_text': 'Ne. Europa-Park nyní uvádí Silver a Gold jako vyprodané nebo do odvolání nedostupné. Oficiální datum dalšího prodeje nebylo oznámeno.',
   'info.how_title': 'Jak tento tracker funguje?',

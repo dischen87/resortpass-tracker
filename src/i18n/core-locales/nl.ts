@@ -211,7 +211,7 @@ export const nlCoreTranslations: Record<string, string> = {
   'info.section_title': 'De belangrijkste antwoorden over de ResortPass',
   'info.section_desc': 'De actuele stand volgens de officiële ResortPass-pagina’s en de vastgelegde beschikbaarheid in de ticketshop.',
   'info.what_title': 'Wat is de ResortPass?',
-  'info.what_text': 'De ResortPass is de officiële, persoonsgebonden jaarkaart van Europa-Park. De pas is één jaar geldig vanaf het eerste bezoek. Een reservering op datum is vereist; je kunt maximaal vijf actieve reserveringen voor Europa-Park tegelijk hebben.',
+  'info.what_text': 'De ResortPass is de officiële, persoonsgebonden jaarkaart van Europa-Park. De pas is één jaar geldig vanaf de bij aankoop gekozen startdatum, die binnen 14 dagen na aankoop moet liggen. Een reservering op datum is vereist; je kunt maximaal vijf actieve reserveringen voor Europa-Park tegelijk hebben.',
   'info.why_title': 'Is de ResortPass nu verkrijgbaar?',
   'info.why_text': 'Nee. Europa-Park vermeldt Silver en Gold momenteel als uitverkocht of tot nader order niet verkrijgbaar. Er is geen officiële datum voor de volgende verkoop aangekondigd.',
   'info.how_title': 'Hoe werkt deze tracker?',

@@ -211,7 +211,7 @@ export const esCoreTranslations: Record<string, string> = {
   'info.section_title': 'Respuestas esenciales sobre el ResortPass',
   'info.section_desc': 'La situación actual según las páginas oficiales del ResortPass y la disponibilidad documentada en la tienda de entradas.',
   'info.what_title': '¿Qué es el ResortPass?',
-  'info.what_text': 'El ResortPass es el pase anual oficial y nominativo de Europa-Park. Es válido durante un año desde la primera visita. Se necesita una reserva con fecha; puedes tener hasta cinco reservas activas de Europa-Park a la vez.',
+  'info.what_text': 'El ResortPass es el pase anual oficial y nominativo de Europa-Park. Es válido durante un año desde la fecha de inicio elegida al comprar, que debe estar dentro de los 14 días posteriores a la compra. Se necesita una reserva con fecha; puedes tener hasta cinco reservas activas de Europa-Park a la vez.',
   'info.why_title': '¿Está disponible ahora el ResortPass?',
   'info.why_text': 'No. Europa-Park indica actualmente que Silver y Gold están agotados o no disponibles hasta nuevo aviso. No ha anunciado una fecha oficial para la próxima venta.',
   'info.how_title': '¿Cómo funciona este tracker?',

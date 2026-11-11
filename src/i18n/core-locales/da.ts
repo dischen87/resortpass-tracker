@@ -211,7 +211,7 @@ export const daCoreTranslations: Record<string, string> = {
   'info.section_title': 'De vigtigste svar om ResortPass',
   'info.section_desc': 'Den aktuelle status fra de officielle ResortPass-sider og den dokumenterede tilgængelighed i billetshoppen.',
   'info.what_title': 'Hvad er ResortPass?',
-  'info.what_text': 'ResortPass er Europa-Parks officielle, personlige årskort. Det gælder i ét år fra det første besøg. En reservation til en bestemt dato er påkrævet; du kan have op til fem aktive reservationer til Europa-Park ad gangen.',
+  'info.what_text': 'ResortPass er Europa-Parks officielle, personlige årskort. Det gælder i ét år fra den startdato, du vælger ved købet, som skal ligge inden for 14 dage efter købet. En reservation til en bestemt dato er påkrævet; du kan have op til fem aktive reservationer til Europa-Park ad gangen.',
   'info.why_title': 'Er ResortPass tilgængeligt nu?',
   'info.why_text': 'Nej. Europa-Park angiver i øjeblikket Silver og Gold som udsolgt eller utilgængelige indtil videre. Der er ikke annonceret en officiel dato for næste salg.',
   'info.how_title': 'Hvordan fungerer denne tracker?',

@@ -211,7 +211,7 @@ export const huCoreTranslations: Record<string, string> = {
   'info.section_title': 'A legfontosabb válaszok a ResortPass-ról',
   'info.section_desc': 'Az aktuális helyzet a hivatalos ResortPass-oldalak és a jegyüzlet dokumentált elérhetősége alapján.',
   'info.what_title': 'Mi az a ResortPass?',
-  'info.what_text': 'A ResortPass az Europa-Park hivatalos, névre szóló éves bérlete. Az első látogatástól számított egy évig érvényes. Dátumhoz kötött foglalás szükséges; egyszerre legfeljebb öt Europa-Park-foglalás lehet aktív.',
+  'info.what_text': 'A ResortPass az Europa-Park hivatalos, névre szóló éves bérlete. A vásárláskor kiválasztott kezdőnaptól számított egy évig érvényes; a kezdőnapnak a vásárlástól számított 14 napon belül kell lennie. Dátumhoz kötött foglalás szükséges; egyszerre legfeljebb öt Europa-Park-foglalás lehet aktív.',
   'info.why_title': 'Kapható most a ResortPass?',
   'info.why_text': 'Nem. Az Europa-Park jelenleg elfogyottként vagy további értesítésig nem elérhetőként jelöli a Silver és Gold bérleteket. A következő értékesítés hivatalos időpontját nem jelentették be.',
   'info.how_title': 'Hogyan működik ez a tracker?',

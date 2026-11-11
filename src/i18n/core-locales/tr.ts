@@ -211,7 +211,7 @@ export const trCoreTranslations: Record<string, string> = {
   'info.section_title': 'ResortPass hakkında temel yanıtlar',
   'info.section_desc': 'Resmî ResortPass sayfalarına ve belgelenmiş bilet mağazası durumuna göre güncel bilgiler.',
   'info.what_title': 'ResortPass nedir?',
-  'info.what_text': 'ResortPass, Europa-Park’ın resmî ve kişiye özel yıllık kartıdır. İlk ziyaretten itibaren bir yıl geçerlidir. Tarihli rezervasyon gerekir; aynı anda en fazla beş etkin Europa-Park rezervasyonu bulunabilir.',
+  'info.what_text': 'ResortPass, Europa-Park’ın resmî ve kişiye özel yıllık kartıdır. Satın alırken seçilen başlangıç tarihinden itibaren bir yıl geçerlidir; başlangıç tarihi satın alma tarihinden itibaren 14 gün içinde olmalıdır. Tarihli rezervasyon gerekir; aynı anda en fazla beş etkin Europa-Park rezervasyonu bulunabilir.',
   'info.why_title': 'ResortPass şu anda satışta mı?',
   'info.why_text': 'Hayır. Europa-Park şu anda Silver ve Gold’u tükenmiş veya ikinci bir duyuruya kadar satış dışı olarak gösteriyor. Bir sonraki satış için resmî tarih açıklanmadı.',
   'info.how_title': 'Bu takip sistemi nasıl çalışır?',

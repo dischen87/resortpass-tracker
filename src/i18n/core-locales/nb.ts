@@ -211,7 +211,7 @@ export const nbCoreTranslations: Record<string, string> = {
   'info.section_title': 'De viktigste svarene om ResortPass',
   'info.section_desc': 'Aktuell status fra de offisielle ResortPass-sidene og dokumentert tilgjengelighet i billettbutikken.',
   'info.what_title': 'Hva er ResortPass?',
-  'info.what_text': 'ResortPass er Europa-Parks offisielle, personlige årskort. Det er gyldig i ett år fra første besøk. En datofestet reservasjon kreves, og du kan ha opptil fem aktive reservasjoner til Europa-Park samtidig.',
+  'info.what_text': 'ResortPass er Europa-Parks offisielle, personlige årskort. Det er gyldig i ett år fra startdatoen du velger ved kjøpet, som må ligge innen 14 dager etter kjøpet. En datofestet reservasjon kreves, og du kan ha opptil fem aktive reservasjoner til Europa-Park samtidig.',
   'info.why_title': 'Er ResortPass tilgjengelig nå?',
   'info.why_text': 'Nei. Europa-Park oppgir for øyeblikket Silver og Gold som utsolgt eller utilgjengelig inntil videre. Ingen offisiell dato for neste salg er kunngjort.',
   'info.how_title': 'Hvordan fungerer denne trackeren?',

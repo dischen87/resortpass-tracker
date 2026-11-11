@@ -211,7 +211,7 @@ export const heCoreTranslations: Record<string, string> = {
   'info.section_title': 'התשובות החשובות על ResortPass',
   'info.section_desc': 'המצב העדכני לפי העמודים הרשמיים של ResortPass והזמינות המתועדת בחנות הכרטיסים.',
   'info.what_title': 'מהו ResortPass?',
-  'info.what_text': 'ResortPass הוא המנוי השנתי הרשמי והאישי של Europa-Park. תוקפו שנה מהביקור הראשון. נדרשת הזמנה לתאריך מוגדר, ואפשר להחזיק עד חמש הזמנות פעילות ל-Europa-Park במקביל.',
+  'info.what_text': 'ResortPass הוא המנוי השנתי הרשמי והאישי של Europa-Park. תוקפו שנה מתאריך ההתחלה שנבחר בעת הרכישה, אשר חייב לחול בתוך 14 ימים ממועד הרכישה. נדרשת הזמנה לתאריך מוגדר, ואפשר להחזיק עד חמש הזמנות פעילות ל-Europa-Park במקביל.',
   'info.why_title': 'האם ResortPass זמין עכשיו?',
   'info.why_text': 'לא. Europa-Park מציג כעת את Silver ואת Gold כאזלו מהמלאי או כלא זמינים עד להודעה חדשה. לא הוכרז תאריך רשמי למכירה הבאה.',
   'info.how_title': 'איך ה-Tracker הזה פועל?',

@@ -154,6 +154,24 @@ export const centralFacts = [
       "Gilt nur mit gültiger Eintrittskarte; geöffnete Attraktionen und Bedingungen können sich ändern.",
   },
   {
+    id: "hotel-guests-europa-park-early-entry-hallowinter-2026",
+    topic: "resort_accommodation",
+    label: "Früherer Europa-Park-Eintritt für Hotelgäste in HALLOWinter 2026",
+    value: "10:00",
+    unit: "local_time_Europe_Berlin",
+    qualifier: "exact",
+    validFrom: "2026-11-02",
+    validUntil: "2026-11-27",
+    sourceUrl:
+      "https://www.europapark.de/de/uebernachten/uebernachtungsmoeglichkeiten/erlebnishotels/vorteile-fuer-hotelgaeste",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-11-27",
+    sourcePriority: 1,
+    confidence: "confirmed",
+    caveat:
+      "Nur mit gültiger Eintrittskarte und für ausgewählte Attraktionen. Die Quelle nennt 10:00 Uhr für HALLOWinter und Wintersaison; dieses Datumsfenster bildet ausschließlich den ausdrücklich datierten HALLOWinter-Abschnitt ab. Betrieb und Bedingungen für den Besuchstag prüfen.",
+  },
+  {
     id: "hotel-guests-rulantica-early-entry",
     topic: "resort_accommodation",
     label: "Rulantica-Eintritt für Gäste der Erlebnishotels",
@@ -164,8 +182,8 @@ export const centralFacts = [
     validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/uebernachten/uebernachtungsmoeglichkeiten/erlebnishotels/vorteile-fuer-hotelgaeste",
-    checkedAt: "2026-10-06",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -182,8 +200,8 @@ export const centralFacts = [
     validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/uebernachten/uebernachtungsmoeglichkeiten/erlebnishotels/vorteile-fuer-hotelgaeste",
-    checkedAt: "2026-10-06",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -200,12 +218,12 @@ export const centralFacts = [
     validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/rulantica/infos/planen-sie-ihren-besuch/rulantica-oeffnungszeiten",
-    checkedAt: "2026-10-06",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
-      "Revisionsphasen, Weihnachtspause, Sonderveranstaltungen und abweichende Tageszeiten müssen zusätzlich geprüft werden. Die Quelle nennt für die Standardöffnungszeiten kein festes Gültigkeitsfenster; die Preisgültigkeit ist davon getrennt.",
+      "Reguläre Zeit mit Ausnahmen: geschlossen vom 16. bis 27.11.2026 und am 24./25.12.2026; am 31.12.2026 nur bis 19:00 Uhr geöffnet. Weitere Sonderzeiten vor dem Besuch prüfen. Die Quelle nennt für die Standardöffnungszeiten kein festes Gültigkeitsfenster; die Preisgültigkeit ist davon getrennt.",
   },
   {
     id: "rulantica-standard-closing-time",
@@ -218,12 +236,12 @@ export const centralFacts = [
     validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/rulantica/infos/planen-sie-ihren-besuch/rulantica-oeffnungszeiten",
-    checkedAt: "2026-10-06",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
-      "Revisionsphasen, Weihnachtspause, Sonderveranstaltungen und abweichende Tageszeiten müssen zusätzlich geprüft werden. Die Quelle nennt für die Standardöffnungszeiten kein festes Gültigkeitsfenster; die Preisgültigkeit ist davon getrennt.",
+      "Reguläre Zeit mit Ausnahmen: geschlossen vom 16. bis 27.11.2026 und am 24./25.12.2026; am 31.12.2026 nur bis 19:00 Uhr geöffnet. Weitere Sonderzeiten vor dem Besuch prüfen. Die Quelle nennt für die Standardöffnungszeiten kein festes Gültigkeitsfenster; die Preisgültigkeit ist davon getrennt.",
   },
   {
     id: "rulantica-outdoor-area-size",
@@ -325,8 +343,8 @@ export const centralFacts = [
     validUntil: "2027-01-09",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -343,8 +361,8 @@ export const centralFacts = [
     validUntil: "2027-01-09",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -361,8 +379,8 @@ export const centralFacts = [
     validUntil: "2027-01-09",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -379,8 +397,8 @@ export const centralFacts = [
     validUntil: "2027-01-09",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
@@ -393,16 +411,16 @@ export const centralFacts = [
     value: 10,
     unit: "EUR_per_parking_day",
     qualifier: "exact",
-    validFrom: "2026-03-28",
+    validFrom: null,
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/infos/planen-sie-ihren-besuch/anreise-zum-europa-park",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
-      "Gilt für das reguläre Parkticket laut aktueller Betreiberseite; reserviertes Parken und Sonderfälle haben eigene Preise.",
+      "Reguläres Parkticket; reserviertes Parken und Sonderfälle haben eigene Preise. Die Quelle kündigt ab 20.03.2027 einen Preis von 12 EUR pro Tag an; dieser ersetzt nicht den hier erfassten Preis bis 19.03.2027. Ein Beginn des bisherigen Preises wird nicht genannt.",
   },
   {
     id: "rulantica-day-adult-price-range-2026",
@@ -415,8 +433,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/rulantica/tickets-angebote/tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Datumsabhängiger Onlinepreis; Tageskontingent und konkrete Einlasszeit prüfen.",
@@ -432,8 +450,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/rulantica/tickets-angebote/tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Datumsabhängiger Onlinepreis; Kleinkinder von 0–3 Jahren sind separat ausgewiesen.",
@@ -449,8 +467,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/rulantica/tickets-angebote/tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Regulärer Einlass ab 17:00 Uhr; Sonderöffnungszeiten vor dem Besuch prüfen.",
@@ -466,8 +484,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/rulantica/tickets-angebote/tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Regulärer Einlass ab 17:00 Uhr; Sonderöffnungszeiten vor dem Besuch prüfen.",
@@ -483,8 +501,8 @@ export const centralFacts = [
     validUntil: "2027-03-19",
     sourceUrl:
       "https://www.europapark.de/de/rulantica/tickets-angebote/tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat: "Regulärer Einlass ab 19:00 Uhr; Sonderöffnungszeiten vor dem Besuch prüfen.",
@@ -496,15 +514,15 @@ export const centralFacts = [
     value: 325,
     unit: "EUR",
     qualifier: "exact",
-    validFrom: "2026-03-28",
-    validUntil: "2027-03-19",
+    validFrom: null,
+    validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
-    caveat: "Der Pass wird am Prüftag als nicht verfügbar geführt.",
+    caveat: "Veröffentlichter Preis für Erwachsene ab 12 Jahren ohne feste Preisgültigkeitsdaten. Die aktuelle Kaufbarkeit muss im Live-Tracker und im offiziellen Ticketshop geprüft werden.",
   },
   {
     id: "resortpass-silver-reduced-price-2026",
@@ -513,15 +531,15 @@ export const centralFacts = [
     value: 275,
     unit: "EUR",
     qualifier: "exact",
-    validFrom: "2026-03-28",
-    validUntil: "2027-03-19",
+    validFrom: null,
+    validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
-    caveat: "Altersgrenzen und Nachweise laut Betreiberseite prüfen; am Prüftag nicht verfügbar.",
+    caveat: "Veröffentlichter Preis für Kinder von 4 bis 11 Jahren und Senioren ab 60 ohne feste Preisgültigkeitsdaten; Nachweise prüfen. Die aktuelle Kaufbarkeit muss im Live-Tracker und im offiziellen Ticketshop geprüft werden.",
   },
   {
     id: "resortpass-gold-adult-price-2026",
@@ -530,15 +548,15 @@ export const centralFacts = [
     value: 495,
     unit: "EUR",
     qualifier: "exact",
-    validFrom: "2026-03-28",
-    validUntil: "2027-03-19",
+    validFrom: null,
+    validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
-    caveat: "Der Pass wird am Prüftag als nicht verfügbar geführt.",
+    caveat: "Veröffentlichter Preis für Erwachsene ab 12 Jahren ohne feste Preisgültigkeitsdaten. Die aktuelle Kaufbarkeit muss im Live-Tracker und im offiziellen Ticketshop geprüft werden.",
   },
   {
     id: "resortpass-gold-reduced-price-2026",
@@ -547,15 +565,15 @@ export const centralFacts = [
     value: 430,
     unit: "EUR",
     qualifier: "exact",
-    validFrom: "2026-03-28",
-    validUntil: "2027-03-19",
+    validFrom: null,
+    validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
-    caveat: "Altersgrenzen und Nachweise laut Betreiberseite prüfen; am Prüftag nicht verfügbar.",
+    caveat: "Veröffentlichter Preis für Kinder von 4 bis 11 Jahren und Senioren ab 60 ohne feste Preisgültigkeitsdaten; Nachweise prüfen. Die aktuelle Kaufbarkeit muss im Live-Tracker und im offiziellen Ticketshop geprüft werden.",
   },
   {
     id: "resortpass-validity-period",
@@ -567,8 +585,8 @@ export const centralFacts = [
     validFrom: null,
     validUntil: null,
     sourceUrl: "https://www.europapark.de/de/resortpass/faq",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed_with_qualifier",
     caveat:
@@ -577,24 +595,24 @@ export const centralFacts = [
   {
     id: "resortpass-simultaneous-europa-park-reservations",
     topic: "europa_park",
-    label: "Gleichzeitig mögliche Europa-Park-Reservierungen je ResortPass",
+    label: "Gleichzeitig mögliche Europa-Park-Portalreservierungen je ResortPass",
     value: 5,
     unit: "reservations",
     qualifier: "exact",
     validFrom: null,
     validUntil: null,
     sourceUrl: "https://www.europapark.de/de/resortpass/faq",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed",
     caveat:
-      "Nur im Rahmen der allgemeinen Verfügbarkeit und an für die jeweilige Passvariante freigeschalteten Tagen; ungenutzte Termine müssen storniert werden.",
+      "Portalreservierungen unterliegen Kontingenten und Passbedingungen; ungenutzte Termine stornieren. Bei qualifizierenden Resortübernachtungen werden Europa-Park-Tage mit hinterlegter ResortPass-ID über die Übernachtungsbuchung reserviert. In Gold enthaltene Rulantica-Besuche müssen auch dann separat im ResortPass-Portal gebucht werden.",
   },
   {
     id: "resortpass-silver-predefined-opening-days",
     topic: "europa_park",
-    label: "ResortPass Silver gilt an vorab definierten Öffnungstagen",
+    label: "ResortPass Silver gilt für Tagesgäste an vorab definierten Öffnungstagen",
     value: true,
     unit: "condition",
     qualifier: "exact",
@@ -602,12 +620,12 @@ export const centralFacts = [
     validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/freizeitpark/europa-park-tickets-angebote",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed_with_qualifier",
     caveat:
-      "Die aktuelle Liste der zulässigen Tage und die Reservierungsverfügbarkeit müssen im ResortPass-Portal geprüft werden; keine feste Anzahl aus älteren Leistungsständen ableiten.",
+      "Regel für Tagesgäste: zulässige Tage und Kontingente im ResortPass-Portal prüfen. Für Übernachtungen in Erlebnishotels oder der Silver Lake City gelten laut ResortPass-FAQ zusätzliche Besuchstage einschließlich An- und Abreise auch an Ausschlusstagen; Passgültigkeit und Buchungsbedingungen beachten. Keine feste Tageszahl aus älteren Leistungsständen ableiten.",
   },
   {
     id: "resortpass-gold-all-opening-days",
@@ -620,12 +638,12 @@ export const centralFacts = [
     validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/resortpass/europa-park-resortpass",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed_with_qualifier",
     caveat:
-      "Auch Gold-Besuche müssen vorab reserviert werden und bleiben von Tageskontingent, gültigem Pass und aktuellen Vertragsbedingungen abhängig.",
+      "Europa-Park-Besuche benötigen eine Reservierung und einen gültigen Pass. Diese erfolgt regulär im Portal oder bei qualifizierender Resortübernachtung über die Buchung mit hinterlegter ResortPass-ID. Tageskontingente und Vertragsbedingungen beachten; die Hotelregel ersetzt keine Rulantica-Reservierung.",
   },
   {
     id: "resortpass-gold-rulantica-day-tickets",
@@ -638,11 +656,11 @@ export const centralFacts = [
     validUntil: null,
     sourceUrl:
       "https://www.europapark.de/de/resortpass/europa-park-resortpass",
-    checkedAt: "2026-09-30",
-    nextReviewAt: "2026-11-01",
+    checkedAt: "2026-11-11",
+    nextReviewAt: "2026-12-01",
     sourcePriority: 1,
     confidence: "confirmed_with_qualifier",
     caveat:
-      "Die beiden Besuche müssen separat im ResortPass-Portal reserviert werden; Kontingente und aktuelle Bedingungen gelten.",
+      "Die beiden persönlichen Besuche sind nur innerhalb der Passgültigkeit nutzbar und müssen separat im ResortPass-Portal reserviert werden, auch für Übernachtungsgäste. Kontingente und aktuelle Bedingungen gelten.",
   },
 ] as const satisfies readonly SourcedFact[];

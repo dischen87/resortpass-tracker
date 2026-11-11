@@ -211,7 +211,7 @@ export const roCoreTranslations: Record<string, string> = {
   'info.section_title': 'Răspunsuri esențiale despre ResortPass',
   'info.section_desc': 'Situația actuală conform paginilor oficiale ResortPass și disponibilității documentate în magazinul de bilete.',
   'info.what_title': 'Ce este ResortPass?',
-  'info.what_text': 'ResortPass este abonamentul anual oficial Europa-Park, emis pe numele titularului. Este valabil un an de la prima vizită. Este necesară o rezervare cu dată; pot fi active simultan până la cinci rezervări pentru Europa-Park.',
+  'info.what_text': 'ResortPass este abonamentul anual oficial Europa-Park, emis pe numele titularului. Este valabil un an de la data de început aleasă la cumpărare, care trebuie să fie în intervalul de 14 zile de la cumpărare. Este necesară o rezervare cu dată; pot fi active simultan până la cinci rezervări pentru Europa-Park.',
   'info.why_title': 'Este ResortPass disponibil acum?',
   'info.why_text': 'Nu. Europa-Park afișează momentan Silver și Gold ca epuizate sau indisponibile până la noi informații. Nu a fost anunțată o dată oficială pentru următoarea vânzare.',
   'info.how_title': 'Cum funcționează acest tracker?',

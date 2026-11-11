@@ -29,8 +29,8 @@ const ROUTE_LAST_MODIFIED: Record<string, string> = {
   waitTimes: '2026-08-01',
   // New in this release.
   methodology: '2026-08-01',
-  // Carries the availability answer, which is re-rendered on every deploy.
-  home: '2026-08-01',
+  // Corrected the sourced ResortPass start-date explanation in all locales.
+  home: '2026-11-11',
 };
 
 export function lastModifiedFor(routeKey: string): string {

@@ -211,7 +211,7 @@ export const svCoreTranslations: Record<string, string> = {
   'info.section_title': 'De viktigaste svaren om ResortPass',
   'info.section_desc': 'Aktuell information från de officiella ResortPass-sidorna och dokumenterad tillgänglighet i biljettbutiken.',
   'info.what_title': 'Vad är ResortPass?',
-  'info.what_text': 'ResortPass är Europa-Parks officiella, personliga årskort. Det gäller i ett år från det första besöket. En daterad bokning krävs; upp till fem bokningar för Europa-Park kan vara aktiva samtidigt.',
+  'info.what_text': 'ResortPass är Europa-Parks officiella, personliga årskort. Det gäller i ett år från det startdatum du väljer vid köpet, vilket måste ligga inom 14 dagar efter köpet. En daterad bokning krävs; upp till fem bokningar för Europa-Park kan vara aktiva samtidigt.',
   'info.why_title': 'Är ResortPass tillgängligt nu?',
   'info.why_text': 'Nej. Europa-Park anger just nu Silver och Gold som slutsålda eller otillgängliga tills vidare. Inget officiellt datum för nästa försäljning har meddelats.',
   'info.how_title': 'Hur fungerar den här bevakningen?',
